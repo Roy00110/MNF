@@ -7,146 +7,135 @@
   <title>Random Chat</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-rose-100 font-sans">
 
   <!-- Login Form -->
-  <!-- Login Form -->
-<div id="login" class="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 px-4">
-  <div class="backdrop-blur-md bg-white/30 shadow-2xl border border-white/20 p-8 rounded-3xl w-full max-w-md text-white">
-    <h2 class="text-4xl font-bold mb-6 text-center drop-shadow-sm">Random chat</h2>
+  <div id="login" class="flex items-center justify-center min-h-screen bg-gradient-to-br from-pink-400 via-rose-400 to-red-300 px-4">
+    <div class="backdrop-blur-md bg-white/30 shadow-2xl border border-white/20 p-8 rounded-3xl w-full max-w-md text-white">
+      <h2 class="text-4xl font-bold mb-6 text-center drop-shadow-sm">Random chat</h2>
 
-    <!-- Name Input -->
-    <div class="mb-4 relative">
-      <input id="name" type="text" placeholder="Your Name" class="w-full pl-12 pr-4 py-3 bg-white/20 text-white placeholder-white border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-white transition" />
-      <span class="absolute left-4 top-3.5 text-white text-lg">👤</span>
+      <!-- Name Input -->
+      <div class="mb-4 relative">
+        <input id="name" type="text" placeholder="Your Name" class="w-full pl-12 pr-4 py-3 bg-white/20 text-white placeholder-white border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-white transition" />
+        <span class="absolute left-4 top-3.5 text-white text-lg">👤</span>
+      </div>
+
+      <!-- Age Input -->
+      <div class="mb-4 relative">
+        <input id="age" type="number" placeholder="Your Age" class="w-full pl-12 pr-4 py-3 bg-white/20 text-white placeholder-white border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-white transition" />
+        <span class="absolute left-4 top-3.5 text-white text-lg">🎂</span>
+      </div>
+
+      <!-- Gender Selection -->
+      <div class="mb-4 relative">
+        <select id="gender" class="w-full pl-12 pr-4 py-3 bg-white/20 text-white border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-white transition">
+          <option value="">Select Gender</option>
+          <option value="male" class="text-black">Male</option>
+          <option value="female" class="text-black">Female</option>
+        </select>
+        <span class="absolute left-4 top-3.5 text-white text-lg">⚧️</span>
+      </div>
+
+      <!-- Photo Upload -->
+      <div class="mb-6">
+        <input id="photo" type="file" accept="image/*" class="w-full py-2 text-white file:bg-white/20 file:text-white file:border-none file:rounded-lg file:px-4 file:py-2" />
+      </div>
+
+      <!-- Login Button -->
+      <button onclick="login()" class="bg-white text-pink-600 font-semibold px-6 py-3 rounded-xl w-full text-lg shadow-md hover:bg-rose-100 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-white">
+        🚀 Login Now
+      </button>
+
+      <!-- OR Divider -->
+      <p class="text-center text-white my-4">or</p>
+
+      <!-- Google Sign-In Button -->
+      <a href="https://www.febspot.com/auth/google/?ref=725136" target="_blank"
+         class="flex items-center justify-center gap-2 bg-white text-gray-800 font-medium px-6 py-3 rounded-xl w-full text-lg shadow-md hover:bg-rose-100 transition-all duration-300 ease-in-out transform hover:scale-105">
+        <img src="data:image/png;base64,..." alt="Google" class="w-6 h-6" />
+        Sign in with Google
+      </a>
+
     </div>
-
-    <!-- Age Input -->
-    <div class="mb-4 relative">
-      <input id="age" type="number" placeholder="Your Age" class="w-full pl-12 pr-4 py-3 bg-white/20 text-white placeholder-white border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-white transition" />
-      <span class="absolute left-4 top-3.5 text-white text-lg">🎂</span>
-    </div>
-
-    <!-- Gender Selection -->
-    <div class="mb-4 relative">
-      <select id="gender" class="w-full pl-12 pr-4 py-3 bg-white/20 text-white border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-white transition">
-        <option value="">Select Gender</option>
-        <option value="male" class="text-black">Male</option>
-        <option value="female" class="text-black">Female</option>
-      </select>
-      <span class="absolute left-4 top-3.5 text-white text-lg">⚧️</span>
-    </div>
-
-    <!-- Photo Upload -->
-    <div class="mb-6">
-      <input id="photo" type="file" accept="image/*" class="w-full py-2 text-white file:bg-white/20 file:text-white file:border-none file:rounded-lg file:px-4 file:py-2" />
-    </div>
-
-    <!-- Login Button -->
-    <button onclick="login()" class="bg-white text-indigo-600 font-semibold px-6 py-3 rounded-xl w-full text-lg shadow-md hover:bg-gray-100 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-white">
-      🚀 Login Now
-    </button>
-
-    <!-- OR Divider -->
-    <p class="text-center text-white my-4">or</p>
-
-    <!-- Google Sign-In Button -->
-    <a href="https://www.febspot.com/auth/google/?ref=725136" target="_blank"
-       class="flex items-center justify-center gap-2 bg-white text-gray-800 font-medium px-6 py-3 rounded-xl w-full text-lg shadow-md hover:bg-gray-100 transition-all duration-300 ease-in-out transform hover:scale-105">
-      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAvVBMVEVHcEz8/f3////////+/v7s7u/6+vr5+vr5+vr9/f3////////5+vr////////Kzs/////////9/v74+fn4+fn////8vwbsTkJFiPPrQjI7q1gpp00yqVPrSTlAhfX9/f2hv/nwgHj2tLGt2bkqe/Q2gPV+qPd7woza5f2WuPns8v5ZtnHD48n92Yj80Wn+6sD4yMXtZ13znpn8xSnwuh3v6+WIwbFwoPb0qKPpKxT1mx7AtydjuXgcpjNCk8nTYqeQAAAAFXRSTlMA5d2fnApdnVLJpWJiowsJZNGXl5g9ng+vAAABP0lEQVQokY2S2XqCMBCFQVGWulRbkIRABASK0FZtq3Z9/8fqZCDK0oueCzJf/sxhJhlF+Z/G1kJVF9a4T2ZD+6LhrM1u7ZZumsyyO5pe2RQ3+O4Qhoddbd32jHzigwiJms4jTAvJqtb7GekIoSbC0F+tCNnvCSFhZawhRE/I84UfP4eyKMEMEXxA3lunYqN2fXZe/ajbjvA1YX10HIeLjXyNyrcQmwAHsD45zgue3gSozQPEgx50UYmELdtTmqYngNJ2WRVEY1nIOnATsS5lK5+MenUr28ANUtmKIvxij1KGuaUbuFgPxxvSxd4Xo9TzisLz2E+SS1e4eCylgFzK4Aj7PuJLVBevTPBfMSQxBp+qsol8UK167DLLsmNZlaVfR0Hv3muDwVjyJuKd8ZzrF8z1eX90jXtTVc07o0/+1C9hwDM1yvfWEgAAAABJRU5ErkJggg==" alt="Google" class="w-6 h-6" />
-      Sign in with Google
-    </a>
-
   </div>
-</div>
-
-
-
 
   <!-- Main App -->
-  <div id="app" class="hidden h-screen flex flex-col bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white">
+  <div id="app" class="hidden h-screen flex flex-col bg-gradient-to-br from-pink-400 via-rose-400 to-red-300 text-white">
 
-  <!-- User Panel -->
-  <div id="user-panel" class="flex-1 flex flex-col backdrop-blur-md">
+    <!-- User Panel -->
+    <div id="user-panel" class="flex-1 flex flex-col backdrop-blur-md">
 
-    <!-- Header -->
-    <div class="bg-white/30 backdrop-blur-md shadow-md p-4 flex items-center justify-between rounded-b-lg border border-white/20">
-      <div class="space-x-2">
-        <button onclick="filterUsers('all')" class="text-white font-medium hover:underline">🌐 All</button>
-        <button onclick="filterUsers('male')" class="text-white font-medium hover:underline">👨‍🦱 Male</button>
-        <button onclick="filterUsers('female')" class="text-white font-medium hover:underline">👩 Female</button>
-        <button onclick="showInbox()" class="ml-4 text-green-200 font-semibold hover:underline">📥 Inbox</button>
-        <button onclick="showPublicChat()" class="ml-4 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full shadow-lg hover:scale-105 transform transition duration-300 hover:shadow-xl">
-  💬Group Chat
-</button>
-
+      <!-- Header -->
+      <div class="bg-rose-200/30 backdrop-blur-md shadow-md p-4 flex items-center justify-between rounded-b-lg border border-white/20">
+        <div class="space-x-2">
+          <button onclick="filterUsers('all')" class="text-white font-medium hover:underline">🌐 All</button>
+          <button onclick="filterUsers('male')" class="text-white font-medium hover:underline">👨‍🦱 Male</button>
+          <button onclick="filterUsers('female')" class="text-white font-medium hover:underline">👩 Female</button>
+          <button onclick="showInbox()" class="ml-4 text-green-200 font-semibold hover:underline">📥 Inbox</button>
+          <button onclick="showPublicChat()" class="ml-4 px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold rounded-full shadow-lg hover:scale-105 transform transition duration-300 hover:shadow-xl">
+            💬Group Chat
+          </button>
+        </div>
+        <div class="flex items-center gap-3">
+          <img id="user-photo" class="w-9 h-9 rounded-full border border-white shadow-sm object-cover" />
+          <span id="user-name" class="text-white font-semibold"></span>
+        </div>
       </div>
+
+      <!-- User List -->
+      <div id="user-list" class="flex-1 p-4 overflow-y-auto bg-white/20 backdrop-blur-md border border-white/20 rounded-lg mt-2 space-y-3">
+        <!-- Users added dynamically -->
+      </div>
+    </div>
+
+    <!-- Chat Body -->
+    <div id="chat-body" class="hidden absolute inset-0 flex flex-col bg-rose-200/30 backdrop-blur-md rounded-lg shadow-lg overflow-hidden border border-white/20">
+
+      <!-- Chat Header -->
+      <div class="flex items-center justify-between bg-rose-200/30 backdrop-blur-md p-4 border-b border-white/20 shadow-sm">
+        <div class="flex items-center gap-3">
+          <img id="chat-user-photo" class="w-10 h-10 rounded-full object-cover border" />
+          <span id="chat-user-name" class="font-semibold text-lg text-white drop-shadow-sm"></span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="text-green-100 font-semibold border border-green-200 px-4 py-1 rounded-lg hover:bg-white/10 transition"
+            onclick="window.open('https://www.profitableratecpm.com/v319aefeg?key=0ce6624d83e1671e216ff045d2967167', '_blank')">
+            🎥 Video Call
+          </button>
+          <button onclick="closeChat()" class="text-red-300 text-xl font-bold">&times;</button>
+        </div>
+      </div>
+
+      <!-- Chat Messages -->
+      <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-white"></div>
+
+      <!-- Chat Input -->
+      <div class="p-4 border-t border-white/20 bg-rose-200/20 backdrop-blur-md flex gap-3 items-center">
+        <input id="message-input" type="text" placeholder="Type a message..." class="flex-1 bg-white/10 text-white placeholder-white border border-white/30 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-white" />
+        <input id="image-input" type="file" accept="image/*" class="hidden" />
+        <button onclick="document.getElementById('image-input').click()" class="text-white text-2xl">📷</button>
+        <button onclick="sendThenShowPrivateAd()" class="bg-white text-pink-600 font-semibold px-5 py-2 rounded-lg hover:bg-rose-100 transition">Send</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Public Chat Body -->
+  <div id="public-chat-body" class="hidden absolute inset-0 flex flex-col bg-rose-200/30 backdrop-blur-md rounded-lg shadow-lg overflow-hidden border border-white/20">
+    <div class="flex items-center justify-between bg-rose-200/30 backdrop-blur-md p-4 border-b border-white/20 shadow-sm">
       <div class="flex items-center gap-3">
-        <img id="user-photo" class="w-9 h-9 rounded-full border border-white shadow-sm object-cover" />
-        <span id="user-name" class="text-white font-semibold"></span>
+        <span class="font-semibold text-xl text-white drop-shadow-sm">🌍 Public Chat</span>
       </div>
+      <button onclick="closePublicChat()" class="text-red-300 text-xl font-bold">&times;</button>
     </div>
 
-    <!-- User List -->
-    <div id="user-list" class="flex-1 p-4 overflow-y-auto bg-white/20 backdrop-blur-md border border-white/20 rounded-lg mt-2 space-y-3">
-      <!-- Users added dynamically -->
+    <div id="public-chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-white"></div>
+
+    <div class="p-4 border-t border-white/20 bg-rose-200/20 backdrop-blur-md flex gap-3 items-center">
+      <input id="public-message-input" type="text" placeholder="Type a public message..." class="flex-1 bg-white/10 text-white placeholder-white border border-white/30 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-white" />
+      <button onclick="sendThenShowPublicAd()" class="bg-white text-pink-600 font-semibold px-5 py-2 rounded-lg hover:bg-rose-100 transition">Send</button>
     </div>
   </div>
-
-  <!-- Chat Body -->
-  <div id="chat-body" class="hidden absolute inset-0 flex flex-col bg-white/30 backdrop-blur-md rounded-lg shadow-lg overflow-hidden border border-white/20">
-
-    <!-- Chat Header -->
-    <div class="flex items-center justify-between bg-white/30 backdrop-blur-md p-4 border-b border-white/20 shadow-sm">
-      <div class="flex items-center gap-3">
-        <img id="chat-user-photo" class="w-10 h-10 rounded-full object-cover border" />
-        <span id="chat-user-name" class="font-semibold text-lg text-white drop-shadow-sm"></span>
-      </div>
-      <div class="flex items-center gap-2">
-        <button class="text-green-100 font-semibold border border-green-200 px-4 py-1 rounded-lg hover:bg-white/10 transition"
-        onclick="window.open('https://www.profitableratecpm.com/v319aefeg?key=0ce6624d83e1671e216ff045d2967167', '_blank')">
-  🎥 Video Call
-</button>
-
-        <button onclick="closeChat()" class="text-red-300 text-xl font-bold">&times;</button>
-      </div>
-    </div>
-
-    <!-- Chat Messages -->
-    <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-white"></div>
-
-    <!-- Chat Input -->
-    <div class="p-4 border-t border-white/20 bg-white/20 backdrop-blur-md flex gap-3 items-center">
-      <input id="message-input" type="text" placeholder="Type a message..." class="flex-1 bg-white/10 text-white placeholder-white border border-white/30 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-white" />
-      <input id="image-input" type="file" accept="image/*" class="hidden" />
-      <button onclick="document.getElementById('image-input').click()" class="text-white text-2xl">📷</button>
-      <button onclick="sendThenShowPrivateAd()" class="bg-white text-indigo-600 font-semibold px-5 py-2 rounded-lg hover:bg-gray-100 transition">Send</button>
-    </div>
-  </div>
-
-</div>
-<!-- Public Chat Body -->
-<div id="public-chat-body" class="hidden absolute inset-0 flex flex-col bg-white/30 backdrop-blur-md rounded-lg shadow-lg overflow-hidden border border-white/20">
-
-  <!-- Header -->
-  <div class="flex items-center justify-between bg-white/30 backdrop-blur-md p-4 border-b border-white/20 shadow-sm">
-    <div class="flex items-center gap-3">
-      <span class="font-semibold text-xl text-white drop-shadow-sm">🌍 Public Chat</span>
-    </div>
-    <button onclick="closePublicChat()" class="text-red-300 text-xl font-bold">&times;</button>
-  </div>
-
-  <!-- Messages -->
-  <div id="public-chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-white">
-    <!-- Public messages will be appended here -->
-  </div>
-
-  <!-- Input -->
-  <div class="p-4 border-t border-white/20 bg-white/20 backdrop-blur-md flex gap-3 items-center">
-    <input id="public-message-input" type="text" placeholder="Type a public message..." class="flex-1 bg-white/10 text-white placeholder-white border border-white/30 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-white" />
-    <button onclick="sendThenShowPublicAd()" class="bg-white text-indigo-600 font-semibold px-5 py-2 rounded-lg hover:bg-gray-100 transition">Send</button>
-  </div>
-</div>
 
 
 

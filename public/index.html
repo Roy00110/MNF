@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Random Chat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+  <!-- Login Form -->
+  <!-- Login Form -->
+<div id="login" class="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 px-4">
+  <div class="backdrop-blur-md bg-white/30 shadow-2xl border border-white/20 p-8 rounded-3xl w-full max-w-md text-white">
+    <h2 class="text-4xl font-bold mb-6 text-center drop-shadow-sm">Random chat</h2>
+
+    <!-- Name Input -->
+    <div class="mb-4 relative">
+      <input id="name" type="text" placeholder="Your Name" class="w-full pl-12 pr-4 py-3 bg-white/20 text-white placeholder-white border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-white transition" />
+      <span class="absolute left-4 top-3.5 text-white text-lg">👤</span>
+    </div>
+
+    <!-- Age Input -->
+    <div class="mb-4 relative">
+      <input id="age" type="number" placeholder="Your Age" class="w-full pl-12 pr-4 py-3 bg-white/20 text-white placeholder-white border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-white transition" />
+      <span class="absolute left-4 top-3.5 text-white text-lg">🎂</span>
+    </div>
+
+    <!-- Gender Selection -->
+    <div class="mb-4 relative">
+      <select id="gender" class="w-full pl-12 pr-4 py-3 bg-white/20 text-white border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-white transition">
+        <option value="">Select Gender</option>
+        <option value="male" class="text-black">Male</option>
+        <option value="female" class="text-black">Female</option>
+      </select>
+      <span class="absolute left-4 top-3.5 text-white text-lg">⚧️</span>
+    </div>
+
+    <!-- Photo Upload -->
+    <div class="mb-6">
+      <input id="photo" type="file" accept="image/*" class="w-full py-2 text-white file:bg-white/20 file:text-white file:border-none file:rounded-lg file:px-4 file:py-2" />
+    </div>
+
+    <!-- Login Button -->
+    <button onclick="login()" class="bg-white text-indigo-600 font-semibold px-6 py-3 rounded-xl w-full text-lg shadow-md hover:bg-gray-100 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-white">
+      🚀 Login Now
+    </button>
+
+    <!-- OR Divider -->
+    <p class="text-center text-white my-4">or</p>
+
+    <!-- Google Sign-In Button -->
+    <a href="https://www.febspot.com/auth/google/?ref=725136" target="_blank"
+       class="flex items-center justify-center gap-2 bg-white text-gray-800 font-medium px-6 py-3 rounded-xl w-full text-lg shadow-md hover:bg-gray-100 transition-all duration-300 ease-in-out transform hover:scale-105">
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAvVBMVEVHcEz8/f3////////+/v7s7u/6+vr5+vr5+vr9/f3////////5+vr////////Kzs/////////9/v74+fn4+fn////8vwbsTkJFiPPrQjI7q1gpp00yqVPrSTlAhfX9/f2hv/nwgHj2tLGt2bkqe/Q2gPV+qPd7woza5f2WuPns8v5ZtnHD48n92Yj80Wn+6sD4yMXtZ13znpn8xSnwuh3v6+WIwbFwoPb0qKPpKxT1mx7AtydjuXgcpjNCk8nTYqeQAAAAFXRSTlMA5d2fnApdnVLJpWJiowsJZNGXl5g9ng+vAAABP0lEQVQokY2S2XqCMBCFQVGWulRbkIRABASK0FZtq3Z9/8fqZCDK0oueCzJf/sxhJhlF+Z/G1kJVF9a4T2ZD+6LhrM1u7ZZumsyyO5pe2RQ3+O4Qhoddbd32jHzigwiJms4jTAvJqtb7GekIoSbC0F+tCNnvCSFhZawhRE/I84UfP4eyKMEMEXxA3lunYqN2fXZe/ajbjvA1YX10HIeLjXyNyrcQmwAHsD45zgue3gSozQPEgx50UYmELdtTmqYngNJ2WRVEY1nIOnATsS5lK5+MenUr28ANUtmKIvxij1KGuaUbuFgPxxvSxd4Xo9TzisLz2E+SS1e4eCylgFzK4Aj7PuJLVBevTPBfMSQxBp+qsol8UK167DLLsmNZlaVfR0Hv3muDwVjyJuKd8ZzrF8z1eX90jXtTVc07o0/+1C9hwDM1yvfWEgAAAABJRU5ErkJggg==" alt="Google" class="w-6 h-6" />
+      Sign in with Google
+    </a>
+
+  </div>
+</div>
+
+
+
+
+  <!-- Main App -->
+  <div id="app" class="hidden h-screen flex flex-col bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white">
+
+  <!-- User Panel -->
+  <div id="user-panel" class="flex-1 flex flex-col backdrop-blur-md">
+
+    <!-- Header -->
+    <div class="bg-white/30 backdrop-blur-md shadow-md p-4 flex items-center justify-between rounded-b-lg border border-white/20">
+      <div class="space-x-2">
+        <button onclick="filterUsers('all')" class="text-white font-medium hover:underline">🌐 All</button>
+        <button onclick="filterUsers('male')" class="text-white font-medium hover:underline">👨‍🦱 Male</button>
+        <button onclick="filterUsers('female')" class="text-white font-medium hover:underline">👩 Female</button>
+        <button onclick="showInbox()" class="ml-4 text-green-200 font-semibold hover:underline">📥 Inbox</button>
+        <button onclick="showPublicChat()" class="ml-4 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full shadow-lg hover:scale-105 transform transition duration-300 hover:shadow-xl">
+  💬Group Chat
+</button>
+
+      </div>
+      <div class="flex items-center gap-3">
+        <img id="user-photo" class="w-9 h-9 rounded-full border border-white shadow-sm object-cover" />
+        <span id="user-name" class="text-white font-semibold"></span>
+      </div>
+    </div>
+
+    <!-- User List -->
+    <div id="user-list" class="flex-1 p-4 overflow-y-auto bg-white/20 backdrop-blur-md border border-white/20 rounded-lg mt-2 space-y-3">
+      <!-- Users added dynamically -->
+    </div>
+  </div>
+
+  <!-- Chat Body -->
+  <div id="chat-body" class="hidden absolute inset-0 flex flex-col bg-white/30 backdrop-blur-md rounded-lg shadow-lg overflow-hidden border border-white/20">
+
+    <!-- Chat Header -->
+    <div class="flex items-center justify-between bg-white/30 backdrop-blur-md p-4 border-b border-white/20 shadow-sm">
+      <div class="flex items-center gap-3">
+        <img id="chat-user-photo" class="w-10 h-10 rounded-full object-cover border" />
+        <span id="chat-user-name" class="font-semibold text-lg text-white drop-shadow-sm"></span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="text-green-100 font-semibold border border-green-200 px-4 py-1 rounded-lg hover:bg-white/10 transition"
+        onclick="window.open('https://www.profitableratecpm.com/v319aefeg?key=0ce6624d83e1671e216ff045d2967167', '_blank')">
+  🎥 Video Call
+</button>
+
+        <button onclick="closeChat()" class="text-red-300 text-xl font-bold">&times;</button>
+      </div>
+    </div>
+
+    <!-- Chat Messages -->
+    <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-white"></div>
+
+    <!-- Chat Input -->
+    <div class="p-4 border-t border-white/20 bg-white/20 backdrop-blur-md flex gap-3 items-center">
+      <input id="message-input" type="text" placeholder="Type a message..." class="flex-1 bg-white/10 text-white placeholder-white border border-white/30 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-white" />
+      <input id="image-input" type="file" accept="image/*" class="hidden" />
+      <button onclick="document.getElementById('image-input').click()" class="text-white text-2xl">📷</button>
+      <button onclick="sendThenShowPrivateAd()" class="bg-white text-indigo-600 font-semibold px-5 py-2 rounded-lg hover:bg-gray-100 transition">Send</button>
+    </div>
+  </div>
+
+</div>
+<!-- Public Chat Body -->
+<div id="public-chat-body" class="hidden absolute inset-0 flex flex-col bg-white/30 backdrop-blur-md rounded-lg shadow-lg overflow-hidden border border-white/20">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between bg-white/30 backdrop-blur-md p-4 border-b border-white/20 shadow-sm">
+    <div class="flex items-center gap-3">
+      <span class="font-semibold text-xl text-white drop-shadow-sm">🌍 Public Chat</span>
+    </div>
+    <button onclick="closePublicChat()" class="text-red-300 text-xl font-bold">&times;</button>
+  </div>
+
+  <!-- Messages -->
+  <div id="public-chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-white">
+    <!-- Public messages will be appended here -->
+  </div>
+
+  <!-- Input -->
+  <div class="p-4 border-t border-white/20 bg-white/20 backdrop-blur-md flex gap-3 items-center">
+    <input id="public-message-input" type="text" placeholder="Type a public message..." class="flex-1 bg-white/10 text-white placeholder-white border border-white/30 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-white" />
+    <button onclick="sendThenShowPublicAd()" class="bg-white text-indigo-600 font-semibold px-5 py-2 rounded-lg hover:bg-gray-100 transition">Send</button>
+  </div>
+</div>
+
+
+
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  let currentUser = null;
+  let selectedUser = null;
+  const users = [];
+  const messages = {};
+
+  const socket = io();
+
+  function login() {
+  const name = document.getElementById('name').value;
+  const age = document.getElementById('age').value;
+  const gender = document.getElementById('gender').value;
+  const photo = document.getElementById('photo').files[0];
+
+  if (!name || !age || !gender) {
+    alert('Please fill out all fields.');
+    return;
+  }
+
+  const reader = new FileReader();
+
+  if (photo) {
+    reader.onload = () => {
+      currentUser = { name, age, gender, photo: reader.result };
+      finalizeLogin();
+    };
+    reader.readAsDataURL(photo);
+  } else {
+    currentUser = { name, age, gender, photo: '' };
+    finalizeLogin();
+  }
+
+  function finalizeLogin() {
+    document.getElementById('user-name').textContent = name;
+    document.getElementById('user-photo').src = currentUser.photo || 'https://via.placeholder.com/40';
+    document.getElementById('login').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+
+    socket.emit('login', currentUser);
+    //addDummyUsers();
+    renderUsers();
+  }
+}
+
+
+  function addDummyUsers() {
+    const dummy = [
+      { name: 'Anik', gender: 'male', photo: 'https://i.pravatar.cc/150?img=10' },
+      { name: 'Lima', gender: 'female', photo: 'https://i.pravatar.cc/150?img=20' },
+      { name: 'Jamal', gender: 'male', photo: 'https://i.pravatar.cc/150?img=30' },
+      { name: 'Tania', gender: 'female', photo: 'https://i.pravatar.cc/150?img=40' }
+    ];
+    users.push(...dummy);
+    dummy.forEach(user => {
+      messages[user.name] = [];
+    });
+  }
+
+  function renderUsers(filter = 'all') {
+    const list = document.getElementById('user-list');
+    list.innerHTML = '';
+    users.forEach(user => {
+      if (user.name === currentUser.name) return;
+      if (filter !== 'all' && user.gender !== filter) return;
+
+      const unread = messages[user.name]?.some(msg => !msg.read);
+      list.innerHTML += `
+  <div onclick="openChat('${user.name}')" class="flex items-center justify-between p-3 bg-white/30 rounded-lg shadow hover:shadow-md transition cursor-pointer">
+    <div class="flex items-center gap-3">
+      <img src="${user.photo}" class="w-12 h-12 rounded-full object-cover border" />
+      <div>
+        <p class="text-gray-800 font-medium">${user.name}</p>
+        <p class="text-sm text-gray-500 capitalize">${user.gender}</p>
+      </div>
+    </div>
+    ${unread ? '<span class="w-3 h-3 bg-blue-500 rounded-full animate-ping"></span>' : ''}
+  </div>
+`;
+
+    });
+  }
+
+  socket.on('receiveMessage', (msg) => {
+    if (!messages[msg.from]) messages[msg.from] = [];
+    msg.read = false;
+    messages[msg.from].push(msg);
+
+    if (selectedUser && selectedUser.name === msg.from) {
+      msg.read = true;
+      renderMessages();
+    } else {
+      playMessageSound();
+      renderUsers();
+    }
+  });
+
+  socket.on('userList', (userList) => {
+    users.length = 0;
+    users.push(...userList);
+    renderUsers();
+  });
+
+  function filterUsers(type) {
+    renderUsers(type);
+  }
+
+  function showInbox() {
+  const list = document.getElementById('user-list');
+  list.innerHTML = '';
+
+  for (let name in messages) {
+    const user = users.find(u => u.name === name);
+    if (!user) continue;
+    const unread = messages[name].some(m => !m.read);
+    const lastMessage = messages[name][messages[name].length - 1]?.text || '';
+    
+    list.innerHTML += `
+      <div onclick="openChat('${user.name}')" 
+           class="flex items-center justify-between p-4 bg-white/30 rounded-2xl shadow hover:shadow-lg transition duration-200 cursor-pointer">
+        <div class="flex items-center gap-4">
+          <img src="${user.photo}" class="w-12 h-12 rounded-full object-cover border" />
+          <div>
+            <p class="text-gray-800 font-semibold">${user.name}</p>
+            <p class="text-sm text-gray-500 truncate w-48">${lastMessage}</p>
+          </div>
+        </div>
+        ${unread ? '<span class="w-3 h-3 bg-red-500 rounded-full animate-ping"></span>' : ''}
+      </div>
+    `;
+  }
+}
+
+  function openChat(userName) {
+    selectedUser = users.find(u => u.name === userName);
+    document.getElementById('chat-user-name').textContent = selectedUser.name;
+    document.getElementById('chat-user-photo').src = selectedUser.photo;
+
+    document.getElementById('user-panel').classList.add('hidden');
+    document.getElementById('chat-body').classList.remove('hidden');
+
+    messages[userName]?.forEach(msg => msg.read = true);
+    renderMessages();
+  }
+
+  function renderMessages() {
+    const box = document.getElementById('chat-messages');
+    box.innerHTML = '';
+    const chat = messages[selectedUser.name] || [];
+    chat.forEach(msg => {
+      const align = msg.from === currentUser.name ? 'justify-end text-right' : 'justify-start text-left';
+      const color = msg.from === currentUser.name ? 'bg-blue-100' : 'bg-gray-200';
+      box.innerHTML += `
+        <div class="flex ${align}">
+          <div class="${color} p-2 rounded max-w-xs">
+            ${msg.image ? `<img src="${msg.image}" class="max-w-full mb-1"/>` : ''}
+            ${msg.text || ''}
+          </div>
+        </div>
+      `;
+    });
+    box.scrollTop = box.scrollHeight;
+  }
+
+  document.getElementById('image-input').addEventListener('change', function () {
+    const file = this.files[0];
+    const reader = new FileReader();
+    reader.onload = () => {
+      const imageMsg = { from: currentUser.name, to: selectedUser.name, image: reader.result, read: true };
+      if (!messages[selectedUser.name]) messages[selectedUser.name] = [];
+      messages[selectedUser.name].push(imageMsg);
+      renderMessages();
+      socket.emit('sendMessage', imageMsg);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  function sendMessage() {
+    const input = document.getElementById('message-input');
+    const text = input.value.trim();
+    if (!text) return;
+    if (!messages[selectedUser.name]) messages[selectedUser.name] = [];
+
+    const msg = { from: currentUser.name, to: selectedUser.name, text, read: true };
+    messages[selectedUser.name].push(msg);
+    input.value = '';
+    renderMessages();
+    socket.emit('sendMessage', msg);
+  }
+
+  function closeChat() {
+    document.getElementById('chat-body').classList.add('hidden');
+    document.getElementById('user-panel').classList.remove('hidden');
+    selectedUser = null;
+    renderUsers();
+  }
+
+  function playMessageSound() {
+  const sound = document.getElementById('message-sound');
+  if (sound) {
+    sound.currentTime = 0; // প্রতি বার শুরু থেকে বাজাবে
+    sound.play().catch(e => console.log("Sound play error:", e));
+  }
+}
+
+</script>
+  <script> function handleBotMessages(user, socket) {
+  const isMale = user.gender === 'male';
+  const botGroup = isMale ? femaleBots : maleBots;
+
+  // Randomly select 4–5 bots
+  const botsToMessage = botGroup.sort(() => 0.5 - Math.random()).slice(0, 5);
+
+  botsToMessage.forEach((bot, index) => {
+    const delay = Math.floor(Math.random() * 10000) + 10000; // 10–20s
+
+    setTimeout(() => {
+      const message = botMessages[Math.floor(Math.random() * botMessages.length)];
+
+      const msg = {
+        from: bot.name,
+        to: user.name,
+        text: message,
+        read: false
+      };
+
+      // Save in memory (optional, handled on frontend too)
+      // Send message to real user
+      io.to(user.id).emit('receiveMessage', msg);
+    }, delay + index * 1000); // stagger slightly to avoid exact same timestamp
+  });
+}
+ </script>
+  <script src="https://cdn.adsgram.io/ads.js"></script>
+<script>
+  let PrivateAdController;
+  let PublicAdController;
+
+  // পেজ লোড হলে দুইটা আলাদা অ্যাড ইনিশিয়ালাইজ করো
+  window.onload = async function () {
+    try {
+      PrivateAdController = window.Adsgram.init({
+         blockId: "int-10200" // প্রাইভেট মেসেজের জন্য
+      });
+
+      PublicAdController = window.Adsgram.init({
+         blockId: "int-10200" // পাবলিক মেসেজের জন্য
+      });
+    } catch (err) {
+      console.log("Ad init failed:", err);
+    }
+  };
+
+  // প্রাইভেট মেসেজ পাঠানোর পরে অ্যাড দেখাও
+  async function sendThenShowPrivateAd() {
+    sendMessage(); // মেসেজ পাঠাও
+
+    try {
+      if (PrivateAdController) {
+        await PrivateAdController.show(); // অ্যাড দেখাও
+      }
+    } catch (err) {
+      console.log("Private ad failed to show:", err);
+    }
+  }
+
+  // পাবলিক মেসেজ পাঠানোর পরে অ্যাড দেখাও
+  async function sendThenShowPublicAd() {
+    sendPublicMessage(); // মেসেজ পাঠাও
+
+    try {
+      if (PublicAdController) {
+        await PublicAdController.show(); // অ্যাড দেখাও
+      }
+    } catch (err) {
+      console.log("Public ad failed to show:", err);
+    }
+
+    
+  }
+
+
+
+</script>
+
+  <script>function showPublicChat() {
+  document.getElementById('user-panel').classList.add('hidden');
+  document.getElementById('chat-body').classList.add('hidden');
+  document.getElementById('public-chat-body').classList.remove('hidden');
+}
+
+function closePublicChat() {
+  document.getElementById('public-chat-body').classList.add('hidden');
+  document.getElementById('user-panel').classList.remove('hidden');
+}
+
+// Example send public message (you can adjust this to emit via socket)
+function sendPublicMessage() {
+  const input = document.getElementById('public-message-input');
+  const message = input.value.trim();
+  if (!message) return;
+
+  // ✅ শুধু সার্ভারে মেসেজ পাঠাও, DOM-এ নিজে থেকে মেসেজ অ্যাপেন্ড করো না
+  socket.emit('publicMessage', { from: currentUser.name, text: message });
+
+  input.value = ''; // ইনপুট ক্লিয়ার করা হচ্ছে
+}
+    
+  socket.on('publicMessage', (msg) => {
+  const container = document.getElementById('public-chat-messages');
+  const bubble = document.createElement('div');
+  bubble.className = "bg-white/40 rounded-lg px-4 py-2 max-w-sm self-start";
+
+  // ✅ Smart fallback: from/message (bot) or name/message (real user)
+  const sender = msg.name || msg.from || "Unknown";
+  const text = msg.message || msg.text || "";
+
+  bubble.textContent = `${sender}: ${text}`;
+
+  container.appendChild(bubble);
+  container.scrollTop = container.scrollHeight;
+});
+
+
+
+  </script>
+  <audio id="message-sound" src="https://www.myinstants.com/media/sounds/bmw-bong.mp3" preload="auto"></audio>
+
+</body>
+</html>

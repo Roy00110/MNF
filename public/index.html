@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src='//solseewuthi.net/sdk.js' data-zone='9341070' data-sdk='show_9341070'></script>
   <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -381,6 +382,31 @@
     } catch (err) {
       console.log("Ad init failed:", err);
     }
+    
+    // In-App Interstitial 
+
+show_9341070({ 
+  type: 'inApp', 
+  inAppSettings: { 
+    frequency: 2, 
+    capping: 0.1, 
+    interval: 30, 
+    timeout: 60, 
+    everyPage: false 
+  } 
+})
+
+/*
+This value is decoded as follows:
+- show automatically 2 ads
+  within 0.1 hours (6 minutes)
+  with a 30-second interval between them
+  and a 5-second delay before the first one is shown.
+  The last digit, 0, means that the session will be saved when you navigate between pages.
+  If you set the last digit as 1, then at any transition between pages,
+  the session will be reset, and the ads will start again.
+*/
+
   };
 
   // প্রাইভেট মেসেজ পাঠানোর পরে অ্যাড দেখাও

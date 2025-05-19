@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Make friends Global</title>
@@ -109,7 +108,7 @@
         <input id="message-input" type="text" placeholder="Type a message..." class="flex-1 bg-white/10 text-white placeholder-white border border-white/30 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-white" />
         <input id="image-input" type="file" accept="image/*" class="hidden" />
         <button onclick="document.getElementById('image-input').click()" class="text-white text-2xl">📷</button>
-        <button onclick="sendThenShowPrivateAd()" class="bg-white text-pink-600 font-semibold px-5 py-2 rounded-lg hover:bg-rose-100 transition">Send</button>
+        <button onclick="sendMessage()" class="bg-white text-pink-600 font-semibold px-5 py-2 rounded-lg hover:bg-rose-100 transition">Send</button>
       </div>
     </div>
 
@@ -128,7 +127,7 @@
 
     <div class="p-4 border-t border-white/20 bg-rose-200/20 backdrop-blur-md flex gap-3 items-center">
       <input id="public-message-input" type="text" placeholder="Type a public message..." class="flex-1 bg-white/10 text-white placeholder-white border border-white/30 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-white" />
-      <button onclick="sendThenShowPublicAd()" class="bg-white text-pink-600 font-semibold px-5 py-2 rounded-lg hover:bg-rose-100 transition">Send</button>
+      <button onclick="sendPublicMessage()" class="bg-white text-pink-600 font-semibold px-5 py-2 rounded-lg hover:bg-rose-100 transition">Send</button>
     </div>
   </div>
 
@@ -375,7 +374,7 @@
 
   // পেজ লোড হলে দুইটা আলাদা অ্যাড ইনিশিয়ালাইজ করো
   window.onload = async function () {
-    try {
+   /* try {
       PrivateAdController = window.Adsgram.init({
          blockId: "int-10200" // প্রাইভেট মেসেজের জন্য
       });
@@ -385,7 +384,7 @@
       });
     } catch (err) {
       console.log("Ad init failed:", err);
-    }
+    }*/
     
     // In-App Interstitial 
 
@@ -414,7 +413,7 @@ This value is decoded as follows:
   };
 
   // প্রাইভেট মেসেজ পাঠানোর পরে অ্যাড দেখাও
-  async function sendThenShowPrivateAd() {
+  /* async function sendThenShowPrivateAd() {
     sendMessage(); // মেসেজ পাঠাও
 
     try {

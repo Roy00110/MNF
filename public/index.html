@@ -7,6 +7,7 @@
   <title>Make friends Global</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src='//solseewuthi.net/sdk.js' data-zone='9341070' data-sdk='show_9341070'></script>
+  <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
 </head>
 <body class="bg-rose-100 font-sans">
 
@@ -178,6 +179,17 @@
     //addDummyUsers();
     renderUsers();
   }
+    show_9341070({ 
+  type: 'inApp', 
+  inAppSettings: { 
+    frequency: 2, 
+    capping: 0.1, 
+    interval: 30, 
+    timeout: 60, 
+    everyPage: false 
+  } 
+})
+    
 }
 
 
@@ -368,7 +380,6 @@
   });
 }
  </script>
-  <script src="https://cdn.adsgram.io/ads.js"></script>
 <script>
   let PrivateAdController;
   let PublicAdController;
@@ -389,16 +400,7 @@
     
     // In-App Interstitial 
 
-show_9341070({ 
-  type: 'inApp', 
-  inAppSettings: { 
-    frequency: 2, 
-    capping: 0.1, 
-    interval: 30, 
-    timeout: 60, 
-    everyPage: false 
-  } 
-})
+
 
 /*
 This value is decoded as follows:
@@ -495,6 +497,13 @@ s.referrerPolicy = 'no-referrer-when-downgrade';
 l.parentNode.insertBefore(s, l);
 })({})
 </script>
+
+  <script type="text/javascript">
+    aclib.runInterstitial({
+        zoneId: '9959246',
+    });
+</script>
+
   <audio id="message-sound" src="https://www.myinstants.com/media/sounds/bmw-bong.mp3" preload="auto"></audio>
 
 </body>

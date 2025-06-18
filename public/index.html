@@ -44,7 +44,13 @@
       </div>
 
       <!-- Login Button -->
-      <button onclick="login()" class="bg-white text-pink-600 font-semibold px-6 py-3 rounded-xl w-full text-lg shadow-md hover:bg-rose-100 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-white">
+      <button onclick="show_9341070('pop').then(() => { login()
+    // user watch ad till the end or close it in interstitial format
+    // your code to reward user for rewarded format
+}).catch(e => {
+    // user get error during playing ad
+    // do nothing or whatever you want
+})" class="bg-white text-pink-600 font-semibold px-6 py-3 rounded-xl w-full text-lg shadow-md hover:bg-rose-100 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-white">
         🚀 Login Now
       </button>
 

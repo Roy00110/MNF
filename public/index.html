@@ -198,6 +198,7 @@
     everyPage: false 
   } 
 }) 
+    showAdOnLogin();
   
 }
 
@@ -497,7 +498,25 @@ function sendPublicMessage() {
 });
   </script>
 
+<script>
 
+   function showAdOnLogin() {
+    if (window.AdExtra && typeof window.AdExtra.showAd === "function") {
+      window.AdExtra.showAd(); // interstitial/popup
+    } else {
+      // fallback: banner type হলে div এ রিলোড করো
+      const adDiv = document.getElementById("b83f9fc7b9f0a78edc05d9ae26278a61fe9fc2af");
+      if (adDiv) {
+        adDiv.innerHTML = "";
+        let s = document.createElement("script");
+        s.src = "https://partner.adextra.io/jt/b83f9fc7b9f0a78edc05d9ae26278a61fe9fc2af.js";
+        s.async = true;
+        adDiv.appendChild(s);
+      }
+    }
+  }
+  
+</script>   
   <audio id="message-sound" src="https://www.myinstants.com/media/sounds/bmw-bong.mp3" preload="auto"></audio>
 </body>
 </html>

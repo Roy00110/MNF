@@ -5,7 +5,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Make friends Global</title>
-  <script async src="https://partner.adextra.io/jt/b83f9fc7b9f0a78edc05d9ae26278a61fe9fc2af.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src='//solseewuthi.net/sdk.js' data-zone='9341070' data-sdk='show_9341070'></script>
   
@@ -15,9 +14,6 @@
   <!-- Login Form -->
   <div id="login" class="flex items-center justify-center min-h-screen bg-gradient-to-br from-pink-400 via-rose-400 to-red-300 px-4">
     <div class="backdrop-blur-md bg-white/30 shadow-2xl border border-white/20 p-8 rounded-3xl w-full max-w-md text-white">
-      
-      
-      <div id="b83f9fc7b9f0a78edc05d9ae26278a61fe9fc2af"></div>
       
       
       <h2 class="text-4xl font-bold mb-6 text-center drop-shadow-sm">Enter your info</h2>
@@ -198,7 +194,6 @@
     everyPage: false 
   } 
 }) 
-    showAdOnLogin();
   
 }
 
@@ -498,25 +493,7 @@ function sendPublicMessage() {
 });
   </script>
 
-<script>
-
-   function showAdOnLogin() {
-    if (window.AdExtra && typeof window.AdExtra.showAd === "function") {
-      window.AdExtra.showAd(); // interstitial/popup
-    } else {
-      // fallback: banner type হলে div এ রিলোড করো
-      const adDiv = document.getElementById("b83f9fc7b9f0a78edc05d9ae26278a61fe9fc2af");
-      if (adDiv) {
-        adDiv.innerHTML = "";
-        let s = document.createElement("script");
-        s.src = "https://partner.adextra.io/jt/b83f9fc7b9f0a78edc05d9ae26278a61fe9fc2af.js";
-        s.async = true;
-        adDiv.appendChild(s);
-      }
-    }
-  }
   
-</script>   
   <audio id="message-sound" src="https://www.myinstants.com/media/sounds/bmw-bong.mp3" preload="auto"></audio>
 </body>
 </html>

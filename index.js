@@ -177,21 +177,25 @@ bot.start(async (ctx) => {
             await user.save();
         }
         
-        const welcomeMsg = `👋 <b>Welcome to Secret Dating Bot!</b>\n\n🎁 Your Balance: ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.`;
+        // এখানে আপনার মেসেজটি সাজানো হয়েছে
+        const welcomeMsg = `👋 <b>Welcome to Make friends global 🌐 </b>\n\n` +
+                           `🎁 Your Balance: ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.\n\n` +
+                           `🔥 <b>Ready to find your partner?</b>\n` +
+                           `👉 <a href="https://t.me/MakefriendsglobalBot/Letschat">✨ Start Chat Now ✨</a>\n\n` +
+                           `Click the link above to enter the secret world! 🎭`;
         
-        // Reply with Mini App Button (Inline) and Keyboard Buttons
-        ctx.reply(welcomeMsg, {
-            parse_mode: 'HTML',
-            ...Markup.inlineKeyboard([
-                // Markup.button.webApp ব্যবহার করা হয়েছে যাতে সরাসরি অ্যাপ ওপেন হয়
-                [Markup.button.webApp('🚀 Launch Mini App', 'https://t.me/MakefriendsglobalBot/Letschat')]
-            ]),
-            ...Markup.keyboard([
-                ['🔍 Find Partner'], 
-                ['👤 My Status', '👫 Refer & Earn'], 
-                ['❌ Stop Chat']
-            ]).resize()
+        // কিবোর্ড বাটনগুলো সেট করা
+        await ctx.reply("Setting up your menu...", Markup.keyboard([
+            ['🔍 Find Partner'], 
+            ['👤 My Status', '👫 Refer & Earn'], 
+            ['❌ Stop Chat']
+        ]).resize());
+
+        // মেইন মেসেজ পাঠানো (লিঙ্কসহ)
+        await ctx.replyWithHTML(welcomeMsg, {
+            disable_web_page_preview: false // এটি true করলে ছবির প্রিভিউ আসবে না
         });
+
     } catch (err) { 
         console.error("Start Error:", err); 
     }

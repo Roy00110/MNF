@@ -360,7 +360,7 @@ async function sendAutoPromo() {
         const sentMsg = await bot.telegram.sendMessage(GROUP_ID, promoMsg, {
             parse_mode: 'HTML',
             ...Markup.inlineKeyboard([
-                [Markup.button.url('🚀 Launch Mini App', 'https://t.me/RandomChatting18_Bot/MeetRandom')]
+                [Markup.button.url('🚀 Launch Mini App', 'https://t.me/MakefriendsglobalBot/Letschat')]
             ])
         });
 

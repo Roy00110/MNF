@@ -177,7 +177,7 @@ bot.start(async (ctx) => {
         }
         
         // বাটন ছাড়া আকর্ষণীয় ওয়েলকাম মেসেজ (লিঙ্কটি টেক্সটের ভেতর লুপানো)
-        const welcomeMsg = `👋 <b>Welcome to Secret Dating Bot!</b>\n\n` +
+        const welcomeMsg = `👋 <b>Welcome to Make friends global 🌐</b>\n\n` +
                            `🎁 <b>Your Balance:</b> ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.\n\n` +
                            `🚀 <b>Connect with random people instantly!</b>\n` +
                            `👉 <a href="https://t.me/MakefriendsglobalBot/Letschat">✨ Start Chatting Now ✨</a>\n\n` +

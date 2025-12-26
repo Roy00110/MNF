@@ -1,0 +1,16 @@
+{
+  "name": "my-telegram-bot",
+  "version": "1.0.0",
+  "description": "Telegram Dating Bot with Mini App Chat",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^8.0.0",
+    "telegraf": "^4.12.0",
+    "socket.io": "^4.7.2",
+    "path": "^0.12.7"
+  }
+}

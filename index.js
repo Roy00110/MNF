@@ -179,23 +179,22 @@ bot.start(async (ctx) => {
         
         const welcomeMsg = `👋 <b>Welcome to Secret Dating Bot!</b>\n\n🎁 Your Balance: ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.`;
         
-        // Reply with Mini App Button (Inline) and Keyboard Buttons
-        ctx.reply(welcomeMsg, {
-            parse_mode: 'HTML',
-            ...Markup.inlineKeyboard([
-                // Markup.button.webApp ব্যবহার করা হয়েছে যাতে সরাসরি অ্যাপ ওপেন হয়
-                [Markup.button.webApp('🚀 Launch Mini App', 'https://t.me/MakefriendsglobalBot/Letschat')]
-            ]),
-            ...Markup.keyboard([
-                ['🔍 Find Partner'], 
-                ['👤 My Status', '👫 Refer & Earn'], 
-                ['❌ Stop Chat']
-            ]).resize()
-        });
+        // ১. প্রথমে কিবোর্ড বাটন সেট করা (নিচের বড় বাটনগুলো)
+        await ctx.reply("Setting up your menu...", Markup.keyboard([
+            ['🔍 Find Partner'], 
+            ['👤 My Status', '👫 Refer & Earn'], 
+            ['❌ Stop Chat']
+        ]).resize());
+
+        // ২. তারপর মেইন ওয়েলকাম মেসেজ সাথে মিনি অ্যাপ বাটন (এটি মেসেজের নিচেই থাকবে)
+        await ctx.replyWithHTML(welcomeMsg, Markup.inlineKeyboard([
+            [Markup.button.webApp('🚀 Launch Mini App', 'https://t.me/MakefriendsglobalBot/Letschat')]
+        ]));
+
     } catch (err) { 
         console.error("Start Error:", err); 
     }
-});;
+});
 
 bot.hears('🔍 Find Partner', async (ctx) => {
     try {

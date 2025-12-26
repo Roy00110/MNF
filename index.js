@@ -166,6 +166,7 @@ bot.start(async (ctx) => {
         if (!user) {
             console.log(`🆕 [NEW USER] ${ctx.from.first_name} (ID: ${userId}) joined.`);
             user = new User({ userId, firstName: ctx.from.first_name, matchLimit: 10 });
+            
             if (startPayload && Number(startPayload) !== userId) {
                 const referrer = await User.findOne({ userId: Number(startPayload) });
                 if (referrer) {
@@ -178,15 +179,23 @@ bot.start(async (ctx) => {
         
         const welcomeMsg = `👋 <b>Welcome to Secret Dating Bot!</b>\n\n🎁 Your Balance: ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.`;
         
+        // Reply with Mini App Button (Inline) and Keyboard Buttons
         ctx.reply(welcomeMsg, {
             parse_mode: 'HTML',
             ...Markup.inlineKeyboard([
-                [Markup.button.url('🚀 miniapp', 'https://t.me/RandomChatting18_Bot/MeetRandom')]
+                // Markup.button.webApp ব্যবহার করা হয়েছে যাতে সরাসরি অ্যাপ ওপেন হয়
+                [Markup.button.webApp('🚀 Launch Mini App', 'https://t.me/MakefriendsglobalBot/Letschat')]
             ]),
-            ...Markup.keyboard([['🔍 Find Partner'], ['👤 My Status', '👫 Refer & Earn'], ['❌ Stop Chat']]).resize()
+            ...Markup.keyboard([
+                ['🔍 Find Partner'], 
+                ['👤 My Status', '👫 Refer & Earn'], 
+                ['❌ Stop Chat']
+            ]).resize()
         });
-    } catch (err) { console.error("Start Error:", err); }
-});
+    } catch (err) { 
+        console.error("Start Error:", err); 
+    }
+});;
 
 bot.hears('🔍 Find Partner', async (ctx) => {
     try {

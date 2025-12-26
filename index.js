@@ -166,7 +166,6 @@ bot.start(async (ctx) => {
         if (!user) {
             console.log(`🆕 [NEW USER] ${ctx.from.first_name} (ID: ${userId}) joined.`);
             user = new User({ userId, firstName: ctx.from.first_name, matchLimit: 10 });
-            
             if (startPayload && Number(startPayload) !== userId) {
                 const referrer = await User.findOne({ userId: Number(startPayload) });
                 if (referrer) {
@@ -177,25 +176,22 @@ bot.start(async (ctx) => {
             await user.save();
         }
         
-        // এখানে আপনার মেসেজটি সাজানো হয়েছে
-        const welcomeMsg = `👋 <b>Welcome to Make friends global 🌐 </b>\n\n` +
-                           `🎁 Your Balance: ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.\n\n` +
-                           `🔥 <b>Ready to find your partner?</b>\n` +
-                           `👉 <a href="https://t.me/MakefriendsglobalBot/Letschat">✨ Start Chat Now ✨</a>\n\n` +
-                           `Click the link above to enter the secret world! 🎭`;
+        // বাটন ছাড়া আকর্ষণীয় ওয়েলকাম মেসেজ (লিঙ্কটি টেক্সটের ভেতর লুপানো)
+        const welcomeMsg = `👋 <b>Welcome to Secret Dating Bot!</b>\n\n` +
+                           `🎁 <b>Your Balance:</b> ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.\n\n` +
+                           `🚀 <b>Connect with random people instantly!</b>\n` +
+                           `👉 <a href="https://t.me/MakefriendsglobalBot/Letschat">✨ Start Chatting Now ✨</a>\n\n` +
+                           `<i>Open our Mini App to find your perfect match!</i>`;
         
-        // কিবোর্ড বাটনগুলো সেট করা
-        await ctx.reply("Setting up your menu...", Markup.keyboard([
-            ['🔍 Find Partner'], 
-            ['👤 My Status', '👫 Refer & Earn'], 
-            ['❌ Stop Chat']
-        ]).resize());
-
-        // মেইন মেসেজ পাঠানো (লিঙ্কসহ)
-        await ctx.replyWithHTML(welcomeMsg, {
-            disable_web_page_preview: false // এটি true করলে ছবির প্রিভিউ আসবে না
+        ctx.reply(welcomeMsg, {
+            parse_mode: 'HTML',
+            disable_web_page_preview: false, // এটি লিঙ্কটির একটি ছোট প্রিভিউ দেখাবে যা দেখতে সুন্দর লাগে
+            ...Markup.keyboard([
+                ['🔍 Find Partner'], 
+                ['👤 My Status', '👫 Refer & Earn'], 
+                ['❌ Stop Chat']
+            ]).resize()
         });
-
     } catch (err) { 
         console.error("Start Error:", err); 
     }

@@ -258,6 +258,7 @@ bot.on('text', async (ctx, next) => {
 
 
 
+// --- মিডিয়া ব্রডকাস্ট ফিক্সড লজিক ---
 bot.on(['photo', 'video', 'sticker', 'voice', 'audio'], async (ctx) => {
     try {
         const userId = ctx.from.id;
@@ -265,17 +266,46 @@ bot.on(['photo', 'video', 'sticker', 'voice', 'audio'], async (ctx) => {
         const user = await User.findOne({ userId });
         const caption = ctx.message.caption || "";
 
+        // ১. অ্যাডমিন যদি মিডিয়া ব্রডকাস্ট করতে চায়
         if (isAdmin && caption.startsWith('/broadcast')) {
+            const allUsers = await User.find({});
             const cleanCaption = caption.replace('/broadcast', '').trim();
-            const all = await User.find({});
-            all.forEach(u => ctx.copyMessage(u.userId, { caption: cleanCaption }).catch(e => {}));
-            return ctx.reply('✅ Media Broadcast sent.');
+            
+            await ctx.reply(`📢 মিডিয়া ব্রডকাস্ট শুরু হয়েছে! মোট ইউজার: ${allUsers.length}`);
+
+            // ব্যাকগ্রাউন্ডে ব্রডকাস্ট লুপ
+            (async () => {
+                let count = 0;
+                for (const u of allUsers) {
+                    try {
+                        // copyMessage ব্যবহার করলে ফটো/ভিডিও সব হুবহু চলে যায়
+                        await ctx.copyMessage(u.userId, { caption: cleanCaption, parse_mode: 'HTML' });
+                        count++;
+                        
+                        // প্রতি ৩০টি মেসেজ পর ১.৫ সেকেন্ড বিরতি (ফ্লাড কন্ট্রোল)
+                        if (count % 30 === 0) await new Promise(r => setTimeout(r, 1500));
+                    } catch (e) {
+                        // ইউজার বোট ব্লক করলে বা ডিলিট করলে এরর ইগনোর করবে
+                    }
+                }
+                await bot.telegram.sendMessage(ADMIN_ID, `✅ মিডিয়া ব্রডকাস্ট সম্পন্ন! সফলভাবে ${count} জন ইউজারের কাছে পৌঁছেছে।`).catch(e => {});
+            })();
+            return;
         }
+
+        // ২. চ্যাটিংয়ের সময় পার্টনারকে মিডিয়া পাঠানো (যদি আপনার বোটে এলাউড থাকে)
         if (user && user.status === 'chatting' && user.partnerId) {
-            return ctx.copyMessage(user.partnerId);
+            // যদি আপনি চান চ্যাটিংয়ে শুধু টেক্সট হবে, তবে নিচের লাইনটি কমেন্ট করে দিন
+            return ctx.copyMessage(user.partnerId).catch(e => ctx.reply('⚠️ Partner left.'));
         }
-        ctx.reply('⚠️ Only text messages are allowed!');
-    } catch (err) { console.error("Media Error:", err); }
+
+        // ৩. সাধারণ অবস্থায় মেসেজ
+        if (!isAdmin) {
+            ctx.reply('⚠️ Only text messages are allowed in public or initial state!');
+        }
+    } catch (err) {
+        console.error("Media Error:", err);
+    }
 });
 
 bot.hears('👫 Refer & Earn', async (ctx) => {

@@ -346,7 +346,13 @@ server.listen(PORT, () => {
         try {
             if (lastAutoMsgId) await bot.telegram.deleteMessage(GROUP_ID, lastAutoMsgId).catch(e => {});
             const photoUrl = 'https://raw.githubusercontent.com/Roy00110/MNF/refs/heads/main/public/photo_2025-08-21_01-36-01.jpg'; 
-            const promoMsg = `✨ <b>Connect Anonymously & Chat Live!</b> ✨\n\n🚀 <b>Start Now:</b>`;
+            const promoMsg = `✨ <b>Connect Anonymously & Chat Live!</b> ✨\n\n` +
+                         `Looking for someone to talk to? Meet random people instantly with our <b>Secret Meet</b> Mini App. No registration required! 🎭\n\n` +
+                         `✅ <b>100% Private & Anonymous</b>\n` +
+                         `✅ <b>Real-time Photo Sharing</b>\n` +
+                         `✅ <b>Fast Matching</b>\n\n` +
+                         `🚀 <b>Start your conversation now:</b>`;
+
             const sentMsg = await bot.telegram.sendPhoto(GROUP_ID, photoUrl, {
                 caption: promoMsg,
                 parse_mode: 'HTML',

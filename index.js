@@ -144,7 +144,7 @@ bot.start(async (ctx) => {
             await user.save();
         }
         
-        const welcomeMsg = `👋 <b>Welcome to Make friends global 🌐</b>\n\n` +
+        const welcomeMsg = `👋 <b>Welcome to MatchMe 💌</b>\n\n` +
                            `🎁 <b>Your Balance:</b> ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.\n\n` +
                            `🚀 <b>Connect with random people instantly!</b>\n` +
                            `👉 <a href="https://t.me/MakefriendsglobalBot/Letschat">✨ Start Chatting Now ✨</a>\n\n` +

@@ -15,14 +15,21 @@ const ADMIN_ID = Number(process.env.ADMIN_ID);
 
 const bot = new Telegraf(BOT_TOKEN);
 
-// --- কনফিগারেশন ---
-const REQUIRED_CHANNELS = ['@androidmodapkfile', '@yes4all']; 
-const badWords = ['nude', 'sex', 'chut', 'chuda', 'porn', 'fuck', 'magi', 'khanki']; 
+// --- ১. এক্সপ্রেস রুট পাথ এবং স্ট্যাটিক ফাইল ---
 
-// Database Connection
-mongoose.connect(MONGO_URI).then(() => console.log('✅ Connected to MongoDB')).catch(err => console.log('❌ DB Error:', err));
+// আপনি যেটা চেয়েছিলেন: রুট পাথ ডিফাইন করা
+app.get('/', (req, res) => {
+  res.send('Hello, your server is running! 🚀');
+});
 
-// User Model
+// স্ট্যাটিক ফাইল (যদি public ফোল্ডার থাকে)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// --- ২. ডাটাবেজ এবং মডেল ---
+mongoose.connect(MONGO_URI)
+    .then(() => console.log('✅ Connected to MongoDB'))
+    .catch(err => console.log('❌ DB Error:', err));
+
 const User = mongoose.model('User', new mongoose.Schema({
     userId: { type: Number, unique: true },
     firstName: String,
@@ -36,7 +43,10 @@ const User = mongoose.model('User', new mongoose.Schema({
     webSocketId: { type: String, default: null }
 }));
 
-// --- ১. গ্রুপ কন্ট্রোল (অ্যাডমিন প্রোটেকশন ও লিঙ্ক ফিল্টার) ---
+// --- ৩. কনফিগারেশন এবং গ্রুপ কন্ট্রোল ---
+const REQUIRED_CHANNELS = ['@androidmodapkfile', '@yes4all']; 
+const badWords = ['nude', 'sex', 'chut', 'chuda', 'porn', 'fuck', 'magi', 'khanki']; 
+
 bot.use(async (ctx, next) => {
     try {
         if (ctx.chat && (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup')) {
@@ -44,18 +54,14 @@ bot.use(async (ctx, next) => {
             const isAdmin = userId === ADMIN_ID; 
             const text = (ctx.message && (ctx.message.text || ctx.message.caption)) || "";
 
-            // অ্যাডমিন হলে কোনো বাধা নেই
             if (isAdmin) return next();
 
-            // লিঙ্ক বা @ইউজারনেম থাকলে ডিলিট
             const hasLink = /https?:\/\/\S+|t\.me\/\S+|@\S+/.test(text);
             if (hasLink) return await ctx.deleteMessage().catch(e => {});
 
-            // ব্যাড ওয়ার্ড ফিল্টার
             const hasBadWord = badWords.some(word => text.toLowerCase().includes(word));
             if (hasBadWord) return await ctx.deleteMessage().catch(e => {});
 
-            // চ্যানেল লক চেক
             let isSubscribed = true;
             for (const channel of REQUIRED_CHANNELS) {
                 try {
@@ -78,7 +84,6 @@ bot.use(async (ctx, next) => {
                 });
             }
 
-            // সাধারণ মেসেজ ১ ঘণ্টা পর ডিলিট
             if (ctx.message) {
                 const msgId = ctx.message.message_id;
                 const chatId = ctx.chat.id;
@@ -89,7 +94,7 @@ bot.use(async (ctx, next) => {
     return next();
 });
 
-// --- ২. সকেট লজিক (ওয়েবসাইট কানেকশন) ---
+// --- ৪. সকেট লজিক ---
 io.on('connection', (socket) => {
     socket.on('register_web', async (userId) => {
         await User.updateOne({ userId }, { webSocketId: socket.id });
@@ -108,9 +113,7 @@ io.on('connection', (socket) => {
     });
 });
 
-app.use(express.static(path.join(__dirname, 'public')));
-
-// --- ৩. টেলিগ্রাম বট মেইন লজিক ---
+// --- ৫. বট মেইন লজিক (Start, Find, Refer etc.) ---
 
 bot.start(async (ctx) => {
     try {
@@ -131,10 +134,10 @@ bot.start(async (ctx) => {
         }
         
         const welcomeMsg = `👋 <b>Welcome to MatchMe 💌</b>\n\n` +
-                           `🎁 <b>Your Balance:</b> ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.\n\n` +
-                           `🚀 <b>Connect with random people instantly!</b>\n` +
-                           `👉 <a href="https://t.me/MakefriendsglobalBot/Letschat">✨ Start Chatting Now ✨</a>\n\n` +
-                           `<i>Open our Mini App to find your perfect match!</i>`;
+                            `🎁 <b>Your Balance:</b> ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.\n\n` +
+                            `🚀 <b>Connect with random people instantly!</b>\n` +
+                            `👉 <a href="https://t.me/MakefriendsglobalBot/Letschat">✨ Start Chatting Now ✨</a>\n\n` +
+                            `<i>Open our Mini App to find your perfect match!</i>`;
         
         ctx.reply(welcomeMsg, {
             parse_mode: 'HTML',
@@ -179,6 +182,7 @@ bot.hears('🔍 Find Partner', async (ctx) => {
     } catch (err) { console.error("Match Error:", err); }
 });
 
+// (বাকি hears এবং action লজিকগুলো আপনার মূল কোড অনুযায়ী এখানে থাকবে...)
 bot.action(/verify_/, async (ctx) => {
     try {
         const user = await User.findOne({ userId: ctx.from.id });
@@ -284,10 +288,12 @@ bot.hears(['❌ Stop Chat', '❌ Stop Search'], async (ctx) => {
     } catch (err) { console.error("Stop Error:", err); }
 });
 
-// --- ৪. সার্ভার লঞ্চ ---
+// --- ৬. সার্ভার লঞ্চ ---
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Server Live on port ${PORT}`);
+    console.log(`✅ Server is active on port ${PORT}`);
+    
+    // অটো প্রমোশন এবং বটের কাজ
     const GROUP_ID = -1002461999862; 
     let lastAutoMsgId = null;
 
@@ -310,5 +316,6 @@ server.listen(PORT, () => {
 
     setInterval(sendAutoPromo, 500000); 
     sendAutoPromo();
+    
     bot.launch();   
 });

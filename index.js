@@ -36,18 +36,18 @@ const User = mongoose.model('User', new mongoose.Schema({
     webSocketId: { type: String, default: null }
 }));
 
-// --- ১. গ্রুপ ফিল্টার ও অটো ডিলিট মিডলওয়্যার ---
+// --- চ্যাট ফিল্টার, চ্যানেল চেক এবং অটো ডিলিট লজিক (আপনার রিকোয়েস্ট অনুযায়ী) ---
 bot.use(async (ctx, next) => {
     try {
         if (ctx.chat && (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup')) {
             const userId = ctx.from.id;
             const text = (ctx.message && (ctx.message.text || ctx.message.caption)) || "";
 
-            // অশ্লীল শব্দ চেক
+            // ১. অশ্লীল শব্দ ডিলিট
             const hasBadWord = badWords.some(word => text.toLowerCase().includes(word));
             if (hasBadWord) return await ctx.deleteMessage().catch(e => {});
 
-            // চ্যানেল সাবস্ক্রিপশন চেক
+            // ২. চ্যানেল সাবস্ক্রিপশন চেক
             let isSubscribed = true;
             for (const channel of REQUIRED_CHANNELS) {
                 try {
@@ -62,7 +62,7 @@ bot.use(async (ctx, next) => {
             if (!isSubscribed) {
                 await ctx.deleteMessage().catch(e => {});
                 const mention = `<a href="tg://user?id=${userId}">${ctx.from.firstName}</a>`;
-                const warningMsg = `⚠️ ${mention}, <b>You must need to join our both channel to chat in this group!</b>`;
+                const warningMsg = `⚠️ ${mention}, <b>You must need to join our both channel to chat in this group!</b>\n\nPlease join the channels below and try again.`;
                 const buttons = REQUIRED_CHANNELS.map(ch => [Markup.button.url(`📢 Join ${ch}`, `https://t.me/${ch.replace('@','')}`)]);
                 
                 return ctx.replyWithHTML(warningMsg, Markup.inlineKeyboard(buttons)).then(sent => {
@@ -70,7 +70,7 @@ bot.use(async (ctx, next) => {
                 });
             }
 
-            // ১ ঘণ্টা পর মেসেজ অটো ডিলিট
+            // ৩. ১ ঘণ্টা (৩৬০০ সেকেন্ড) পর মেসেজ অটো ডিলিট
             if (ctx.message) {
                 const msgId = ctx.message.message_id;
                 const chatId = ctx.chat.id;
@@ -81,7 +81,7 @@ bot.use(async (ctx, next) => {
     return next();
 });
 
-// --- ২. ওয়েবসাইট ও সকেট লজিক (অপরিবর্তিত) ---
+// --- ওয়েবসাইট ও সকেট লজিক (আপনার অরিজিনাল লজিক) ---
 app.use(express.static(path.join(__dirname)));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
@@ -129,10 +129,25 @@ io.on('connection', (socket) => {
             }
         } catch (err) {}
     });
+
+    socket.on('disconnect', async () => {
+        try {
+            const user = await User.findOne({ webSocketId: socket.id });
+            if (user) {
+                if (user.webPartnerId) {
+                    const partner = await User.findOne({ userId: user.webPartnerId });
+                    if (partner && partner.webSocketId) {
+                        io.to(partner.webSocketId).emit('chat_ended');
+                        await User.updateOne({ userId: partner.userId }, { webStatus: 'idle', webPartnerId: null });
+                    }
+                }
+                await User.updateOne({ userId: user.userId }, { webSocketId: null, webStatus: 'idle', webPartnerId: null });
+            }
+        } catch (err) {}
+    });
 });
 
-// --- ৩. টেলিগ্রাম বট কমান্ড লজিক ---
-
+// --- টেলিগ্রাম কমান্ডস (সব আপনার দেওয়া টেক্সট অনুযায়ী) ---
 bot.start(async (ctx) => {
     try {
         const userId = ctx.from.id;
@@ -145,13 +160,13 @@ bot.start(async (ctx) => {
                 const referrer = await User.findOne({ userId: Number(startPayload) });
                 if (referrer) {
                     await User.updateOne({ userId: referrer.userId }, { $inc: { matchLimit: 20, referrals: 1 } });
-                    bot.telegram.sendMessage(referrer.userId, `🎉 Someone joined! +20 matches added.`).catch(e => {});
+                    bot.telegram.sendMessage(referrer.userId, `🎉 Someone joined via your link! You received +20 matches.`).catch(e => {});
                 }
             }
             await user.save();
         }
         
-        ctx.replyWithHTML(`👋 <b>Welcome to MatchMe 💌</b>\n\n🎁 <b>Balance:</b> ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'}\n👉 <a href="https://t.me/MakefriendsglobalBot/Letschat">✨ Start Chat Now ✨</a>`, 
+        ctx.replyWithHTML(`👋 <b>Welcome to MatchMe 💌</b>\n\n🎁 <b>Your Balance:</b> ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.\n👉 <a href="https://t.me/MakefriendsglobalBot/Letschat">✨ Start Chatting Now ✨</a>`, 
         Markup.keyboard([['🔍 Find Partner'], ['👤 My Status', '👫 Refer & Earn'], ['❌ Stop Chat']]).resize());
     } catch (err) {}
 });
@@ -160,59 +175,52 @@ bot.hears('🔍 Find Partner', async (ctx) => {
     try {
         const userId = ctx.from.id;
         const user = await User.findOne({ userId });
-        if (userId !== ADMIN_ID && user.matchLimit <= 0) return ctx.reply('❌ Limit over!');
+        if (userId !== ADMIN_ID && user.matchLimit <= 0) {
+            return ctx.reply('❌ <b>Your match limit is over!</b>', { parse_mode: 'HTML' });
+        }
         await User.updateOne({ userId }, { status: 'searching' });
-        ctx.reply(`🔎 Searching...`, Markup.keyboard([['❌ Stop Search'], ['👤 My Status', '👫 Refer & Earn']]).resize());
+        ctx.reply(`🔎 Searching for a partner...`, Markup.keyboard([['❌ Stop Search'], ['👤 My Status', '👫 Refer & Earn']]).resize());
         const partner = await User.findOne({ userId: { $ne: userId }, status: 'searching' });
         if (partner) {
             await User.updateOne({ userId }, { status: 'chatting', partnerId: partner.userId });
             await User.updateOne({ userId: partner.userId }, { status: 'chatting', partnerId: userId });
-            const menu = Markup.keyboard([['🔍 Find Partner'], ['👤 My Status', '👫 Refer & Earn'], ['❌ Stop Chat']]).resize();
-            ctx.reply('✅ Connected!', menu);
-            bot.telegram.sendMessage(partner.userId, '✅ Connected!', menu).catch(e=>{});
+            ctx.reply('✅ Partner found! Start chatting...');
+            bot.telegram.sendMessage(partner.userId, '✅ Partner found! Start chatting...');
         }
     } catch (err) {}
 });
 
 bot.hears('👫 Refer & Earn', async (ctx) => {
     const user = await User.findOne({ userId: ctx.from.id });
-    ctx.replyWithHTML(`👫 <b>Refer Link:</b> https://t.me/${ctx.botInfo.username}?start=${ctx.from.id}\n📊 Total: ${user.referrals || 0}`);
+    const refLink = `https://t.me/${ctx.botInfo.username}?start=${ctx.from.id}`;
+    ctx.replyWithHTML(`👫 <b>Referral Program</b>\n\n🎁 Reward: +20 Matches per referral.\n🔗 Link: ${refLink}\n📊 Total Referrals: ${user.referrals || 0}`);
 });
 
 bot.hears('👤 My Status', async (ctx) => {
     const user = await User.findOne({ userId: ctx.from.id });
-    ctx.replyWithHTML(`👤 <b>Matches:</b> ${ctx.from.id === ADMIN_ID ? 'Unlimited' : user.matchLimit}`);
+    ctx.replyWithHTML(`👤 <b>Profile:</b>\nMatches Left: ${ctx.from.id === ADMIN_ID ? 'Unlimited' : user.matchLimit}\nReferrals: ${user.referrals || 0}`);
 });
 
-bot.hears(['❌ Stop Chat', '❌ Stop Search'], async (ctx) => {
-    const user = await User.findOne({ userId: ctx.from.id });
-    const menu = Markup.keyboard([['🔍 Find Partner'], ['👤 My Status', '👫 Refer & Earn'], ['❌ Stop Chat']]).resize();
-    if (user && user.partnerId) {
-        await User.updateOne({ userId: user.partnerId }, { status: 'idle', partnerId: null });
-        bot.telegram.sendMessage(user.partnerId, '❌ Chat Ended.', menu).catch(e => {});
-    }
-    await User.updateOne({ userId: ctx.from.id }, { status: 'idle', partnerId: null });
-    ctx.reply('❌ Stopped.', menu);
-});
-
-bot.on('text', async (ctx) => {
+// --- মেসেজ পাসিং এবং ব্রডকাস্ট ---
+bot.on('text', async (ctx, next) => {
     const text = ctx.message.text;
     if (text.startsWith('/broadcast ') && ctx.from.id === ADMIN_ID) {
         const msg = text.replace('/broadcast ', '').trim();
         const allUsers = await User.find({});
+        ctx.reply(`📢 Broadcast started to ${allUsers.length} users...`);
         for (const u of allUsers) {
             bot.telegram.sendMessage(u.userId, msg, { parse_mode: 'HTML' }).catch(e => {});
             await new Promise(r => setTimeout(r, 50));
         }
-        return ctx.reply('✅ Done');
+        return;
     }
     const user = await User.findOne({ userId: ctx.from.id });
     if (user && user.status === 'chatting' && user.partnerId) {
         bot.telegram.sendMessage(user.partnerId, text).catch(e => {});
     }
+    return next();
 });
 
-// --- ৪. সার্ভার লঞ্চ ---
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server Live on port ${PORT}`);

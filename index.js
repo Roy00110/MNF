@@ -36,18 +36,26 @@ const User = mongoose.model('User', new mongoose.Schema({
     webSocketId: { type: String, default: null }
 }));
 
-// --- ১. গ্রুপ কন্ট্রোল (ব্যাড ওয়ার্ড, চ্যানেল লক ও অটো ডিলিট) ---
+// --- ১. গ্রুপ কন্ট্রোল (ব্যাড ওয়ার্ড, লিঙ্ক ব্লক, অ্যাডমিন প্রোটেকশন ও অটো ডিলিট) ---
 bot.use(async (ctx, next) => {
     try {
         if (ctx.chat && (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup')) {
             const userId = ctx.from.id;
+            const isAdmin = userId === ADMIN_ID; // অ্যাডমিন চেক
             const text = (ctx.message && (ctx.message.text || ctx.message.caption)) || "";
 
-            // অশ্লীল শব্দ ফিল্টার
+            // যদি অ্যাডমিন হয়, তবে কোনো ফিল্টার বা অটো-ডিলিট কাজ করবে না
+            if (isAdmin) return next();
+
+            // ১. লিঙ্ক বা @মেনশন ফিল্টার (সাধারণ ইউজারদের জন্য)
+            const hasLink = /https?:\/\/\S+|t\.me\/\S+|@\S+/.test(text);
+            if (hasLink) return await ctx.deleteMessage().catch(e => {});
+
+            // ২. অশ্লীল শব্দ ফিল্টার
             const hasBadWord = badWords.some(word => text.toLowerCase().includes(word));
             if (hasBadWord) return await ctx.deleteMessage().catch(e => {});
 
-            // চ্যানেল সাবস্ক্রিপশন চেক
+            // ৩. চ্যানেল সাবস্ক্রিপশন চেক
             let isSubscribed = true;
             for (const channel of REQUIRED_CHANNELS) {
                 try {
@@ -70,7 +78,7 @@ bot.use(async (ctx, next) => {
                 });
             }
 
-            // গ্রুপের মেসেজ ১ ঘণ্টা পর অটো ডিলিট
+            // ৪. গ্রুপের মেসেজ ১ ঘণ্টা পর অটো ডিলিট (অ্যাডমিন ছাড়া সবার জন্য)
             if (ctx.message) {
                 const msgId = ctx.message.message_id;
                 const chatId = ctx.chat.id;
@@ -81,7 +89,7 @@ bot.use(async (ctx, next) => {
     return next();
 });
 
-// --- ২. টেলিগ্রাম বট মেইন লজিক (আপনার দেওয়া কোড অনুযায়ী) ---
+// --- ২. টেলিগ্রাম বট মেইন লজিক ---
 
 bot.start(async (ctx) => {
     try {
@@ -173,7 +181,6 @@ bot.on('text', async (ctx, next) => {
 
         if (!user) return;
 
-        // ব্রডকাস্ট লজিক (TimeoutError ফিক্সড)
         if (text.startsWith('/broadcast ') && isAdmin) {
             const msg = text.replace('/broadcast ', '').trim();
             const allUsers = await User.find({});
@@ -201,7 +208,6 @@ bot.on('text', async (ctx, next) => {
     } catch (err) { console.error("Text Error:", err); }
 });
 
-// মিডিয়া ব্রডকাস্ট ও চ্যাট ফিক্সড লজিক
 bot.on(['photo', 'video', 'sticker', 'voice', 'audio'], async (ctx) => {
     try {
         const userId = ctx.from.id;
@@ -261,7 +267,7 @@ bot.hears(['❌ Stop Chat', '❌ Stop Search'], async (ctx) => {
     } catch (err) { console.error("Stop Error:", err); }
 });
 
-// --- ৩. ওয়েবসাইট ও সার্ভার লঞ্চ লজিক ---
+// --- ৩. ওয়েবসাইট ও সার্ভার লঞ্চ লজিক ---
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
@@ -291,5 +297,5 @@ server.listen(PORT, () => {
 
     setInterval(sendAutoPromo, 500000); 
     sendAutoPromo();
-    bot.launch();
+    bot.launch();   
 });

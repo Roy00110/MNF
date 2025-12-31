@@ -36,26 +36,26 @@ const User = mongoose.model('User', new mongoose.Schema({
     webSocketId: { type: String, default: null }
 }));
 
-// --- ১. গ্রুপ কন্ট্রোল (ব্যাড ওয়ার্ড, লিঙ্ক ব্লক, অ্যাডমিন প্রোটেকশন ও অটো ডিলিট) ---
+// --- ১. গ্রুপ কন্ট্রোল (অ্যাডমিন প্রোটেকশন ও লিঙ্ক ফিল্টার) ---
 bot.use(async (ctx, next) => {
     try {
         if (ctx.chat && (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup')) {
             const userId = ctx.from.id;
-            const isAdmin = userId === ADMIN_ID; // অ্যাডমিন চেক
+            const isAdmin = userId === ADMIN_ID; 
             const text = (ctx.message && (ctx.message.text || ctx.message.caption)) || "";
 
-            // যদি অ্যাডমিন হয়, তবে কোনো ফিল্টার বা অটো-ডিলিট কাজ করবে না
+            // অ্যাডমিন হলে কোনো বাধা নেই
             if (isAdmin) return next();
 
-            // ১. লিঙ্ক বা @মেনশন ফিল্টার (সাধারণ ইউজারদের জন্য)
+            // লিঙ্ক বা @ইউজারনেম থাকলে ডিলিট
             const hasLink = /https?:\/\/\S+|t\.me\/\S+|@\S+/.test(text);
             if (hasLink) return await ctx.deleteMessage().catch(e => {});
 
-            // ২. অশ্লীল শব্দ ফিল্টার
+            // ব্যাড ওয়ার্ড ফিল্টার
             const hasBadWord = badWords.some(word => text.toLowerCase().includes(word));
             if (hasBadWord) return await ctx.deleteMessage().catch(e => {});
 
-            // ৩. চ্যানেল সাবস্ক্রিপশন চেক
+            // চ্যানেল লক চেক
             let isSubscribed = true;
             for (const channel of REQUIRED_CHANNELS) {
                 try {
@@ -78,7 +78,7 @@ bot.use(async (ctx, next) => {
                 });
             }
 
-            // ৪. গ্রুপের মেসেজ ১ ঘণ্টা পর অটো ডিলিট (অ্যাডমিন ছাড়া সবার জন্য)
+            // সাধারণ মেসেজ ১ ঘণ্টা পর ডিলিট
             if (ctx.message) {
                 const msgId = ctx.message.message_id;
                 const chatId = ctx.chat.id;
@@ -89,7 +89,28 @@ bot.use(async (ctx, next) => {
     return next();
 });
 
-// --- ২. টেলিগ্রাম বট মেইন লজিক ---
+// --- ২. সকেট লজিক (ওয়েবসাইট কানেকশন) ---
+io.on('connection', (socket) => {
+    socket.on('register_web', async (userId) => {
+        await User.updateOne({ userId }, { webSocketId: socket.id });
+    });
+
+    socket.on('web_message', async (data) => {
+        const { userId, text } = data;
+        const user = await User.findOne({ userId });
+        if (user && user.partnerId) {
+            bot.telegram.sendMessage(user.partnerId, text).catch(e => {});
+        }
+    });
+
+    socket.on('disconnect', async () => {
+        await User.updateOne({ webSocketId: socket.id }, { webSocketId: null });
+    });
+});
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+// --- ৩. টেলিগ্রাম বট মেইন লজিক ---
 
 bot.start(async (ctx) => {
     try {
@@ -98,7 +119,6 @@ bot.start(async (ctx) => {
         let user = await User.findOne({ userId });
 
         if (!user) {
-            console.log(`🆕 [NEW USER] ${ctx.from.first_name} (ID: ${userId}) joined.`);
             user = new User({ userId, firstName: ctx.from.first_name, matchLimit: 10 });
             if (startPayload && Number(startPayload) !== userId) {
                 const referrer = await User.findOne({ userId: Number(startPayload) });
@@ -184,7 +204,7 @@ bot.on('text', async (ctx, next) => {
         if (text.startsWith('/broadcast ') && isAdmin) {
             const msg = text.replace('/broadcast ', '').trim();
             const allUsers = await User.find({});
-            await ctx.reply(`📢 ব্রডকাস্ট শুরু হয়েছে! মোট ইউজার: ${allUsers.length}\nএটি ব্যাকগ্রাউন্ডে চলছে...`);
+            await ctx.reply(`📢 ব্রডকাস্ট শুরু হয়েছে!`);
 
             (async () => {
                 let count = 0;
@@ -211,14 +231,12 @@ bot.on('text', async (ctx, next) => {
 bot.on(['photo', 'video', 'sticker', 'voice', 'audio'], async (ctx) => {
     try {
         const userId = ctx.from.id;
-        const isAdmin = userId === ADMIN_ID;
         const user = await User.findOne({ userId });
         const caption = ctx.message.caption || "";
 
-        if (isAdmin && caption.startsWith('/broadcast')) {
-            const allUsers = await User.find({});
+        if (userId === ADMIN_ID && caption.startsWith('/broadcast')) {
             const cleanCaption = caption.replace('/broadcast', '').trim();
-            await ctx.reply(`📢 মিডিয়া ব্রডকাস্ট শুরু হয়েছে!`);
+            const allUsers = await User.find({});
             (async () => {
                 let count = 0;
                 for (const u of allUsers) {
@@ -228,7 +246,6 @@ bot.on(['photo', 'video', 'sticker', 'voice', 'audio'], async (ctx) => {
                     } catch (e) {}
                     if (count % 30 === 0) await new Promise(r => setTimeout(r, 1500));
                 }
-                await bot.telegram.sendMessage(ADMIN_ID, `✅ মিডিয়া ব্রডকাস্ট সম্পন্ন!`).catch(e => {});
             })();
             return;
         }
@@ -267,8 +284,7 @@ bot.hears(['❌ Stop Chat', '❌ Stop Search'], async (ctx) => {
     } catch (err) { console.error("Stop Error:", err); }
 });
 
-// --- ৩. ওয়েবসাইট ও সার্ভার লঞ্চ লজিক ---
-
+// --- ৪. সার্ভার লঞ্চ ---
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server Live on port ${PORT}`);
@@ -280,10 +296,7 @@ server.listen(PORT, () => {
             if (lastAutoMsgId) await bot.telegram.deleteMessage(GROUP_ID, lastAutoMsgId).catch(e => {});
             const photoUrl = 'https://raw.githubusercontent.com/Roy00110/MNF/refs/heads/main/public/photo_2025-08-21_01-36-01.jpg'; 
             const promoMsg = `✨ <b>Connect Anonymously & Chat Live!</b> ✨\n\n` +
-                             `Looking for someone to talk to? Meet random people instantly with our <b>Secret Meet</b> Mini App. No registration required! 🎭\n\n` +
-                             `✅ <b>100% Private & Anonymous</b>\n` +
-                             `✅ <b>Real-time Photo Sharing</b>\n` +
-                             `✅ <b>Fast Matching</b>\n\n` +
+                             `Looking for someone to talk to? Meet random people instantly with our <b>Secret Meet</b> Mini App.\n\n` +
                              `🚀 <b>Start your conversation now:</b>`;
 
             const sentMsg = await bot.telegram.sendPhoto(GROUP_ID, photoUrl, {

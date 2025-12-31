@@ -13,11 +13,11 @@ const BOT_TOKEN = process.env.BOT_TOKEN;
 const MONGO_URI = process.env.MONGO_URI; 
 const ADMIN_ID = Number(process.env.ADMIN_ID); 
 
-const bot = new Telegraf(BOT_TOKEN);
+// --- নতুন কনফিগারেশন (আপনার প্রয়োজন অনুযায়ী নাম দিন) ---
+const CHANNELS = ['@Channel1', '@Channel2']; 
+const BAD_WORDS = ['badword1', 'abuse', 'গালি']; 
 
-// --- কনফিগারেশন ---
-const REQUIRED_CHANNELS = ['@androidmodapkfile', '@yes4all']; 
-const badWords = ['nude', 'sex', 'chut', 'chuda', 'porn', 'fuck', 'magi', 'khanki']; 
+const bot = new Telegraf(BOT_TOKEN);
 
 // Database Connection
 mongoose.connect(MONGO_URI).then(() => console.log('✅ Connected to MongoDB')).catch(err => console.log('❌ DB Error:', err));
@@ -36,56 +36,123 @@ const User = mongoose.model('User', new mongoose.Schema({
     webSocketId: { type: String, default: null }
 }));
 
-// --- ১. গ্রুপ কন্ট্রোল (ব্যাড ওয়ার্ড, চ্যানেল লক ও অটো ডিলিট) ---
-bot.use(async (ctx, next) => {
-    try {
-        if (ctx.chat && (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup')) {
-            const userId = ctx.from.id;
-            const text = (ctx.message && (ctx.message.text || ctx.message.caption)) || "";
+// --- সাবস্ক্রিপশন চেক ফাংশন ---
+async function isSubscribed(userId) {
+    if (userId === ADMIN_ID) return true;
+    for (const channel of CHANNELS) {
+        try {
+            const member = await bot.telegram.getChatMember(channel, userId);
+            if (['left', 'kicked'].includes(member.status)) return false;
+        } catch (e) { return false; }
+    }
+    return true;
+}
 
-            // অশ্লীল শব্দ ফিল্টার
-            const hasBadWord = badWords.some(word => text.toLowerCase().includes(word));
-            if (hasBadWord) return await ctx.deleteMessage().catch(e => {});
+// --- ওয়েবসাইট সার্ভার ও সকেট লজিক ---
+app.use(express.static(path.join(__dirname)));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
-            // চ্যানেল সাবস্ক্রিপশন চেক
-            let isSubscribed = true;
-            for (const channel of REQUIRED_CHANNELS) {
-                try {
-                    const member = await ctx.telegram.getChatMember(channel, userId);
-                    if (!['member', 'administrator', 'creator'].includes(member.status)) {
-                        isSubscribed = false;
-                        break;
-                    }
-                } catch (e) { isSubscribed = false; }
+io.on('connection', (socket) => {
+    console.log('🌐 New Web Connection:', socket.id);
+
+   socket.on('join', async (userId) => {
+        if (!userId) return;
+        await User.findOneAndUpdate(
+            { userId: Number(userId) }, 
+            { webSocketId: socket.id, webStatus: 'idle', webPartnerId: null }, 
+            { upsert: true }
+        );
+        console.log(`👤 User ${userId} is now online (Idle)`);
+    });
+
+    socket.on('leave_chat', async (userId) => {
+        const user = await User.findOne({ userId: Number(userId) });
+        if (user && user.webPartnerId) {
+            const partner = await User.findOne({ userId: user.webPartnerId });
+            if (partner && partner.webSocketId) {
+                io.to(partner.webSocketId).emit('chat_ended');
             }
-
-            if (!isSubscribed) {
-                await ctx.deleteMessage().catch(e => {});
-                const mention = `<a href="tg://user?id=${userId}">${ctx.from.firstName}</a>`;
-                const warningMsg = `⚠️ ${mention}, <b>You must need to join our both channel to chat in this group!</b>`;
-                const buttons = REQUIRED_CHANNELS.map(ch => [Markup.button.url(`📢 Join ${ch}`, `https://t.me/${ch.replace('@','')}`)]);
-                
-                return ctx.replyWithHTML(warningMsg, Markup.inlineKeyboard(buttons)).then(sent => {
-                    setTimeout(() => ctx.deleteMessage(sent.message_id).catch(e => {}), 15000);
-                });
-            }
-
-            // গ্রুপের মেসেজ ১ ঘণ্টা পর অটো ডিলিট
-            if (ctx.message) {
-                const msgId = ctx.message.message_id;
-                const chatId = ctx.chat.id;
-                setTimeout(() => ctx.telegram.deleteMessage(chatId, msgId).catch(e => {}), 3600000);
-            }
+            await User.updateOne({ userId: user.userId }, { webStatus: 'idle', webPartnerId: null });
+            await User.updateOne({ userId: partner.userId }, { webStatus: 'idle', webPartnerId: null });
         }
-    } catch (e) {}
-    return next();
+    });
+
+    socket.on('find_partner_web', async (userId) => {
+        try {
+            const user = await User.findOne({ userId: Number(userId) });
+            const isAdmin = user.userId === ADMIN_ID;
+
+            if (!isAdmin && user.matchLimit <= 0) {
+                const refLink = `https://t.me/${bot.botInfo.username}?start=${user.userId}`;
+                bot.telegram.sendMessage(user.userId, `❌ <b>Your match limit is over!</b>\n\nInvite friends to get more matches.\n🔗 ${refLink}`, { parse_mode: 'HTML' }).catch(e => {});
+                return io.to(socket.id).emit('limit_over');
+            }
+
+            await User.updateOne({ userId: Number(userId) }, { webStatus: 'searching', webSocketId: socket.id });
+
+            const partner = await User.findOne({ 
+                userId: { $ne: Number(userId) }, 
+                webStatus: 'searching',
+                webSocketId: { $ne: null } 
+            });
+
+            if (partner && partner.webSocketId) {
+                if (!isAdmin) await User.updateOne({ userId: user.userId }, { $inc: { matchLimit: -1 } });
+                if (partner.userId !== ADMIN_ID) await User.updateOne({ userId: partner.userId }, { $inc: { matchLimit: -1 } });
+
+                await User.updateOne({ userId: user.userId }, { webStatus: 'chatting', webPartnerId: partner.userId });
+                await User.updateOne({ userId: partner.userId }, { webStatus: 'chatting', webPartnerId: user.userId });
+
+                io.to(socket.id).emit('match_found');
+                io.to(partner.webSocketId).emit('match_found');
+            }
+        } catch (err) { console.error("Web Match Error:", err); }
+    });
+
+    socket.on('send_msg', async (data) => {
+        const { senderId, text, image } = data; 
+        try {
+            const user = await User.findOne({ userId: Number(senderId) });
+            if (user && user.webPartnerId) {
+                const partner = await User.findOne({ userId: user.webPartnerId });
+                if (partner && partner.webSocketId) {
+                    io.to(partner.webSocketId).emit('receive_msg', { text: text || null, image: image || null });
+                }
+            }
+        } catch (err) { console.error("Web Send Msg Error:", err); }
+    });
+
+    socket.on('disconnect', async () => {
+        try {
+            const user = await User.findOne({ webSocketId: socket.id });
+            if (user) {
+                if (user.webPartnerId) {
+                    const partner = await User.findOne({ userId: user.webPartnerId });
+                    if (partner && partner.webSocketId) {
+                        io.to(partner.webSocketId).emit('chat_ended');
+                        await User.updateOne({ userId: partner.userId }, { webStatus: 'idle', webPartnerId: null });
+                    }
+                }
+                await User.updateOne({ userId: user.userId }, { webSocketId: null, webStatus: 'idle', webPartnerId: null });
+            }
+        } catch (err) { console.error("Disconnect Error:", err); }
+    });
 });
 
-// --- ২. টেলিগ্রাম বট মেইন লজিক (আপনার দেওয়া কোড অনুযায়ী) ---
+// --- টেলিগ্রাম বট লজিক ---
 
 bot.start(async (ctx) => {
     try {
         const userId = ctx.from.id;
+        // ফোর্স সাবস্ক্রাইব চেক
+        if (!(await isSubscribed(userId))) {
+            const buttons = CHANNELS.map(c => [Markup.button.url(`Join ${c}`, `https://t.me/${c.replace('@', '')}`)]);
+            return ctx.reply(`⚠️ <b>Access Denied!</b>\nYou must join our channels to use this bot.`, {
+                parse_mode: 'HTML',
+                ...Markup.inlineKeyboard([...buttons, [Markup.button.callback('✅ I have Joined', 'check_sub')]])
+            });
+        }
+
         const startPayload = ctx.payload;
         let user = await User.findOne({ userId });
 
@@ -103,17 +170,31 @@ bot.start(async (ctx) => {
         }
         
         const welcomeMsg = `👋 <b>Welcome to MatchMe 💌</b>\n\n` +
-                           `🎁 <b>Your Balance:</b> ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.\n\n` +
-                           `🚀 <b>Connect with random people instantly!</b>\n` +
-                           `👉 <a href="https://t.me/MakefriendsglobalBot/Letschat">✨ Start Chatting Now ✨</a>\n\n` +
-                           `<i>Open our Mini App to find your perfect match!</i>`;
+                            `🎁 <b>Your Balance:</b> ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.\n\n` +
+                            `🚀 <b>Connect with random people instantly!</b>\n` +
+                            `👉 <a href="https://t.me/MakefriendsglobalBot/Letschat">✨ Start Chatting Now ✨</a>\n\n` +
+                            `<i>Open our Mini App to find your perfect match!</i>`;
         
         ctx.reply(welcomeMsg, {
             parse_mode: 'HTML',
             disable_web_page_preview: false,
-            ...Markup.keyboard([['🔍 Find Partner'], ['👤 My Status', '👫 Refer & Earn'], ['❌ Stop Chat']]).resize()
+            ...Markup.keyboard([
+                ['🔍 Find Partner'], 
+                ['👤 My Status', '👫 Refer & Earn'], 
+                ['❌ Stop Chat']
+            ]).resize()
         });
     } catch (err) { console.error("Start Error:", err); }
+});
+
+// ভেরিফিকেশন বাটন হ্যান্ডলার
+bot.action('check_sub', async (ctx) => {
+    if (await isSubscribed(ctx.from.id)) {
+        await ctx.deleteMessage();
+        ctx.reply("✅ Verified! Type /start to begin.");
+    } else {
+        ctx.answerCbQuery("❌ You haven't joined all channels!", { show_alert: true });
+    }
 });
 
 bot.hears('🔍 Find Partner', async (ctx) => {
@@ -169,15 +250,36 @@ bot.on('text', async (ctx, next) => {
         const text = ctx.message.text;
         const userId = ctx.from.id;
         const isAdmin = userId === ADMIN_ID;
-        const user = await User.findOne({ userId });
 
+        // ১. গ্রুপ অটো-ডিলিট (১ ঘণ্টার পুরনো মেসেজ)
+        if (ctx.chat.type !== 'private') {
+            const hourAgo = Math.floor(Date.now() / 1000) - 3600;
+            if (ctx.message.date < hourAgo) return ctx.deleteMessage().catch(e => {});
+        }
+
+        // ২. গালি ফিল্টার
+        if (BAD_WORDS.some(w => text.toLowerCase().includes(w))) {
+            await ctx.deleteMessage().catch(e => {});
+            return ctx.reply(`🚫 Bad language is not allowed! Message deleted.`).then(m => setTimeout(() => ctx.deleteMessage(m.message_id).catch(e=>{}), 5000));
+        }
+
+        // ৩. ফোর্স সাবস্ক্রাইব চেক
+        if (!(await isSubscribed(userId))) {
+            await ctx.deleteMessage().catch(e => {});
+            const buttons = CHANNELS.map(c => [Markup.button.url(`Join ${c}`, `https://t.me/${c.replace('@', '')}`)]);
+            return ctx.reply(`⚠️ Join our channels to chat!`, {
+                parse_mode: 'HTML', ...Markup.inlineKeyboard(buttons)
+            }).then(m => setTimeout(() => ctx.deleteMessage(m.message_id).catch(e => {}), 10000));
+        }
+
+        const user = await User.findOne({ userId });
         if (!user) return;
 
-        // ব্রডকাস্ট লজিক (TimeoutError ফিক্সড)
+        // --- ব্রডকাস্ট লজিক ---
         if (text.startsWith('/broadcast ') && isAdmin) {
             const msg = text.replace('/broadcast ', '').trim();
             const allUsers = await User.find({});
-            await ctx.reply(`📢 ব্রডকাস্ট শুরু হয়েছে! মোট ইউজার: ${allUsers.length}\nএটি ব্যাকগ্রাউন্ডে চলছে...`);
+            await ctx.reply(`📢 Broadcast started for ${allUsers.length} users...`);
 
             (async () => {
                 let count = 0;
@@ -188,7 +290,7 @@ bot.on('text', async (ctx, next) => {
                     } catch (e) {}
                     if (count % 30 === 0) await new Promise(r => setTimeout(r, 1500));
                 }
-                await bot.telegram.sendMessage(ADMIN_ID, `✅ ব্রডকাস্ট সম্পন্ন! সফল: ${count}`).catch(e => {});
+                await bot.telegram.sendMessage(ADMIN_ID, `✅ Broadcast complete. Success: ${count}`).catch(e => {});
             })();
             return;
         }
@@ -201,7 +303,6 @@ bot.on('text', async (ctx, next) => {
     } catch (err) { console.error("Text Error:", err); }
 });
 
-// মিডিয়া ব্রডকাস্ট ও চ্যাট ফিক্সড লজিক
 bot.on(['photo', 'video', 'sticker', 'voice', 'audio'], async (ctx) => {
     try {
         const userId = ctx.from.id;
@@ -212,17 +313,17 @@ bot.on(['photo', 'video', 'sticker', 'voice', 'audio'], async (ctx) => {
         if (isAdmin && caption.startsWith('/broadcast')) {
             const allUsers = await User.find({});
             const cleanCaption = caption.replace('/broadcast', '').trim();
-            await ctx.reply(`📢 মিডিয়া ব্রডকাস্ট শুরু হয়েছে!`);
+            await ctx.reply(`📢 Media broadcast started...`);
             (async () => {
                 let count = 0;
                 for (const u of allUsers) {
                     try {
                         await ctx.copyMessage(u.userId, { caption: cleanCaption, parse_mode: 'HTML' });
                         count++;
+                        if (count % 30 === 0) await new Promise(r => setTimeout(r, 1500));
                     } catch (e) {}
-                    if (count % 30 === 0) await new Promise(r => setTimeout(r, 1500));
                 }
-                await bot.telegram.sendMessage(ADMIN_ID, `✅ মিডিয়া ব্রডকাস্ট সম্পন্ন!`).catch(e => {});
+                await bot.telegram.sendMessage(ADMIN_ID, `✅ Media broadcast complete. Success: ${count}`).catch(e => {});
             })();
             return;
         }
@@ -260,8 +361,6 @@ bot.hears(['❌ Stop Chat', '❌ Stop Search'], async (ctx) => {
         ctx.reply('❌ Stopped.', menu);
     } catch (err) { console.error("Stop Error:", err); }
 });
-
-// --- ৩. ওয়েবসাইট ও সার্ভার লঞ্চ লজিক ---
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {

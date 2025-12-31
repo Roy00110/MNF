@@ -14,8 +14,8 @@ const MONGO_URI = process.env.MONGO_URI;
 const ADMIN_ID = Number(process.env.ADMIN_ID); 
 
 // --- নতুন কনফিগারেশন (আপনার প্রয়োজন অনুযায়ী নাম দিন) ---
-const CHANNELS = ['@Channel1', '@Channel2']; 
-const BAD_WORDS = ['badword1', 'abuse', 'গালি']; 
+const CHANNELS = ['@androidmodapkfile', '@yes4all']; 
+const BAD_WORDS = ['sex', 'fuck', 'porn']; 
 
 const bot = new Telegraf(BOT_TOKEN);
 

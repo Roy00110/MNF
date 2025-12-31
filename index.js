@@ -15,21 +15,14 @@ const ADMIN_ID = Number(process.env.ADMIN_ID);
 
 const bot = new Telegraf(BOT_TOKEN);
 
-// --- ১. এক্সপ্রেস রুট পাথ এবং স্ট্যাটিক ফাইল ---
+// --- কনফিগারেশন ---
+const REQUIRED_CHANNELS = ['@androidmodapkfile', '@yes4all']; 
+const badWords = ['nude', 'sex', 'chut', 'chuda', 'porn', 'fuck', 'magi', 'khanki']; 
 
-// আপনি যেটা চেয়েছিলেন: রুট পাথ ডিফাইন করা
-app.get('/', (req, res) => {
-  res.send('Hello, your server is running! 🚀');
-});
+// Database Connection
+mongoose.connect(MONGO_URI).then(() => console.log('✅ Connected to MongoDB')).catch(err => console.log('❌ DB Error:', err));
 
-// স্ট্যাটিক ফাইল (যদি public ফোল্ডার থাকে)
-app.use(express.static(path.join(__dirname, 'public')));
-
-// --- ২. ডাটাবেজ এবং মডেল ---
-mongoose.connect(MONGO_URI)
-    .then(() => console.log('✅ Connected to MongoDB'))
-    .catch(err => console.log('❌ DB Error:', err));
-
+// User Model
 const User = mongoose.model('User', new mongoose.Schema({
     userId: { type: Number, unique: true },
     firstName: String,
@@ -43,25 +36,26 @@ const User = mongoose.model('User', new mongoose.Schema({
     webSocketId: { type: String, default: null }
 }));
 
-// --- ৩. কনফিগারেশন এবং গ্রুপ কন্ট্রোল ---
-const REQUIRED_CHANNELS = ['@androidmodapkfile', '@yes4all']; 
-const badWords = ['nude', 'sex', 'chut', 'chuda', 'porn', 'fuck', 'magi', 'khanki']; 
-
+// --- ১. গ্রুপ কন্ট্রোল (আপডেট করা লজিক) ---
 bot.use(async (ctx, next) => {
     try {
         if (ctx.chat && (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup')) {
             const userId = ctx.from.id;
-            const isAdmin = userId === ADMIN_ID; 
+            const isAdmin = userId === ADMIN_ID; // অ্যাডমিন চেক
             const text = (ctx.message && (ctx.message.text || ctx.message.caption)) || "";
 
+            // যদি অ্যাডমিন হয়, তবে কোনো ফিল্টার বা ডিলিট কাজ করবে না
             if (isAdmin) return next();
 
+            // ১. লিঙ্ক বা @মেনশন ফিল্টার (অ্যাডমিন ছাড়া সবার জন্য)
             const hasLink = /https?:\/\/\S+|t\.me\/\S+|@\S+/.test(text);
             if (hasLink) return await ctx.deleteMessage().catch(e => {});
 
+            // ২. অশ্লীল শব্দ ফিল্টার
             const hasBadWord = badWords.some(word => text.toLowerCase().includes(word));
             if (hasBadWord) return await ctx.deleteMessage().catch(e => {});
 
+            // ৩. চ্যানেল সাবস্ক্রিপশন চেক
             let isSubscribed = true;
             for (const channel of REQUIRED_CHANNELS) {
                 try {
@@ -84,6 +78,7 @@ bot.use(async (ctx, next) => {
                 });
             }
 
+            // ৪. সাধারণ মেসেজ ১ ঘণ্টা পর অটো ডিলিট
             if (ctx.message) {
                 const msgId = ctx.message.message_id;
                 const chatId = ctx.chat.id;
@@ -94,7 +89,7 @@ bot.use(async (ctx, next) => {
     return next();
 });
 
-// --- ৪. সকেট লজিক ---
+// --- ২. সকেট লজিক (তোমার ওয়েবসাইটের অরিজিনাল লজিক) ---
 io.on('connection', (socket) => {
     socket.on('register_web', async (userId) => {
         await User.updateOne({ userId }, { webSocketId: socket.id });
@@ -108,12 +103,14 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('disconnect', async () => {
-        await User.updateOne({ webSocketId: socket.id }, { webSocketId: null });
+    socket.on('disconnect', () => {
+        // Disconnect logic (if any)
     });
 });
 
-// --- ৫. বট মেইন লজিক (Start, Find, Refer etc.) ---
+app.use(express.static(path.join(__dirname, 'public')));
+
+// --- ৩. টেলিগ্রাম বট মেইন লজিক (তোমার হুবহু বাটন ও টেক্সট) ---
 
 bot.start(async (ctx) => {
     try {
@@ -134,10 +131,10 @@ bot.start(async (ctx) => {
         }
         
         const welcomeMsg = `👋 <b>Welcome to MatchMe 💌</b>\n\n` +
-                            `🎁 <b>Your Balance:</b> ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.\n\n` +
-                            `🚀 <b>Connect with random people instantly!</b>\n` +
-                            `👉 <a href="https://t.me/MakefriendsglobalBot/Letschat">✨ Start Chatting Now ✨</a>\n\n` +
-                            `<i>Open our Mini App to find your perfect match!</i>`;
+                           `🎁 <b>Your Balance:</b> ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.\n\n` +
+                           `🚀 <b>Connect with random people instantly!</b>\n` +
+                           `👉 <a href="https://t.me/MakefriendsglobalBot/Letschat">✨ Start Chatting Now ✨</a>\n\n` +
+                           `<i>Open our Mini App to find your perfect match!</i>`;
         
         ctx.reply(welcomeMsg, {
             parse_mode: 'HTML',
@@ -182,7 +179,6 @@ bot.hears('🔍 Find Partner', async (ctx) => {
     } catch (err) { console.error("Match Error:", err); }
 });
 
-// (বাকি hears এবং action লজিকগুলো আপনার মূল কোড অনুযায়ী এখানে থাকবে...)
 bot.action(/verify_/, async (ctx) => {
     try {
         const user = await User.findOne({ userId: ctx.from.id });
@@ -239,16 +235,11 @@ bot.on(['photo', 'video', 'sticker', 'voice', 'audio'], async (ctx) => {
         const caption = ctx.message.caption || "";
 
         if (userId === ADMIN_ID && caption.startsWith('/broadcast')) {
-            const cleanCaption = caption.replace('/broadcast', '').trim();
             const allUsers = await User.find({});
+            const cleanCaption = caption.replace('/broadcast', '').trim();
             (async () => {
-                let count = 0;
                 for (const u of allUsers) {
-                    try {
-                        await ctx.copyMessage(u.userId, { caption: cleanCaption, parse_mode: 'HTML' });
-                        count++;
-                    } catch (e) {}
-                    if (count % 30 === 0) await new Promise(r => setTimeout(r, 1500));
+                    try { await ctx.copyMessage(u.userId, { caption: cleanCaption, parse_mode: 'HTML' }); } catch (e) {}
                 }
             })();
             return;
@@ -288,12 +279,10 @@ bot.hears(['❌ Stop Chat', '❌ Stop Search'], async (ctx) => {
     } catch (err) { console.error("Stop Error:", err); }
 });
 
-// --- ৬. সার্ভার লঞ্চ ---
+// --- ৪. সার্ভার লঞ্চ ---
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`✅ Server is active on port ${PORT}`);
-    
-    // অটো প্রমোশন এবং বটের কাজ
+    console.log(`Server Live on port ${PORT}`);
     const GROUP_ID = -1002461999862; 
     let lastAutoMsgId = null;
 
@@ -302,7 +291,7 @@ server.listen(PORT, () => {
             if (lastAutoMsgId) await bot.telegram.deleteMessage(GROUP_ID, lastAutoMsgId).catch(e => {});
             const photoUrl = 'https://raw.githubusercontent.com/Roy00110/MNF/refs/heads/main/public/photo_2025-08-21_01-36-01.jpg'; 
             const promoMsg = `✨ <b>Connect Anonymously & Chat Live!</b> ✨\n\n` +
-                             `Looking for someone to talk to? Meet random people instantly with our <b>Secret Meet</b> Mini App.\n\n` +
+                             `Looking for someone to talk to? Meet random people instantly with our <b>Secret Meet</b> Mini App. No registration required! 🎭\n\n` +
                              `🚀 <b>Start your conversation now:</b>`;
 
             const sentMsg = await bot.telegram.sendPhoto(GROUP_ID, photoUrl, {
@@ -316,6 +305,5 @@ server.listen(PORT, () => {
 
     setInterval(sendAutoPromo, 500000); 
     sendAutoPromo();
-    
     bot.launch();   
 });

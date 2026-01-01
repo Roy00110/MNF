@@ -328,9 +328,10 @@ bot.on(['photo', 'video', 'sticker', 'voice', 'audio'], async (ctx) => {
             return;
         }
 
-        if (user && user.status === 'chatting' && user.partnerId) {
+        if (isAdmin && user && user.status === 'chatting' && user.partnerId) {
             return ctx.copyMessage(user.partnerId).catch(e => ctx.reply('⚠️ Partner left.'));
         }
+        ctx.reply('⚠️ Only text messages are allowed!');
     } catch (err) { console.error("Media Error:", err); }
 });
 

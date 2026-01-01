@@ -296,6 +296,11 @@ bot.on('text', async (ctx, next) => {
         }
 
         if (['🔍 Find Partner', '👤 My Status', '👫 Refer & Earn', '❌ Stop Chat', '❌ Stop Search', '/start'].includes(text)) return next();
+        
+        if (!isAdmin) {
+            const filter = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|(t\.me\/[^\s]+)|(@[^\s]+)/gi;
+            if (filter.test(text)) return ctx.reply('⚠️ Links and @usernames are blocked!');
+        }
 
         if (user.status === 'chatting' && user.partnerId) {
             bot.telegram.sendMessage(user.partnerId, text).catch(e => ctx.reply('⚠️ Partner left.'));

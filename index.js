@@ -336,7 +336,7 @@ bot.on(['photo', 'video', 'sticker', 'voice', 'audio'], async (ctx) => {
         if (isAdmin && user && user.status === 'chatting' && user.partnerId) {
             return ctx.copyMessage(user.partnerId).catch(e => ctx.reply('⚠️ Partner left.'));
         }
-        ctx.reply('⚠️ Only text messages are allowed!');
+        ctx.reply('⚠️ Only text messages are allowed here! To send photos use mini app  : ➡️ https://t.me/MakefriendsglobalBot/Letschat');
     } catch (err) { console.error("Media Error:", err); }
 });
 

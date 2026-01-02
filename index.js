@@ -234,18 +234,20 @@ bot.hears('🔍 Find Partner', async (ctx) => {
 });
 
 // --- নতুন বাটন লজিক ---
+// --- Updated Button Logic (Official English Version) ---
 bot.hears('📱 Random video chat app', async (ctx) => {
     const videoChatMsg = 
-        `🚀 <b>Welcome to the Ultimate Video Chat Experience!</b>\n\n` +
-        `নতুন মানুষের সাথে পরিচিত হতে চান? আমাদের এই বিশেষ অ্যাপটি ব্যবহার করে আপনি বিশ্বের যেকোনো প্রান্তের মানুষের সাথে ফ্রিতে ভিডিও চ্যাট করতে পারবেন। 🎥✨\n\n` +
-        `📥 <b>Main App Download Link:</b>\n` +
-        `👉 <a href="https://1024terabox.com/s/1E5_FWd2ihEzDPkNBEtF_QQ">Click Here to Download & Install</a>\n\n` +
-        `💬 <b>Join Our Community Chat:</b>\n` +
-        `🤝 <a href="https://t.me/friends_chatting_group01">Friends Chatting Group</a>\n\n` +
-        `<i>Privacy guaranteed and 100% free to start! 🔒</i>`;
+        `✨ <b>CONNECT INSTANTLY VIA VIDEO CHAT</b> ✨\n\n` +
+        `Ready to meet new people globally? Get started with our premium video chat app. Experience high-quality video calls and seamless connections for free! 🎥🌍\n\n` +
+        `📥 <b>OFFICIAL DOWNLOAD LINK:</b>\n` +
+        `👉 <a href="https://1024terabox.com/s/1E5_FWd2ihEzDPkNBEtF_QQ"><b>Download & Install App Now</b></a>\n\n` +
+        `━━━━━━━━━━━━━━━━━━━━\n\n` +
+        `👥 <b>JOIN OUR OFFICIAL COMMUNITY:</b>\n` +
+        `Connect with others in our group: <a href="https://t.me/friends_chatting_group01">Friends Chatting Group</a>\n\n` +
+        `🛡️ <i>Fast, Secure, and 100% Free to use.</i>`;
 
     ctx.replyWithHTML(videoChatMsg, { 
-        disable_web_page_preview: true // প্রিভিউ অন রাখলে অ্যাপের ইমেজ দেখা যাবে যা দেখতে সুন্দর লাগে
+        disable_web_page_preview: true // Keeping preview enabled to show the app thumbnail
     });
 });
 

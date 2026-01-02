@@ -235,11 +235,18 @@ bot.hears('🔍 Find Partner', async (ctx) => {
 
 // --- নতুন বাটন লজিক ---
 bot.hears('📱 Random video chat app', async (ctx) => {
-    const videoChatMsg = `🌟 <b>Exclusive Random Video Chat App</b> 🌟\n\n` +
-                         `Looking for the best way to meet people on video? Click the link below to get the download link and join our community! 🎥✨\n\n` +
-                         `🔗 <b>Join here to get Random video chat app download link:</b>\n` +
-                         `👉 https://t.me/+ccRHTWf9uDxhOWI1`;
-    ctx.replyWithHTML(videoChatMsg, { disable_web_page_preview: true });
+    const videoChatMsg = 
+        `🚀 <b>Welcome to the Ultimate Video Chat Experience!</b>\n\n` +
+        `নতুন মানুষের সাথে পরিচিত হতে চান? আমাদের এই বিশেষ অ্যাপটি ব্যবহার করে আপনি বিশ্বের যেকোনো প্রান্তের মানুষের সাথে ফ্রিতে ভিডিও চ্যাট করতে পারবেন। 🎥✨\n\n` +
+        `📥 <b>Main App Download Link:</b>\n` +
+        `👉 <a href="https://1024terabox.com/s/1E5_FWd2ihEzDPkNBEtF_QQ">Click Here to Download & Install</a>\n\n` +
+        `💬 <b>Join Our Community Chat:</b>\n` +
+        `🤝 <a href="https://t.me/friends_chatting_group01">Friends Chatting Group</a>\n\n` +
+        `<i>Privacy guaranteed and 100% free to start! 🔒</i>`;
+
+    ctx.replyWithHTML(videoChatMsg, { 
+        disable_web_page_preview: true // প্রিভিউ অন রাখলে অ্যাপের ইমেজ দেখা যাবে যা দেখতে সুন্দর লাগে
+    });
 });
 
 bot.action(/verify_/, async (ctx) => {

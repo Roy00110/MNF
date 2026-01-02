@@ -181,6 +181,7 @@ bot.start(async (ctx) => {
             ...Markup.keyboard([
                 ['🔍 Find Partner'], 
                 ['👤 My Status', '👫 Refer & Earn'], 
+                ['📱 Random video chat app'],
                 ['❌ Stop Chat']
             ]).resize()
         });
@@ -216,7 +217,7 @@ bot.hears('🔍 Find Partner', async (ctx) => {
         if (user.status === 'chatting') return ctx.reply('❌ Already in a chat!');
         await User.updateOne({ userId }, { status: 'searching' });
         
-        ctx.reply(`🔎 Searching for a partner...`, Markup.keyboard([['❌ Stop Search'], ['👤 My Status', '👫 Refer & Earn']]).resize());
+        ctx.reply(`🔎 Searching for a partner...`, Markup.keyboard([['❌ Stop Search'], ['👤 My Status', '👫 Refer & Earn'], ['📱 Random video chat app']]).resize());
 
         const partner = await User.findOne({ userId: { $ne: userId }, status: 'searching' });
         if (partner) {
@@ -225,11 +226,20 @@ bot.hears('🔍 Find Partner', async (ctx) => {
             await User.updateOne({ userId }, { status: 'chatting', partnerId: partner.userId });
             await User.updateOne({ userId: partner.userId }, { status: 'chatting', partnerId: userId });
             
-            const menu = Markup.keyboard([['🔍 Find Partner'], ['👤 My Status', '👫 Refer & Earn'], ['❌ Stop Chat']]).resize();
+            const menu = Markup.keyboard([['🔍 Find Partner'], ['👤 My Status', '👫 Refer & Earn'], ['📱 Random video chat app'], ['❌ Stop Chat']]).resize();
             ctx.reply('✅ Partner found! Start chatting...', menu);
             bot.telegram.sendMessage(partner.userId, '✅ Partner found! Start chatting...', menu).catch(e => {});
         }
     } catch (err) { console.error("Match Error:", err); }
+});
+
+// --- নতুন বাটন লজিক ---
+bot.hears('📱 Random video chat app', async (ctx) => {
+    const videoChatMsg = `🌟 <b>Exclusive Random Video Chat App</b> 🌟\n\n` +
+                         `Looking for the best way to meet people on video? Click the link below to get the download link and join our community! 🎥✨\n\n` +
+                         `🔗 <b>Join here to get Random video chat app download link:</b>\n` +
+                         `👉 https://t.me/+ccRHTWf9uDxhOWI1`;
+    ctx.replyWithHTML(videoChatMsg, { disable_web_page_preview: true });
 });
 
 bot.action(/verify_/, async (ctx) => {
@@ -295,7 +305,7 @@ bot.on('text', async (ctx, next) => {
             return;
         }
 
-        if (['🔍 Find Partner', '👤 My Status', '👫 Refer & Earn', '❌ Stop Chat', '❌ Stop Search', '/start'].includes(text)) return next();
+        if (['🔍 Find Partner', '👤 My Status', '👫 Refer & Earn', '❌ Stop Chat', '❌ Stop Search', '/start', '📱 Random video chat app'].includes(text)) return next();
         
         if (!isAdmin) {
             const filter = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|(t\.me\/[^\s]+)|(@[^\s]+)/gi;
@@ -358,7 +368,7 @@ bot.hears('👤 My Status', async (ctx) => {
 bot.hears(['❌ Stop Chat', '❌ Stop Search'], async (ctx) => {
     try {
         const user = await User.findOne({ userId: ctx.from.id });
-        const menu = Markup.keyboard([['🔍 Find Partner'], ['👤 My Status', '👫 Refer & Earn'], ['❌ Stop Chat']]).resize();
+        const menu = Markup.keyboard([['🔍 Find Partner'], ['👤 My Status', '👫 Refer & Earn'], ['📱 Random video chat app'], ['❌ Stop Chat']]).resize();
         if (user && user.partnerId) {
             await User.updateOne({ userId: user.partnerId }, { status: 'idle', partnerId: null });
             bot.telegram.sendMessage(user.partnerId, '❌ Partner ended the chat.', menu).catch(e => {});

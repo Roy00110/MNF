@@ -115,8 +115,34 @@ io.on('connection', (socket) => {
 bot.start(async (ctx) => {
     try {
         const userId = ctx.from.id;
-        const startPayload = ctx.payload;
+        const startPayload = ctx.payload; // এটা রেফারার আইডি
+        let user = await User.findOne({ userId });
 
+        // ১. যদি ইউজার নতুন হয় (ডাটাবেসে নেই)
+        if (!user) {
+            let hasReferrer = false;
+
+            // রেফারেল চেক
+            if (startPayload && !isNaN(startPayload) && Number(startPayload) !== userId) {
+                const referrer = await User.findOne({ userId: Number(startPayload) });
+                if (referrer) {
+                    await User.updateOne({ userId: referrer.userId }, { $inc: { matchLimit: 20, referrals: 1 } });
+                    bot.telegram.sendMessage(referrer.userId, `🎉 Someone joined via your link! You received +20 matches.`).catch(e => {});
+                    hasReferrer = true;
+                }
+            }
+
+            // নতুন ইউজার তৈরি
+            user = new User({ 
+                userId, 
+                firstName: ctx.from.first_name, 
+                matchLimit: 10, 
+                hasReceivedReferralBonus: hasReferrer // বোনাস পেয়েছে কি না সেভ রাখা
+            });
+            await user.save();
+        }
+
+        // ২. সাবস্ক্রিপশন চেক (ইউজার ডাটাবেসে সেভ হওয়ার পর চেক করা ভালো)
         if (!(await isSubscribed(userId))) {
             const buttons = CHANNELS.map(c => [Markup.button.url(`Join ${c}`, `https://t.me/${c.replace('@', '')}`)]);
             return ctx.reply(`⚠️ <b>Access Denied!</b>\nYou must join our channels to use this bot.`, {
@@ -125,35 +151,14 @@ bot.start(async (ctx) => {
             });
         }
 
-        let user = await User.findOne({ userId });
-
-        // নতুন ইউজার বা সকেট দিয়ে আগে তৈরি হওয়া ইউজারের জন্য রেফারেল বোনাস লজিক
-        if (!user || (user && !user.hasReceivedReferralBonus)) {
-            if (startPayload && !isNaN(startPayload) && Number(startPayload) !== userId) {
-                const referrer = await User.findOne({ userId: Number(startPayload) });
-                if (referrer) {
-                    await User.updateOne({ userId: referrer.userId }, { $inc: { matchLimit: 20, referrals: 1 } });
-                    bot.telegram.sendMessage(referrer.userId, `🎉 Someone joined via your link! You received +20 matches.`).catch(e => {});
-                }
-            }
-        }
-
-        if (!user) {
-            user = new User({ userId, firstName: ctx.from.first_name, matchLimit: 10, hasReceivedReferralBonus: !!startPayload });
-            await user.save();
-        } else if (startPayload && !user.hasReceivedReferralBonus) {
-            await User.updateOne({ userId }, { hasReceivedReferralBonus: true });
-        }
-        
+        // ৩. ওয়েলকাম মেসেজ (বাকি অংশ আগের মতোই থাকবে)
         const welcomeMsg = `👋 <b>Welcome to MatchMe 💌</b>\n\n` +
-                            `🎁 <b>Your Balance:</b> ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.\n\n` +
-                            `🚀 <b>Connect with random people instantly!</b>\n` +
-                            `👉 <a href="https://t.me/MakefriendsglobalBot/Letschat">✨ Start Chatting Now ✨</a>\n\n` +
-                            `<i>Open our Mini App to find your perfect match!</i>`;
+                           `🎁 <b>Your Balance:</b> ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.\n\n` +
+                           `🚀 <b>Connect with random people instantly!</b>\n` +
+                           `👉 <a href="https://t.me/MakefriendsglobalBot/Letschat">✨ Start Chatting Now ✨</a>`;
         
         ctx.reply(welcomeMsg, {
             parse_mode: 'HTML',
-            disable_web_page_preview: false,
             ...Markup.keyboard([
                 ['🔍 Find Partner'], 
                 ['👤 My Status', '👫 Refer & Earn'], 

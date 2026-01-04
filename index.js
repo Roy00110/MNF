@@ -240,7 +240,7 @@ bot.hears('📱 Random video chat app', async (ctx) => {
         `✨ <b>CONNECT INSTANTLY VIA VIDEO CHAT</b> ✨\n\n` +
         `Ready to meet new people globally? Get started with our premium video chat app. Experience high-quality video calls and seamless connections for free! 🎥🌍\n\n` +
         `📥 <b>OFFICIAL DOWNLOAD LINK:</b>\n` +
-        `👉 <a href="https://1024terabox.com/s/1E5_FWd2ihEzDPkNBEtF_QQ"><b>Download & Install App Now</b></a>\n\n` +
+        `👉 <a href="https://1024terabox.com/s/1wCQFn0fXbrLKkUjufnkCMg"><b>Download & Install App Now</b></a>\n\n` +
         `━━━━━━━━━━━━━━━━━━━━\n\n` +
         `👥 <b>JOIN OUR OFFICIAL COMMUNITY:</b>\n` +
         `Connect with others in our group: <a href="https://t.me/friends_chatting_group01">Friends Chatting Group</a>\n\n` +

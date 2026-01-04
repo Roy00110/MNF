@@ -141,10 +141,12 @@ io.on('connection', (socket) => {
 
 // --- টেলিগ্রাম বট লজিক ---
 
-bot.start(async (ctx) => {
+botbot.start(async (ctx) => {
     try {
         const userId = ctx.from.id;
-        // ফোর্স সাবস্ক্রাইব চেক
+        const startPayload = ctx.payload;
+
+        // ১. সাবস্ক্রিপশন চেক
         if (!(await isSubscribed(userId))) {
             const buttons = CHANNELS.map(c => [Markup.button.url(`Join ${c}`, `https://t.me/${c.replace('@', '')}`)]);
             return ctx.reply(`⚠️ <b>Access Denied!</b>\nYou must join our channels to use this bot.`, {
@@ -153,28 +155,32 @@ bot.start(async (ctx) => {
             });
         }
 
-        const startPayload = ctx.payload;
         let user = await User.findOne({ userId });
 
+        // ২. ইউজার যদি একেবারেই নতুন হয় (বট বা সকেট কোথাও ডাটা নেই)
         if (!user) {
-            console.log(`🆕 [NEW USER] ${ctx.from.first_name} (ID: ${userId}) joined.`);
-            
-            // নতুন ইউজার অবজেক্ট তৈরি
+            console.log(`🆕 [NEW USER] ${ctx.from.first_name} joined.`);
             user = new User({ userId, firstName: ctx.from.first_name, matchLimit: 10 });
+        }
 
-            // রেফারেল চেক (ইউজার সেভ হওয়ার আগেই চেক করা হচ্ছে যাতে মিস না হয়)
-            if (startPayload && !isNaN(startPayload) && Number(startPayload) !== userId) {
+        // ৩. রেফারেল চেক (ইউজার নতুন হোক বা সকেট দিয়ে আগেই তৈরি হোক, রেফারেল যেন মিস না হয়)
+        // এখানে শর্ত হলো: ইউজার আগে কখনো রেফারেল পায়নি (referrals: 0) এবং সে নিজে রেফারেল লিঙ্কে এসেছে
+        if (startPayload && !isNaN(startPayload) && Number(startPayload) !== userId) {
+            // চেক করুন ইউজার আগে থেকেই বোনাস পেয়েছে কি না (ডুপ্লিকেট ঠেকাতে)
+            // আমরা একটি নতুন কন্ডিশন যোগ করছি: যদি ইউজারের matchLimit এখনো ১০ থাকে (মানে সে নতুন)
+            if (user.isNew || user.matchLimit === 10) { 
                 const referrer = await User.findOne({ userId: Number(startPayload) });
                 if (referrer) {
                     await User.updateOne({ userId: referrer.userId }, { $inc: { matchLimit: 20, referrals: 1 } });
                     bot.telegram.sendMessage(referrer.userId, `🎉 Someone joined via your link! You received +20 matches.`).catch(e => {});
+                    
+                    // বোনাস পাওয়ার পর ইউজারের স্ট্যাটাস আপডেট যেন সে বারবার বোনাস না নিতে পারে
+                    user.matchLimit = 15; // রেফার লিঙ্কে জয়েন করার জন্য তাকেও কিছু বোনাস দিতে পারেন
                 }
             }
-            
-            await user.save();
-            // ডাটাবেজ থেকে লেটেস্ট ডাটা নিশ্চিত করতে পুনরায় রিড (অপশনাল কিন্তু নিরাপদ)
-            user = await User.findOne({ userId });
         }
+
+        await user.save();
         
         const welcomeMsg = `👋 <b>Welcome to MatchMe 💌</b>\n\n` +
                             `🎁 <b>Your Balance:</b> ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.\n\n` +
@@ -193,7 +199,7 @@ bot.start(async (ctx) => {
             ]).resize()
         });
     } catch (err) { console.error("Start Error:", err); }
-});
+});;
 
 // ভেরিফিকেশন বাটন হ্যান্ডলার
 bot.action('check_sub', async (ctx) => {

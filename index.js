@@ -141,7 +141,7 @@ io.on('connection', (socket) => {
 
 // --- টেলিগ্রাম বট লজিক ---
 
-botbot.start(async (ctx) => {
+bot.start(async (ctx) => {
     try {
         const userId = ctx.from.id;
         const startPayload = ctx.payload;

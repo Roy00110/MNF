@@ -161,7 +161,7 @@ bot.start(async (ctx) => {
 
         if (!user) {
             console.log(`🆕 Creating new user in DB: ${userId}`);
-            user = new User({ userId, firstName: ctx.from.first_name, matchLimit: 10, hasReceivedReferralBonus: !!startPayload });
+            user = new User({ userId, firstName: ctx.from.first_name, matchLimit: 100, hasReceivedReferralBonus: !!startPayload });
             await user.save();
         } else if (startPayload && !user.hasReceivedReferralBonus) {
             console.log(`✅ Marking user ${userId} as bonus-processed.`);

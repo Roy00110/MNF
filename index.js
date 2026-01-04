@@ -158,15 +158,22 @@ bot.start(async (ctx) => {
 
         if (!user) {
             console.log(`🆕 [NEW USER] ${ctx.from.first_name} (ID: ${userId}) joined.`);
+            
+            // নতুন ইউজার অবজেক্ট তৈরি
             user = new User({ userId, firstName: ctx.from.first_name, matchLimit: 10 });
-            if (startPayload && Number(startPayload) !== userId) {
+
+            // রেফারেল চেক (ইউজার সেভ হওয়ার আগেই চেক করা হচ্ছে যাতে মিস না হয়)
+            if (startPayload && !isNaN(startPayload) && Number(startPayload) !== userId) {
                 const referrer = await User.findOne({ userId: Number(startPayload) });
                 if (referrer) {
                     await User.updateOne({ userId: referrer.userId }, { $inc: { matchLimit: 20, referrals: 1 } });
                     bot.telegram.sendMessage(referrer.userId, `🎉 Someone joined via your link! You received +20 matches.`).catch(e => {});
                 }
             }
+            
             await user.save();
+            // ডাটাবেজ থেকে লেটেস্ট ডাটা নিশ্চিত করতে পুনরায় রিড (অপশনাল কিন্তু নিরাপদ)
+            user = await User.findOne({ userId });
         }
         
         const welcomeMsg = `👋 <b>Welcome to MatchMe 💌</b>\n\n` +
@@ -181,7 +188,7 @@ bot.start(async (ctx) => {
             ...Markup.keyboard([
                 ['🔍 Find Partner'], 
                 ['👤 My Status', '👫 Refer & Earn'], 
-                ['📱 Random video chat app'],
+                ['📱 Random video chat app'], 
                 ['❌ Stop Chat']
             ]).resize()
         });

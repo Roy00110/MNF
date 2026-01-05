@@ -259,18 +259,19 @@
         setupSocketListeners();
         addStatusMessage("✨ Match found! Say hello.");
 
-        // পার্টনার প্রোফাইল লিঙ্ক দেখানো (যদি সার্ভার থেকে পাঠানো হয়)
         if(data && data.partnerLink) {
-            const messages = document.getElementById('messages');
-            const profileDiv = document.createElement('div');
-            profileDiv.className = 'profile-card';
-            profileDiv.innerHTML = `
-                <div style="font-size: 13px; color: var(--text-main);">🤝 <b>Want to chat privately?</b></div>
-                <a href="${data.partnerLink}" target="_blank" class="profile-link">👤 View Partner Profile</a>
-            `;
-            messages.appendChild(profileDiv);
-            scrollDown();
-        }
+    const messages = document.getElementById('messages');
+    const profileDiv = document.createElement('div');
+    profileDiv.className = 'profile-card';
+    profileDiv.innerHTML = `
+        <div style="font-size: 13px; color: var(--text-main);">🤝 <b>Want to chat privately?</b></div>
+        <button onclick="tg.openTelegramLink('${data.partnerLink}')" class="profile-link" style="border:none; cursor:pointer;">
+            👤 View Partner Profile
+        </button>
+    `;
+    messages.appendChild(profileDiv);
+    scrollDown();
+}
     });
 
     function sendMsg() {

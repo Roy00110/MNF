@@ -293,50 +293,74 @@ bot.on('text', async (ctx, next) => {
         const user = await User.findOne({ userId });
         if (!user) return;
 
-        // --- ব্রডকাস্ট লজিক ---
+        // --- ব্রডকাস্ট লজিক (নিখুঁত ভার্সন) ---
         if (text.startsWith('/broadcast') && isAdmin) {
             try {
                 let broadcastMsgId;
                 let isTextOnly = false;
                 let finalMessage = "";
-                let extraData = null;
+                let extraData = { parse_mode: 'HTML' }; // HTML সাপোর্ট নিশ্চিত করতে
 
+                // ১. চেক করা হচ্ছে এটা কি রিপ্লাই নাকি সরাসরি টেক্সট
                 if (ctx.message.reply_to_message) {
                     broadcastMsgId = ctx.message.reply_to_message.message_id;
-                    console.log(`[Admin] Broadcasting a replied message (ID: ${broadcastMsgId})`);
+                    console.log(`[Admin] Broadcasting via Reply (ID: ${broadcastMsgId})`);
                 } else {
                     const rawContent = text.replace('/broadcast', '').trim();
                     if (!rawContent) return ctx.reply("❌ Error: Message likhun ba reply din.");
+
+                    // ২. বাটন আছে কি না চেক করা (Text | Button Name | Link)
                     const parts = rawContent.split('|').map(p => p.trim());
                     if (parts.length === 3) {
                         finalMessage = parts[0];
-                        extraData = { reply_markup: { inline_keyboard: [[{ text: parts[1], url: parts[2] }]] } };
+                        extraData.reply_markup = {
+                            inline_keyboard: [[
+                                { text: parts[1], url: parts[2] }
+                            ]]
+                        };
                     } else {
                         finalMessage = rawContent;
                     }
                     isTextOnly = true;
                 }
 
+                // ৩. ডাটাবেজ থেকে সব ইউজার সংগ্রহ
                 const allUsers = await User.find({});
-                ctx.reply(`📢 Broadcast started to ${allUsers.length} users...`);
-                let successCount = 0; let failCount = 0;
+                ctx.reply(`📢 Broadcast started to ${allUsers.length} users. Please wait...`);
 
+                let successCount = 0; 
+                let failCount = 0;
+
+                // ৪. এসিনক্রোনাস লুপ (রেট লিমিটসহ)
                 (async () => {
                     for (const u of allUsers) {
                         try {
                             if (isTextOnly) {
+                                // সরাসরি টেক্সট পাঠানোর জন্য
                                 await bot.telegram.sendMessage(u.userId, finalMessage, extraData);
                             } else {
+                                // রিপ্লাই করা মেসেজ (ফটো/ভিডিও/ভয়েস) কপি করার জন্য
                                 await bot.telegram.copyMessage(u.userId, ctx.chat.id, broadcastMsgId);
                             }
                             successCount++;
-                        } catch (error) { failCount++; }
+                        } catch (error) {
+                            failCount++;
+                            // console.log(`Failed for ${u.userId}`); // প্রয়োজনে অন করতে পারেন
+                        }
+                        // টেলিগ্রামের লিমিট এড়াতে বিরতি (Anti-Spam)
                         await new Promise(r => setTimeout(r, 50));
                     }
+                    
+                    // ৫. অ্যাডমিনকে রিপোর্ট প্রদান
                     ctx.reply(`✅ **Broadcast Finished!**\n\n👤 Total: ${allUsers.length}\n✅ Success: ${successCount}\n❌ Failed: ${failCount}`, { parse_mode: 'Markdown' });
+                    console.log(`[Report] Success: ${successCount}, Fail: ${failCount}`);
                 })();
-            } catch (err) { console.error(err); }
-            return;
+
+            } catch (err) {
+                console.error("Broadcast Error:", err);
+                ctx.reply("❌ Fatal error in broadcast logic.");
+            }
+            return; // ব্রডকাস্ট হলে এখানেই শেষ হবে
         }
 
         if (['🔍 Find Partner', '👤 My Status', '👫 Refer & Earn', '❌ Stop Chat', '❌ Stop Search', '/start', '📱 Random video chat app'].includes(text)) return next();

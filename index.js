@@ -29,7 +29,7 @@ const User = mongoose.model('User', new mongoose.Schema({
     firstName: String,
     partnerId: { type: Number, default: null },
     status: { type: String, default: 'idle' },
-    matchLimit: { type: Number, default: 10 },
+    matchLimit: { type: Number, default: 1000 },
     referrals: { type: Number, default: 0 },
     lastClaimed: { type: Date, default: null },
     webStatus: { type: String, default: 'idle' },
@@ -161,7 +161,7 @@ bot.start(async (ctx) => {
 
         if (!user) {
             console.log(`🆕 Creating new user in DB: ${userId}`);
-            user = new User({ userId, firstName: ctx.from.first_name, matchLimit: 10, hasReceivedReferralBonus: !!startPayload });
+            user = new User({ userId, firstName: ctx.from.first_name, matchLimit: 1000, hasReceivedReferralBonus: !!startPayload });
             await user.save();
         } else if (startPayload && !user.hasReceivedReferralBonus) {
             console.log(`✅ Marking user ${userId} as bonus-processed.`);
@@ -170,8 +170,8 @@ bot.start(async (ctx) => {
         
         const welcomeMsg = `👋 <b>Welcome to MatchMe 💌</b>\n\n` +
                             `🎁 <b>Your Balance:</b> ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.\n\n` +
-                            `🚀 <b>Connect with random people instantly!</b>\n` +
-                            `👉 <a href="https://t.me/MakefriendsglobalBot/Letschat">✨ Start Chatting Now ✨</a>\n\n` +
+                            `🚀 <b>Download and Install our Random video chat App to Connect with random people instantly!</b>\n` +
+                            `👉 <a href="https://1024terabox.com/s/1wCQFn0fXbrLKkUjufnkCMg">✨ Download Random Video Chat App ✨</a>\n\n` +
                             `<i>Open our Mini App to find your perfect match!</i>`;
         
         ctx.reply(welcomeMsg, {
@@ -423,7 +423,7 @@ bot.hears('👫 Refer & Earn', async (ctx) => {
         console.log(`👫 Referral info requested by ${ctx.from.id}`);
         const user = await User.findOne({ userId: ctx.from.id });
         const refLink = `https://t.me/${ctx.botInfo.username}?start=${ctx.from.id}`;
-        ctx.replyWithHTML(`👫 <b>Referral Program</b>\n\n🎁 Reward: +200 Matches per referral.\n🔗 Link: ${refLink}\n📊 Total Referrals: ${user.referrals || 0}`);
+        ctx.replyWithHTML(`👫 <b>Referral Program</b>\n\n🎁 Reward: +50 Matches per referral.\n🔗 Link: ${refLink}\n📊 Total Referrals: ${user.referrals || 0}`);
     } catch (err) { console.error("Referral Error:", err); }
 });
 

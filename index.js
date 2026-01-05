@@ -224,11 +224,27 @@ bot.hears('🔍 Find Partner', async (ctx) => {
             console.log(`🤝 Bot Match Found: ${userId} & ${partner.userId}`);
             if (!isAdmin) await User.updateOne({ userId }, { $inc: { matchLimit: -1 } });
             if (partner.userId !== ADMIN_ID) await User.updateOne({ userId: partner.userId }, { $inc: { matchLimit: -1 } });
+            
             await User.updateOne({ userId }, { status: 'chatting', partnerId: partner.userId });
             await User.updateOne({ userId: partner.userId }, { status: 'chatting', partnerId: userId });
+
             const menu = Markup.keyboard([['🔍 Find Partner'], ['👤 My Status', '👫 Refer & Earn'], ['📱 Random video chat app'], ['❌ Stop Chat']]).resize();
-            ctx.reply('✅ Partner found! Start chatting...', menu);
-            bot.telegram.sendMessage(partner.userId, '✅ Partner found! Start chatting...', menu).catch(e => {});
+
+            // পার্টনারদের প্রোফাইল লিঙ্ক তৈরি
+            const userLink = `tg://user?id=${userId}`;
+            const partnerLink = `tg://user?id=${partner.userId}`;
+
+            // বর্তমান ইউজারকে পার্টনারের প্রোফাইল লিঙ্ক পাঠানো
+            ctx.reply(`✅ Partner found! Start chatting...\n\n🤝 <b>Add each other to chat privately:</b>\n👤 <a href="${partnerLink}">Click here to view Partner Profile</a>`, { 
+                parse_mode: 'HTML', 
+                ...menu 
+            });
+
+            // পার্টনারকে বর্তমান ইউজারের প্রোফাইল লিঙ্ক পাঠানো
+            bot.telegram.sendMessage(partner.userId, `✅ Partner found! Start chatting...\n\n🤝 <b>Add each other to chat privately:</b>\n👤 <a href="${userLink}">Click here to view Partner Profile</a>`, { 
+                parse_mode: 'HTML', 
+                ...menu 
+            }).catch(e => {});
         }
     } catch (err) { console.error("Match Error:", err); }
 });

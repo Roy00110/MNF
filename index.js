@@ -99,8 +99,8 @@ socket.on('find_partner_web', async (userId) => {
                 await User.updateOne({ userId: partner.userId }, { webStatus: 'chatting', webPartnerId: user.userId });
 
                 // প্রোফাইল লিঙ্ক তৈরি
-                const userLink = `https://t.me/user?id=${userId}`;
-                const partnerLink = `https://t.me/user?id=${partner.userId}`;
+                const userLink = `tg://user?id=${userId}`;
+                const partnerLink = `tg://user?id=${partner.userId}`;
 
                 // সকেটের মাধ্যমে দুই ইউজারকেই ডাটা পাঠানো
                 // এখানে 'match_found' ইভেন্টের সাথে লিঙ্কগুলো পাঠিয়ে দিচ্ছি

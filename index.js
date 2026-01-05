@@ -35,24 +35,17 @@ const User = mongoose.model('User', new mongoose.Schema({
     webStatus: { type: String, default: 'idle' },
     webPartnerId: { type: Number, default: null },
     webSocketId: { type: String, default: null },
-    hasReceivedReferralBonus: { type: Boolean, default: false } // ডুপ্লিকেট বোনাস ঠেকাতে
+    hasReceivedReferralBonus: { type: Boolean, default: false }
 }));
 
 // --- সাবস্ক্রিপশন চেক ফাংশন ---
 async function isSubscribed(userId) {
-    console.log(`🔍 Checking sub for: ${userId}`);
     if (userId === ADMIN_ID) return true;
     for (const channel of CHANNELS) {
         try {
             const member = await bot.telegram.getChatMember(channel, userId);
-            if (['left', 'kicked'].includes(member.status)) {
-                console.log(`❌ User ${userId} not joined in ${channel}`);
-                return false;
-            }
-        } catch (e) { 
-            console.log(`⚠️ Sub check error for ${channel}:`, e.message);
-            return false; 
-        }
+            if (['left', 'kicked'].includes(member.status)) return false;
+        } catch (e) { return false; }
     }
     return true;
 }
@@ -62,11 +55,8 @@ app.use(express.static(path.join(__dirname)));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 io.on('connection', (socket) => {
-   console.log(`🌐 New Web Connection: ${socket.id}`);
-   
    socket.on('join', async (userId) => {
         if (!userId) return;
-        console.log(`👤 User ${userId} joined web via socket ${socket.id}`);
         await User.findOneAndUpdate(
             { userId: Number(userId) }, 
             { webSocketId: socket.id, webStatus: 'idle', webPartnerId: null }, 
@@ -76,11 +66,9 @@ io.on('connection', (socket) => {
 
     socket.on('find_partner_web', async (userId) => {
         try {
-            console.log(`🔎 Web search started by: ${userId}`);
             const user = await User.findOne({ userId: Number(userId) });
             const isAdmin = user.userId === ADMIN_ID;
             if (!isAdmin && user.matchLimit <= 0) {
-                console.log(`🚫 Match limit over for: ${userId}`);
                 const refLink = `https://t.me/${bot.botInfo.username}?start=${user.userId}`;
                 bot.telegram.sendMessage(user.userId, `❌ <b>Your match limit is over!</b>\n\nInvite friends to get more matches.\n🔗 ${refLink}`, { parse_mode: 'HTML' }).catch(e => {});
                 return io.to(socket.id).emit('limit_over');
@@ -88,7 +76,6 @@ io.on('connection', (socket) => {
             await User.updateOne({ userId: Number(userId) }, { webStatus: 'searching', webSocketId: socket.id });
             const partner = await User.findOne({ userId: { $ne: Number(userId) }, webStatus: 'searching', webSocketId: { $ne: null } });
             if (partner && partner.webSocketId) {
-                console.log(`🤝 Web Match Found: ${userId} & ${partner.userId}`);
                 if (!isAdmin) await User.updateOne({ userId: user.userId }, { $inc: { matchLimit: -1 } });
                 if (partner.userId !== ADMIN_ID) await User.updateOne({ userId: partner.userId }, { $inc: { matchLimit: -1 } });
                 await User.updateOne({ userId: user.userId }, { webStatus: 'chatting', webPartnerId: partner.userId });
@@ -101,7 +88,6 @@ io.on('connection', (socket) => {
 
     socket.on('send_msg', async (data) => {
         const { senderId, text, image } = data; 
-        console.log(`📩 Web Msg from ${senderId}`);
         const user = await User.findOne({ userId: Number(senderId) });
         if (user && user.webPartnerId) {
             const partner = await User.findOne({ userId: user.webPartnerId });
@@ -112,7 +98,6 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', async () => {
-        console.log(`🌐 Web Disconnected: ${socket.id}`);
         const user = await User.findOne({ webSocketId: socket.id });
         if (user) {
             if (user.webPartnerId) {
@@ -131,10 +116,8 @@ bot.start(async (ctx) => {
     try {
         const userId = ctx.from.id;
         const startPayload = ctx.payload;
-        console.log(`🚀 /start received from ${userId} (Payload: ${startPayload})`);
 
         if (!(await isSubscribed(userId))) {
-            console.log(`📢 Subscription required for ${userId}`);
             const buttons = CHANNELS.map(c => [Markup.button.url(`Join ${c}`, `https://t.me/${c.replace('@', '')}`)]);
             return ctx.reply(`⚠️ <b>Access Denied!</b>\nYou must join our channels to use this bot.`, {
                 parse_mode: 'HTML',
@@ -144,51 +127,34 @@ bot.start(async (ctx) => {
 
         let user = await User.findOne({ userId });
 
-        // নতুন ইউজার বা সকেট দিয়ে আগে তৈরি হওয়া ইউজারের জন্য রেফারেল বোনাস লজিক
         if (!user || (user && !user.hasReceivedReferralBonus)) {
-            console.log(`💎 Checking referral for ${userId}...`);
             if (startPayload && !isNaN(startPayload) && Number(startPayload) !== userId) {
                 const referrer = await User.findOne({ userId: Number(startPayload) });
                 if (referrer) {
-                    console.log(`🎁 Awarding referral bonus to ${referrer.userId} for inviting ${userId}`);
                     await User.updateOne({ userId: referrer.userId }, { $inc: { matchLimit: 200, referrals: 1 } });
                     bot.telegram.sendMessage(referrer.userId, `🎉 Someone joined via your link! You received +200 matches.`).catch(e => {});
-                } else {
-                    console.log(`ℹ️ Referrer ID ${startPayload} not found in DB.`);
                 }
             }
         }
 
         if (!user) {
-            console.log(`🆕 Creating new user in DB: ${userId}`);
             user = new User({ userId, firstName: ctx.from.first_name, matchLimit: 1000, hasReceivedReferralBonus: !!startPayload });
             await user.save();
         } else if (startPayload && !user.hasReceivedReferralBonus) {
-            console.log(`✅ Marking user ${userId} as bonus-processed.`);
             await User.updateOne({ userId }, { hasReceivedReferralBonus: true });
         }
         
-        const welcomeMsg = `👋 <b>Welcome to MatchMe 💌</b>\n\n` +
-                            `🎁 <b>Your Balance:</b> ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.\n\n` +
-                            `🚀 <b>Connect with random people instantly!</b>\n` +
-                            `👉 <a href="https://t.me/MakefriendsglobalBot/Letschat">✨ Start Chatting Now ✨</a>\n\n` +
-                            `<i>Open our Mini App to find your perfect match!</i>`;
+        const welcomeMsg = `👋 <b>Welcome to MatchMe 💌</b>\n\n🎁 <b>Your Balance:</b> ${userId === ADMIN_ID ? 'Unlimited' : user.matchLimit + ' Matches'} left.\n\n🚀 <b>Connect with random people instantly!</b>\n👉 <a href="https://t.me/MakefriendsglobalBot/Letschat">✨ Start Chatting Now ✨</a>\n\n<i>Open our Mini App to find your perfect match!</i>`;
         
         ctx.reply(welcomeMsg, {
             parse_mode: 'HTML',
             disable_web_page_preview: false,
-            ...Markup.keyboard([
-                ['🔍 Find Partner'], 
-                ['👤 My Status', '👫 Refer & Earn'], 
-                ['📱 Random video chat app'], 
-                ['❌ Stop Chat']
-            ]).resize()
+            ...Markup.keyboard([['🔍 Find Partner'], ['👤 My Status', '👫 Refer & Earn'], ['📱 Random video chat app'], ['❌ Stop Chat']]).resize()
         });
     } catch (err) { console.error("Start Error:", err); }
 });
 
 bot.action('check_sub', async (ctx) => {
-    console.log(`🔘 Check Sub Callback from ${ctx.from.id}`);
     if (await isSubscribed(ctx.from.id)) {
         await ctx.deleteMessage().catch(e=>{});
         ctx.reply("✅ Verified! Type /start to begin.");
@@ -200,12 +166,10 @@ bot.action('check_sub', async (ctx) => {
 bot.hears('🔍 Find Partner', async (ctx) => {
     try {
         const userId = ctx.from.id;
-        console.log(`🔍 Search request from ${userId}`);
         const user = await User.findOne({ userId });
         const isAdmin = userId === ADMIN_ID;
 
         if (!isAdmin && user.matchLimit <= 0) {
-            console.log(`🚫 Search denied. Limit 0 for ${userId}`);
             return ctx.reply('❌ <b>Your match limit is over!</b>\n\nClick the link below to visit, then click <b>Verify</b> to get 5 matches:', {
                 parse_mode: 'HTML',
                 ...Markup.inlineKeyboard([
@@ -217,162 +181,74 @@ bot.hears('🔍 Find Partner', async (ctx) => {
 
         if (user.status === 'chatting') return ctx.reply('❌ Already in a chat!');
         await User.updateOne({ userId }, { status: 'searching' });
-        ctx.reply(`🔎 Searching for a partner...`, Markup.keyboard([['❌ Stop Search'], ['👤 My Status', '👫 Refer & Earn'], ['📱 Random video chat app']]).resize());
+        ctx.reply(`🔎 Searching...`, Markup.keyboard([['❌ Stop Search'], ['👤 My Status', '👫 Refer & Earn'], ['📱 Random video chat app']]).resize());
 
         const partner = await User.findOne({ userId: { $ne: userId }, status: 'searching' });
         if (partner) {
-            console.log(`🤝 Bot Match Found: ${userId} & ${partner.userId}`);
             if (!isAdmin) await User.updateOne({ userId }, { $inc: { matchLimit: -1 } });
             if (partner.userId !== ADMIN_ID) await User.updateOne({ userId: partner.userId }, { $inc: { matchLimit: -1 } });
             await User.updateOne({ userId }, { status: 'chatting', partnerId: partner.userId });
             await User.updateOne({ userId: partner.userId }, { status: 'chatting', partnerId: userId });
             const menu = Markup.keyboard([['🔍 Find Partner'], ['👤 My Status', '👫 Refer & Earn'], ['📱 Random video chat app'], ['❌ Stop Chat']]).resize();
-            ctx.reply('✅ Partner found! Start chatting...', menu);
-            bot.telegram.sendMessage(partner.userId, '✅ Partner found! Start chatting...', menu).catch(e => {});
+            ctx.reply('✅ Partner found!', menu);
+            bot.telegram.sendMessage(partner.userId, '✅ Partner found!', menu).catch(e => {});
         }
     } catch (err) { console.error("Match Error:", err); }
 });
 
-bot.hears('📱 Random video chat app', async (ctx) => {
-    console.log(`📱 Video App Promo requested by ${ctx.from.id}`);
-    const videoChatMsg = `✨ <b>CONNECT INSTANTLY VIA VIDEO CHAT</b> ✨\n\n` +
-        `Ready to meet new people globally? Get started with our premium video chat app. Experience high-quality video calls and seamless connections for free! 🎥🌍\n\n` +
-        `📥 <b>OFFICIAL DOWNLOAD LINK:</b>\n` +
-        `👉 <a href="https://1024terabox.com/s/1wCQFn0fXbrLKkUjufnkCMg"><b>Download & Install App Now</b></a>\n\n` +
-        `━━━━━━━━━━━━━━━━━━━━\n\n` +
-        `👥 <b>JOIN OUR OFFICIAL COMMUNITY:</b>\n` +
-        `Connect with others in our group: <a href="https://t.me/friends_chatting_group01">Friends Chatting Group</a>\n\n` +
-        `🛡️ <i>Fast, Secure, and 100% Free to use.</i>`;
-    ctx.replyWithHTML(videoChatMsg, { disable_web_page_preview: true });
-});
-
-bot.action(/verify_/, async (ctx) => {
-    try {
-        console.log(`✅ Verify clicked by ${ctx.from.id}`);
-        const user = await User.findOne({ userId: ctx.from.id });
-        const today = new Date().setHours(0, 0, 0, 0);
-        if (user.lastClaimed && new Date(user.lastClaimed).getTime() === today) {
-            return ctx.answerCbQuery('❌ Already claimed today!', { show_alert: true });
-        }
-        await User.updateOne({ userId: ctx.from.id }, { $inc: { matchLimit: 5 }, $set: { lastClaimed: new Date(today) } });
-        ctx.answerCbQuery('✅ 5 Matches Added!');
-        ctx.editMessageText('🎉 <b>Bonus Added!</b> You got +5 matches.', { parse_mode: 'HTML' });
-    } catch (err) { console.error("Verify Error:", err); }
-});
-
+// --- ব্রডকাস্ট এবং টেক্সট হ্যান্ডলার (Fixed) ---
 bot.on('text', async (ctx, next) => {
     try {
         const text = ctx.message.text;
         const userId = ctx.from.id;
-        const isAdmin = userId === ADMIN_ID;
+        const isAdmin = userId === ADMIN_ID; // ফিক্সড: এখন এই ফাংশনের ভেতরেই আছে
 
-        // ১. গ্রুপ অটো-ডিলিট (১ ঘণ্টার পুরনো মেসেজ)
-        if (ctx.chat.type !== 'private') {
-            const hourAgo = Math.floor(Date.now() / 1000) - 3600;
-            if (ctx.message.date < hourAgo) {
-                console.log(`🗑️ Deleting old message in group.`);
-                return ctx.deleteMessage().catch(e => {});
-            }
-        }
-
-        // ২. গালি ফিল্টার
+        // গালি ও লিংক ফিল্টার
         if (BAD_WORDS.some(w => text.toLowerCase().includes(w))) {
-            console.log(`⚠️ Bad word detected from ${userId}`);
             await ctx.deleteMessage().catch(e => {});
-            return ctx.reply(`🚫 Bad language is not allowed! Message deleted.`).then(m => setTimeout(() => bot.telegram.deleteMessage(ctx.chat.id, m.message_id).catch(e=>{}), 5000));
+            return ctx.reply(`🚫 Bad language is not allowed!`).then(m => setTimeout(() => bot.telegram.deleteMessage(ctx.chat.id, m.message_id).catch(e=>{}), 5000));
         }
 
-        // ৩. ফোর্স সাবস্ক্রাইব চেক (প্রাইভেট চ্যাটের জন্য)
+        // ব্রডকাস্ট লজিক
+        if (text.startsWith('/broadcast') && isAdmin) {
+            const rawContent = text.replace('/broadcast', '').trim();
+            const allUsers = await User.find({});
+            let extraData = { parse_mode: 'HTML' };
+            let finalMessage = rawContent;
+
+            const parts = rawContent.split('|').map(p => p.trim());
+            if (parts.length === 3) {
+                finalMessage = parts[0];
+                extraData.reply_markup = { inline_keyboard: [[{ text: parts[1], url: parts[2] }]] };
+            }
+
+            ctx.reply(`📢 Broadcast started to ${allUsers.length} users...`);
+            let s = 0; let f = 0;
+
+            for (const u of allUsers) {
+                try {
+                    if (ctx.message.reply_to_message) {
+                        await bot.telegram.copyMessage(u.userId, ctx.chat.id, ctx.message.reply_to_message.message_id, extraData);
+                    } else if (finalMessage) {
+                        await bot.telegram.sendMessage(u.userId, finalMessage, extraData);
+                    }
+                    s++;
+                } catch (e) { f++; }
+                await new Promise(r => setTimeout(r, 50));
+            }
+            return ctx.reply(`✅ Broadcast Finished! Success: ${s}, Fail: ${f}`);
+        }
+
+        // ফোর্স সাব চেক
         if (ctx.chat.type === 'private' && !(await isSubscribed(userId))) {
             const buttons = CHANNELS.map(c => [Markup.button.url(`Join ${c}`, `https://t.me/${c.replace('@', '')}`)]);
-            return ctx.reply(`⚠️ Join our channels to chat!`, {
-                parse_mode: 'HTML', ...Markup.inlineKeyboard(buttons)
-            });
+            return ctx.reply(`⚠️ Join channels!`, Markup.inlineKeyboard(buttons));
         }
 
         const user = await User.findOne({ userId });
-        if (!user) return;
+        if (!user || ['🔍 Find Partner', '👤 My Status', '👫 Refer & Earn', '❌ Stop Chat', '❌ Stop Search', '/start', '📱 Random video chat app'].includes(text)) return next();
 
-        // --- ব্রডকাস্ট লজিক (নিখুঁত ভার্সন) ---
-        if (text.startsWith('/broadcast') && isAdmin) {
-            try {
-                let broadcastMsgId;
-                let isTextOnly = false;
-                let finalMessage = "";
-                let extraData = { parse_mode: 'HTML' }; // HTML সাপোর্ট নিশ্চিত করতে
-
-                // ১. চেক করা হচ্ছে এটা কি রিপ্লাই নাকি সরাসরি টেক্সট
-                if (ctx.message.reply_to_message) {
-                    broadcastMsgId = ctx.message.reply_to_message.message_id;
-                    console.log(`[Admin] Broadcasting via Reply (ID: ${broadcastMsgId})`);
-                } else {
-                    const rawContent = text.replace('/broadcast', '').trim();
-                    if (!rawContent) return ctx.reply("❌ Error: Message likhun ba reply din.");
-
-                    // ২. বাটন আছে কি না চেক করা (Text | Button Name | Link)
-                    const parts = rawContent.split('|').map(p => p.trim());
-                    if (parts.length === 3) {
-                        finalMessage = parts[0];
-                        extraData.reply_markup = {
-                            inline_keyboard: [[
-                                { text: parts[1], url: parts[2] }
-                            ]]
-                        };
-                    } else {
-                        finalMessage = rawContent;
-                    }
-                    isTextOnly = true;
-                }
-
-                // ৩. ডাটাবেজ থেকে সব ইউজার সংগ্রহ
-                const allUsers = await User.find({});
-                ctx.reply(`📢 Broadcast started to ${allUsers.length} users. Please wait...`);
-
-                let successCount = 0; 
-                let failCount = 0;
-
-                // ৪. এসিনক্রোনাস লুপ (রেট লিমিটসহ)
-                (async () => {
-                    for (const u of allUsers) {
-                        try {
-                            if (isTextOnly) {
-                                // সরাসরি টেক্সট পাঠানোর জন্য
-                                await bot.telegram.sendMessage(u.userId, finalMessage, extraData);
-                            } else {
-                                // রিপ্লাই করা মেসেজ (ফটো/ভিডিও/ভয়েস) কপি করার জন্য
-                                await bot.telegram.copyMessage(u.userId, ctx.chat.id, broadcastMsgId);
-                            }
-                            successCount++;
-                        } catch (error) {
-                            failCount++;
-                            // console.log(`Failed for ${u.userId}`); // প্রয়োজনে অন করতে পারেন
-                        }
-                        // টেলিগ্রামের লিমিট এড়াতে বিরতি (Anti-Spam)
-                        await new Promise(r => setTimeout(r, 50));
-                    }
-                    
-                    // ৫. অ্যাডমিনকে রিপোর্ট প্রদান
-                    ctx.reply(`✅ **Broadcast Finished!**\n\n👤 Total: ${allUsers.length}\n✅ Success: ${successCount}\n❌ Failed: ${failCount}`, { parse_mode: 'Markdown' });
-                    console.log(`[Report] Success: ${successCount}, Fail: ${failCount}`);
-                })();
-
-            } catch (err) {
-                console.error("Broadcast Error:", err);
-                ctx.reply("❌ Fatal error in broadcast logic.");
-            }
-            return; // ব্রডকাস্ট হলে এখানেই শেষ হবে
-        }
-
-        if (['🔍 Find Partner', '👤 My Status', '👫 Refer & Earn', '❌ Stop Chat', '❌ Stop Search', '/start', '📱 Random video chat app'].includes(text)) return next();
-        
-        if (ctx.chat.type === 'private' && !isAdmin) {
-            const filter = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|(t\.me\/[^\s]+)|(@[^\s]+)/gi;
-            if (filter.test(text)) {
-                console.log(`🚫 Link blocked from ${userId}`);
-                return ctx.reply('⚠️ Links and @usernames are blocked!');
-            }
-        }
-
+        // মেসেজ ট্রান্সফার
         if (user.status === 'chatting' && user.partnerId) {
             bot.telegram.sendMessage(user.partnerId, text).catch(e => ctx.reply('⚠️ Partner left.'));
         }
@@ -382,85 +258,63 @@ bot.on('text', async (ctx, next) => {
 bot.on(['photo', 'video', 'sticker', 'voice', 'audio'], async (ctx) => {
     try {
         const userId = ctx.from.id;
-        const isAdmin = userId === ADMIN_ID;
         const user = await User.findOne({ userId });
         const caption = ctx.message.caption || "";
 
-        if (isAdmin && caption.startsWith('/broadcast')) {
-            console.log(`📣 Media Broadcast started.`);
+        if (userId === ADMIN_ID && caption.startsWith('/broadcast')) {
             const allUsers = await User.find({});
-            const cleanCaption = caption.replace('/broadcast', '').trim();
+            const cleanCap = caption.replace('/broadcast', '').trim();
+            ctx.reply(`📢 Media Broadcast...`);
             for (const u of allUsers) {
-                ctx.copyMessage(u.userId, { caption: cleanCaption, parse_mode: 'HTML' }).catch(e => {});
+                await bot.telegram.copyMessage(u.userId, ctx.chat.id, ctx.message.message_id, { caption: cleanCap, parse_mode: 'HTML' }).catch(e => {});
+                await new Promise(r => setTimeout(r, 50));
             }
-            return ctx.reply('✅ Media broadcast sent.');
+            return ctx.reply('✅ Sent.');
         }
 
         if (user && user.status === 'chatting' && user.partnerId) {
             return ctx.copyMessage(user.partnerId).catch(e => ctx.reply('⚠️ Partner left.'));
         }
-        ctx.reply('⚠️ Only text messages are allowed here! To send photos use mini app: https://t.me/MakefriendsglobalBot/Letschat');
     } catch (err) { console.error("Media Error:", err); }
 });
 
-bot.hears('👫 Refer & Earn', async (ctx) => {
-    try {
-        console.log(`👫 Referral info requested by ${ctx.from.id}`);
-        const user = await User.findOne({ userId: ctx.from.id });
-        const refLink = `https://t.me/${ctx.botInfo.username}?start=${ctx.from.id}`;
-        ctx.replyWithHTML(`👫 <b>Referral Program</b>\n\n🎁 Reward: +200 Matches per referral.\n🔗 Link: ${refLink}\n📊 Total Referrals: ${user.referrals || 0}`);
-    } catch (err) { console.error("Referral Error:", err); }
+bot.hears('👤 My Status', async (ctx) => {
+    const user = await User.findOne({ userId: ctx.from.id });
+    ctx.replyWithHTML(`👤 <b>Profile:</b>\nMatches: ${ctx.from.id === ADMIN_ID ? 'Unlimited' : user.matchLimit}\nReferrals: ${user.referrals || 0}`);
 });
 
-bot.hears('👤 My Status', async (ctx) => {
-    try {
-        console.log(`👤 Profile info requested by ${ctx.from.id}`);
-        const user = await User.findOne({ userId: ctx.from.id });
-        ctx.replyWithHTML(`👤 <b>Profile:</b>\nMatches Left: ${ctx.from.id === ADMIN_ID ? 'Unlimited' : user.matchLimit}\nReferrals: ${user.referrals || 0}`);
-    } catch (err) { console.error("Status Error:", err); }
+bot.hears('👫 Refer & Earn', async (ctx) => {
+    const user = await User.findOne({ userId: ctx.from.id });
+    ctx.replyWithHTML(`👫 <b>Refer & Earn</b>\nLink: https://t.me/${ctx.botInfo.username}?start=${ctx.from.id}\nReferrals: ${user.referrals || 0}`);
 });
 
 bot.hears(['❌ Stop Chat', '❌ Stop Search'], async (ctx) => {
-    try {
-        console.log(`🛑 Stop Chat requested by ${ctx.from.id}`);
-        const user = await User.findOne({ userId: ctx.from.id });
-        const menu = Markup.keyboard([['🔍 Find Partner'], ['👤 My Status', '👫 Refer & Earn'], ['📱 Random video chat app'], ['❌ Stop Chat']]).resize();
-        if (user && user.partnerId) {
-            await User.updateOne({ userId: user.partnerId }, { status: 'idle', partnerId: null });
-            bot.telegram.sendMessage(user.partnerId, '❌ Partner ended the chat.', menu).catch(e => {});
-        }
-        await User.updateOne({ userId: ctx.from.id }, { status: 'idle', partnerId: null });
-        ctx.reply('❌ Stopped.', menu);
-    } catch (err) { console.error("Stop Error:", err); }
+    const user = await User.findOne({ userId: ctx.from.id });
+    const menu = Markup.keyboard([['🔍 Find Partner'], ['👤 My Status', '👫 Refer & Earn'], ['📱 Random video chat app'], ['❌ Stop Chat']]).resize();
+    if (user && user.partnerId) {
+        await User.updateOne({ userId: user.partnerId }, { status: 'idle', partnerId: null });
+        bot.telegram.sendMessage(user.partnerId, '❌ Partner ended.', menu).catch(e => {});
+    }
+    await User.updateOne({ userId: ctx.from.id }, { status: 'idle', partnerId: null });
+    ctx.reply('❌ Stopped.', menu);
 });
+
+bot.hears('📱 Random video chat app', (ctx) => ctx.reply("🎥 Premium Video Chat: https://1024terabox.com/s/1wCQFn0fXbrLKkUjufnkCMg"));
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`🚀 Server Live on port ${PORT}`);
-    let lastAutoMsgId = null;
-
-    async function sendAutoPromo() {
+    let lastMsgId = null;
+    setInterval(async () => {
         try {
-            console.log(`📡 Sending Auto Promo to Group: ${GROUP_ID}`);
-            if (lastAutoMsgId) await bot.telegram.deleteMessage(GROUP_ID, lastAutoMsgId).catch(e => {});
-            const photoUrl = 'https://raw.githubusercontent.com/Roy00110/MNF/refs/heads/main/public/photo_2025-08-21_01-36-01.jpg'; 
-            const promoMsg = `✨ <b>Connect Anonymously & Chat Live!</b> ✨\n\n` +
-                              `Looking for someone to talk to? Meet random people instantly with our <b>Secret Meet</b> Mini App. No registration required! 🎭\n\n` +
-                              `✅ <b>100% Private & Anonymous</b>\n` +
-                              `✅ <b>Real-time Photo Sharing</b>\n` +
-                              `✅ <b>Fast Matching</b>\n\n` +
-                              `🚀 <b>Start your conversation now:</b>`;
-
-            const sentMsg = await bot.telegram.sendPhoto(GROUP_ID, photoUrl, {
-                caption: promoMsg,
+            if (lastMsgId) await bot.telegram.deleteMessage(GROUP_ID, lastMsgId).catch(e => {});
+            const sent = await bot.telegram.sendPhoto(GROUP_ID, 'https://raw.githubusercontent.com/Roy00110/MNF/refs/heads/main/public/photo_2025-08-21_01-36-01.jpg', {
+                caption: `✨ <b>Secret Meet App</b>\n🚀 Start chatting now!`,
                 parse_mode: 'HTML',
-                ...Markup.inlineKeyboard([[Markup.button.url('🚀 Launch Mini App', 'https://t.me/MakefriendsglobalBot/Letschat')]])
+                ...Markup.inlineKeyboard([[Markup.button.url('🚀 Launch App', 'https://t.me/MakefriendsglobalBot/Letschat')]])
             });
-            lastAutoMsgId = sentMsg.message_id;
-        } catch (err) { console.log(`Auto Promo Error: ${err.message}`); }
-    }
-
-    setInterval(sendAutoPromo, 500000); 
-    sendAutoPromo();
+            lastMsgId = sent.message_id;
+        } catch (e) {}
+    }, 500000);
     bot.launch();
 });

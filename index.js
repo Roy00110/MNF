@@ -152,7 +152,7 @@ bot.start(async (ctx) => {
                 if (referrer) {
                     console.log(`🎁 Awarding referral bonus to ${referrer.userId} for inviting ${userId}`);
                     await User.updateOne({ userId: referrer.userId }, { $inc: { matchLimit: 200, referrals: 1 } });
-                    bot.telegram.sendMessage(referrer.userId, `🎉 Someone joined via your link! You received +20 matches.`).catch(e => {});
+                    bot.telegram.sendMessage(referrer.userId, `🎉 Someone joined via your link! You received +200 matches.`).catch(e => {});
                 } else {
                     console.log(`ℹ️ Referrer ID ${startPayload} not found in DB.`);
                 }

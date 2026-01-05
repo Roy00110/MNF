@@ -98,12 +98,21 @@ socket.on('find_partner_web', async (userId) => {
                 await User.updateOne({ userId: user.userId }, { webStatus: 'chatting', webPartnerId: partner.userId });
                 await User.updateOne({ userId: partner.userId }, { webStatus: 'chatting', webPartnerId: user.userId });
 
-                // প্রোফাইল লিঙ্ক তৈরি
-                const userLink = `tg://user?id=${userId}`;
-                const partnerLink = `tg://user?id=${partner.userId}`;
+                // --- প্রোফাইল লিঙ্ক তৈরির নতুন লজিক ---
+                const getBestLink = async (uId) => {
+                    try {
+                        const chat = await bot.telegram.getChat(uId);
+                        // যদি ইউজারনেম থাকে তবে t.me লিঙ্ক, নয়তো আইডি লিঙ্ক
+                        return chat.username ? `https://t.me/${chat.username}` : `tg://user?id=${uId}`;
+                    } catch (e) {
+                        return `tg://user?id=${uId}`;
+                    }
+                };
 
-                // সকেটের মাধ্যমে দুই ইউজারকেই ডাটা পাঠানো
-                // এখানে 'match_found' ইভেন্টের সাথে লিঙ্কগুলো পাঠিয়ে দিচ্ছি
+                const userLink = await getBestLink(userId);
+                const partnerLink = await getBestLink(partner.userId);
+
+                // দুই ইউজারকেই ডাটা পাঠানো
                 io.to(socket.id).emit('match_found', { partnerLink: partnerLink });
                 io.to(partner.webSocketId).emit('match_found', { partnerLink: userLink });
             }

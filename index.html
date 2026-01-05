@@ -11,7 +11,6 @@
         :root {
             --primary: #ff0080;
             --secondary: #7928ca;
-            --accent: #00f2fe;
             --bg-dark: #060714;
             --glass: rgba(255, 255, 255, 0.08);
             --glass-border: rgba(255, 255, 255, 0.12);
@@ -20,7 +19,7 @@
         }
 
         body { 
-            background: radial-gradient(circle at 0% 0%, #1a1b3a 0%, #060714 100%);
+            background: radial-gradient(circle at top right, #1a1b3a, #060714);
             color: var(--text-main); 
             font-family: 'Outfit', sans-serif; 
             margin: 0; 
@@ -33,163 +32,126 @@
         #app { display: flex; flex-direction: column; height: 100vh; }
 
         .header { 
-            background: rgba(6, 7, 20, 0.7);
-            backdrop-filter: blur(20px);
-            padding: 18px; 
+            background: rgba(6, 7, 20, 0.8);
+            backdrop-filter: blur(15px);
+            padding: 15px; 
             text-align: center; 
-            font-size: 1.3rem;
             font-weight: 800; 
-            letter-spacing: 1px;
             border-bottom: 1px solid var(--glass-border);
-            text-shadow: 0 0 10px rgba(255, 0, 128, 0.5);
+            flex-shrink: 0;
         }
 
-        /* Home Screen Styling */
+        /* Home Screen */
         #home-screen { 
             flex: 1; display: flex; flex-direction: column; 
             align-items: center; justify-content: center; 
-            padding: 30px; animation: fadeIn 0.8s ease-out;
+            padding: 30px; animation: fadeIn 0.8s ease;
         }
 
-        /* Searching Animation */
+        /* Loader Animation */
         .loader-container {
-            position: relative; width: 120px; height: 120px;
-            display: none; margin-bottom: 20px;
+            display: none; position: relative; width: 100px; height: 100px; margin-bottom: 20px;
         }
         .loader-ring {
             position: absolute; width: 100%; height: 100%;
             border: 4px solid transparent; border-top-color: var(--primary);
             border-radius: 50%; animation: spin 1s linear infinite;
         }
-        .loader-pulse {
-            position: absolute; width: 80%; height: 80%; top: 10%; left: 10%;
-            background: var(--primary); border-radius: 50%;
-            opacity: 0.3; animation: pulse 1.5s ease-in-out infinite;
-        }
 
-        .btn-main {
-            padding: 16px 45px; border-radius: 50px; border: none;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white; font-size: 18px; font-weight: 700;
-            cursor: pointer; transition: 0.3s;
-            box-shadow: 0 10px 30px rgba(255, 0, 128, 0.4);
-        }
-        .btn-main:active { transform: scale(0.95); }
-
-        /* Chat Screen Styling */
+        /* Chat Screen */
         #chat-screen { flex: 1; display: none; flex-direction: column; overflow: hidden; }
         
         #messages { 
-            flex: 1; overflow-y: auto; padding: 20px; 
-            display: flex; flex-direction: column; gap: 15px;
+            flex: 1; overflow-y: auto; padding: 15px; 
+            display: flex; flex-direction: column; gap: 12px;
+            scroll-behavior: smooth;
         }
 
         .msg { 
-            padding: 14px 20px; border-radius: 22px; 
-            max-width: 80%; font-size: 15px; line-height: 1.5;
-            position: relative; animation: msgSlide 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            padding: 12px 18px; border-radius: 20px; 
+            max-width: 85%; font-size: 15px; line-height: 1.4;
+            word-wrap: break-word; animation: slideUp 0.3s ease;
         }
-        .me { 
-            background: linear-gradient(135deg, var(--primary), var(--secondary)); 
-            align-self: flex-end; border-bottom-right-radius: 4px;
-            box-shadow: 0 5px 15px rgba(255, 0, 128, 0.2);
-        }
-        .partner { 
-            background: var(--glass); border: 1px solid var(--glass-border);
-            align-self: flex-start; border-bottom-left-radius: 4px;
-        }
+        .me { background: linear-gradient(135deg, var(--primary), var(--secondary)); align-self: flex-end; border-bottom-right-radius: 4px; }
+        .partner { background: var(--glass); border: 1px solid var(--glass-border); align-self: flex-start; border-bottom-left-radius: 4px; }
 
-        /* Input Area Modernized */
         .input-area { 
-            padding: 15px 20px; background: rgba(6, 7, 20, 0.9);
-            display: flex; gap: 12px; align-items: center;
+            padding: 10px 15px; background: rgba(10, 11, 30, 0.95);
+            display: flex; gap: 10px; align-items: center;
             border-top: 1px solid var(--glass-border);
-            padding-bottom: env(safe-area-inset-bottom, 20px);
+            padding-bottom: env(safe-area-inset-bottom, 10px);
         }
 
         .input-wrapper {
-            flex: 1; background: var(--glass); border-radius: 30px;
+            flex: 1; background: var(--glass); border-radius: 25px;
             padding: 2px 15px; display: flex; align-items: center;
             border: 1px solid var(--glass-border);
         }
 
         input[type="text"] { 
-            flex: 1; padding: 12px; background: transparent;
+            flex: 1; padding: 10px; background: transparent;
             border: none; color: white; outline: none; font-size: 16px;
         }
 
-        .photo-btn, .send-btn {
-            background: transparent; color: white; border: none;
-            font-size: 22px; cursor: pointer; transition: 0.2s;
-        }
-        .send-btn { color: var(--primary); font-size: 26px; }
+        .photo-btn { font-size: 20px; background: none; border: none; cursor: pointer; }
+        .send-btn { background: var(--primary); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 
-        /* Modal Styling */
-        .modal-content {
-            background: rgba(15, 16, 40, 0.95); backdrop-filter: blur(15px);
-            border: 1px solid var(--primary); padding: 35px; border-radius: 30px;
-            width: 85%; max-width: 340px; text-align: center;
+        /* Status & Options */
+        .status-msg { font-size: 12px; color: var(--text-muted); text-align: center; margin: 10px 0; }
+        .end-options { 
+            display: flex; flex-direction: column; gap: 10px; padding: 20px;
+            background: var(--glass); border-radius: 20px; border: 1px solid var(--primary);
         }
+        .btn-next { background: #00d2ad; color: white; border: none; padding: 14px; border-radius: 15px; font-weight: 700; cursor: pointer; }
 
-        /* Animations */
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { transform: scale(0.8); opacity: 0.3; } 50% { transform: scale(1.1); opacity: 0.6; } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes msgSlide { from { opacity: 0; transform: translateY(20px) scale(0.8); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .chat-img-container {
-            width: 220px; height: 160px; border-radius: 15px; overflow: hidden;
-            margin-top: 5px; border: 1px solid var(--glass-border);
-        }
+        .chat-img-container { width: 200px; height: 150px; border-radius: 12px; overflow: hidden; margin-top: 5px; background: #000; }
         .chat-img { width: 100%; height: 100%; object-fit: cover; }
     </style>
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+    <script src='//libtl.com/sdk.js' data-zone='9341070' data-sdk='show_9341070'></script>
 </head>
 <body>
 
 <div id="app">
-    <div class="header">MATCHME 💌</div>
+    <div class="header">MatchMe 💌</div>
     
     <div id="home-screen">
-        <div id="home-icon" style="font-size: 70px; margin-bottom: 20px;">🎭</div>
+        <div id="home-icon" style="font-size: 60px; margin-bottom: 20px;">🎭</div>
+        <div class="loader-container" id="main-loader"><div class="loader-ring"></div></div>
         
-        <div class="loader-container" id="main-loader">
-            <div class="loader-ring"></div>
-            <div class="loader-pulse"></div>
-            <div style="position: absolute; top: 40%; left: 33%; font-size: 20px;">🔍</div>
-        </div>
-
-        <h1 id="main-title" style="margin: 0; font-size: 28px;">Ready to Mingle?</h1>
-        <p id="sub-title" style="color: var(--text-muted); text-align: center; margin: 15px 0 25px;">Connect anonymously with people around the world.</p>
-        
-        <button class="btn-main" id="findBtn" onclick="findPartner()">Start Searching</button>
-        <p id="status-text" style="margin-top: 25px; font-size: 14px; color: var(--text-muted);"><span style="color: #00ff88;">●</span> Server Online</p>
+        <h1>Ready to Mingle?</h1>
+        <p style="color: var(--text-muted); text-align: center;">Connect anonymously with random people.</p>
+        <button class="btn-main" id="findBtn" onclick="findPartner()" style="padding: 16px 50px; border-radius: 30px; border: none; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; font-size: 17px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 25px rgba(255, 0, 128, 0.4); margin-top: 20px;">🔍 Start Searching</button>
+        <p id="status-text" style="margin-top: 20px; font-size: 14px; color: var(--primary);">● Online & Ready</p>
     </div>
 
     <div id="chat-screen">
         <div id="messages"></div>
-        <div style="text-align: center; padding: 5px;">
-            <button class="stop-chat" style="color: #ff4d4d; background: none; border: none; font-weight: 600; cursor: pointer;" onclick="endChatLocal()">Disconnect</button>
+        <div id="stop-btn-container" style="text-align: center; background: rgba(10, 11, 30, 0.5);">
+            <button style="color: #ff4d4d; background:none; border:none; padding:10px; font-weight:600; cursor:pointer;" onclick="endChatLocal()">Disconnect Chat</button>
         </div>
         <div class="input-area" id="input-container">
             <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="sendPhoto(this)">
             <button class="photo-btn" onclick="document.getElementById('fileInput').click()">🖼️</button>
             <div class="input-wrapper">
-                <input id="minput" type="text" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendMsg()">
-                <button class="send-btn" onclick="sendMsg()">✦</button>
+                <input id="minput" type="text" placeholder="Write a message..." onkeypress="if(event.key==='Enter') sendMsg()">
+                <button class="send-btn" onclick="sendMsg()">➤</button>
             </div>
         </div>
     </div>
 </div>
 
-<div id="limit-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); z-index:9999; align-items:center; justify-content:center;">
-    <div class="modal-content">
-        <div style="font-size:60px; margin-bottom:15px;">🔒</div>
-        <h2 style="margin:0; color:var(--primary); font-size:24px;">Limit Reached</h2>
-        <p style="color:var(--text-muted); font-size:15px; margin:15px 0; line-height:1.5;">You've used all your free matches today. Unlock more by inviting friends to our bot!</p>
-        
-        <button onclick="window.location.href='https://t.me/MakefriendsglobalBot'" style="background:linear-gradient(135deg, var(--primary), var(--secondary)); color:white; border:none; padding:15px; border-radius:18px; font-weight:700; cursor:pointer; width:100%; margin-bottom: 12px; box-shadow: 0 5px 20px rgba(255, 0, 128, 0.3);">🤖 Go to Telegram Bot</button>
-        
-        <button onclick="closeLimitModal()" style="background: transparent; color:var(--text-muted); border:none; padding:10px; font-weight:500; cursor:pointer;">Maybe Later</button>
+<div id="limit-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#1a1b3a; border: 1px solid var(--primary); padding:30px; border-radius:25px; width:80%; max-width:320px; text-align:center;">
+        <div style="font-size:50px; margin-bottom:15px;">🚫</div>
+        <h2 style="margin:0; color:var(--primary); font-size:22px;">Limit Reached!</h2>
+        <p style="color:var(--text-muted); font-size:14px; margin:15px 0;">Your match limit is over. Check our Telegram bot to get more matches.</p>
+        <button onclick="window.location.href='https://t.me/MakefriendsglobalBot'" style="background:linear-gradient(135deg, var(--primary), var(--secondary)); color:white; border:none; padding:12px; border-radius:15px; font-weight:700; cursor:pointer; width:100%; margin-bottom:10px;">🤖 Go to Bot</button>
+        <button onclick="closeLimitModal()" style="background:rgba(255,255,255,0.1); color:white; border:none; padding:10px; border-radius:15px; width:100%;">Close</button>
     </div>
 </div>
 
@@ -202,15 +164,30 @@
     tg.expand();
     tg.ready();
 
+    if (userId) socket.emit('join', userId);
+
+    function setupSocketListeners() {
+        socket.off('receive_msg');
+        socket.off('chat_ended');
+
+        socket.on('receive_msg', (data) => {
+            if (data.image) addImageMessage(data.image, 'partner');
+            else if (data.text) addMessage(data.text, 'partner');
+            tg.HapticFeedback.notificationOccurred('success');
+        });
+
+        socket.on('chat_ended', () => {
+            addStatusMessage("🚫 Partner left the chat.");
+            showEndControls();
+        });
+    }
+
     function findPartner() {
         if (!userId) return;
-        
-        // UI Change for Searching
         document.getElementById('home-icon').style.display = 'none';
         document.getElementById('main-loader').style.display = 'block';
-        document.getElementById('main-title').innerText = "Searching...";
-        document.getElementById('sub-title').innerText = "Finding someone special for you...";
-        document.getElementById('findBtn').style.display = 'none';
+        document.getElementById('status-text').innerText = "⚡ Searching...";
+        document.getElementById('findBtn').disabled = true;
         
         AdController.show().then(() => startSearchingLogic()).catch(() => startSearchingLogic());
     }
@@ -224,8 +201,7 @@
         document.getElementById('chat-screen').style.display = 'flex';
         document.getElementById('messages').innerHTML = "";
         setupSocketListeners();
-        addStatusMessage("✨ Connection secured! Say hello.");
-        tg.HapticFeedback.impactOccurred('heavy');
+        addStatusMessage("✨ Match found! Say hello.");
     });
 
     function sendMsg() {
@@ -234,6 +210,20 @@
         addMessage(inp.value, 'me');
         socket.emit('send_msg', { senderId: userId, text: inp.value });
         inp.value = '';
+        inp.focus();
+    }
+
+    function sendPhoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const imageData = e.target.result;
+                addImageMessage(imageData, 'me');
+                socket.emit('send_msg', { senderId: userId, image: imageData });
+            };
+            reader.readAsDataURL(input.files[0]);
+            input.value = ""; 
+        }
     }
 
     function addMessage(text, type) {
@@ -252,51 +242,59 @@
         const img = document.createElement('img');
         img.src = src;
         img.className = 'chat-img';
+        img.onclick = () => tg.showPopup({ title: 'View Image', message: 'Shared Image' });
         container.appendChild(img);
         div.appendChild(container);
         document.getElementById('messages').appendChild(div);
         scrollDown();
     }
 
-    function scrollDown() {
-        const m = document.getElementById('messages');
-        m.scrollTo({ top: m.scrollHeight, behavior: 'smooth' });
-    }
-
     function endChatLocal() {
-        socket.emit('leave_chat', userId);
-        location.reload(); // Simplest way to return home
+        if (userId) socket.emit('leave_chat', userId);
+        addStatusMessage("🔒 You closed the chat.");
+        showEndControls();
     }
 
-    socket.on('limit_over', () => {
-        // Reset Search UI
-        document.getElementById('home-icon').style.display = 'block';
-        document.getElementById('main-loader').style.display = 'none';
-        document.getElementById('main-title').innerText = "Ready to Mingle?";
-        document.getElementById('findBtn').style.display = 'block';
-        
-        document.getElementById('limit-modal').style.display = 'flex';
-    });
+    function showEndControls() {
+        document.getElementById('input-container').style.display = 'none';
+        document.getElementById('stop-btn-container').style.display = 'none';
+        const controlDiv = document.createElement('div');
+        controlDiv.className = 'end-options';
+        controlDiv.innerHTML = `
+            <button class="btn-next" onclick="findNextPartner()">🔍 Find Next Person</button>
+            <button style="background:none; color:white; border:none; cursor:pointer;" onclick="location.reload()">🏠 Home</button>
+        `;
+        document.getElementById('messages').appendChild(controlDiv);
+        scrollDown();
+    }
 
-    function closeLimitModal() {
-        document.getElementById('limit-modal').style.display = 'none';
+    function findNextPartner() {
+        location.reload();
     }
 
     function addStatusMessage(text) {
         const p = document.createElement('p');
-        p.style = "text-align:center; color:var(--text-muted); font-size:12px; margin:10px 0;";
+        p.className = 'status-msg';
         p.innerText = text;
         document.getElementById('messages').appendChild(p);
+        scrollDown();
     }
-    
-    function setupSocketListeners() {
-        socket.off('receive_msg');
-        socket.on('receive_msg', (data) => {
-            if (data.image) addImageMessage(data.image, 'partner');
-            else if (data.text) addMessage(data.text, 'partner');
-            tg.HapticFeedback.notificationOccurred('success');
-        });
+
+    function scrollDown() {
+        const m = document.getElementById('messages');
+        m.scrollTop = m.scrollHeight;
     }
+
+    socket.on('limit_over', () => {
+        document.getElementById('limit-modal').style.display = 'flex';
+        // Reset Search UI
+        document.getElementById('home-icon').style.display = 'block';
+        document.getElementById('main-loader').style.display = 'none';
+        document.getElementById('findBtn').disabled = false;
+        document.getElementById('status-text').innerText = "❌ Limit Over!";
+    });
+
+    function closeLimitModal() { document.getElementById('limit-modal').style.display = 'none'; }
 </script>
 </body>
 </html>

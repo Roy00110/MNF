@@ -294,15 +294,33 @@ bot.on('text', async (ctx, next) => {
         if (!user) return;
 
         // --- ব্রডকাস্ট লজিক ---
-        if (text.startsWith('/broadcast ') && isAdmin) {
-            console.log(`📣 Admin Broadcast started.`);
-            const msg = text.replace('/broadcast ', '').trim();
-            const allUsers = await User.find({});
-            for (const u of allUsers) {
-                bot.telegram.sendMessage(u.userId, msg, { parse_mode: 'HTML' }).catch(e => {});
+       // --- ব্রডকাস্ট লজিক (Text) ---
+if (text.startsWith('/broadcast ') && isAdmin) {
+    const msg = text.replace('/broadcast ', '').trim();
+    if (!msg) return ctx.reply("❌ Please provide a message!");
+
+    const allUsers = await User.find({});
+    ctx.reply(`📣 Broadcast started for ${allUsers.length} users...`);
+
+    let count = 0;
+    let blockedCount = 0;
+
+    for (const u of allUsers) {
+        try {
+            await bot.telegram.sendMessage(u.userId, msg, { parse_mode: 'HTML' });
+            count++;
+            // প্রতি সেকেন্ডে ৩০টির বেশি মেসেজ যেন না যায় (Telegram Limit)
+            if (count % 25 === 0) await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (e) {
+            if (e.description === 'Forbidden: bot was blocked by the user') {
+                blockedCount++;
+                // যারা ব্লক করেছে তাদের ডাটাবেস থেকে সরানো বা স্ট্যাটাস আপডেট করা (ঐচ্ছিক)
+                // await User.deleteOne({ userId: u.userId }); 
             }
-            return ctx.reply(`✅ Broadcast sent to ${allUsers.length} users.`);
         }
+    }
+    return ctx.reply(`✅ Broadcast complete!\n\n🚀 Sent: ${count}\n🚫 Blocked/Failed: ${blockedCount}`);
+}
 
         if (['🔍 Find Partner', '👤 My Status', '👫 Refer & Earn', '❌ Stop Chat', '❌ Stop Search', '/start', '📱 Random video chat app'].includes(text)) return next();
         
@@ -327,15 +345,28 @@ bot.on(['photo', 'video', 'sticker', 'voice', 'audio'], async (ctx) => {
         const user = await User.findOne({ userId });
         const caption = ctx.message.caption || "";
 
-        if (isAdmin && caption.startsWith('/broadcast')) {
-            console.log(`📣 Media Broadcast started.`);
-            const allUsers = await User.find({});
-            const cleanCaption = caption.replace('/broadcast', '').trim();
-            for (const u of allUsers) {
-                ctx.copyMessage(u.userId, { caption: cleanCaption, parse_mode: 'HTML' }).catch(e => {});
+       // --- মিডিয়া ব্রডকাস্ট লজিক ---
+if (isAdmin && caption && caption.startsWith('/broadcast')) {
+    const allUsers = await User.find({});
+    const cleanCaption = caption.replace('/broadcast', '').trim();
+    ctx.reply(`📣 Media Broadcast started for ${allUsers.length} users...`);
+
+    let mCount = 0;
+    let mBlocked = 0;
+
+    for (const u of allUsers) {
+        try {
+            await ctx.copyMessage(u.userId, { caption: cleanCaption, parse_mode: 'HTML' });
+            mCount++;
+            if (mCount % 25 === 0) await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (e) {
+            if (e.description === 'Forbidden: bot was blocked by the user') {
+                mBlocked++;
             }
-            return ctx.reply('✅ Media broadcast sent.');
         }
+    }
+    return ctx.reply(`✅ Media broadcast complete!\n\n🚀 Sent: ${mCount}\n🚫 Blocked/Failed: ${mBlocked}`);
+}
 
         if (user && user.status === 'chatting' && user.partnerId) {
             return ctx.copyMessage(user.partnerId).catch(e => ctx.reply('⚠️ Partner left.'));

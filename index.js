@@ -74,27 +74,38 @@ io.on('connection', (socket) => {
         );
     });
 
-    socket.on('find_partner_web', async (userId) => {
+socket.on('find_partner_web', async (userId) => {
         try {
             console.log(`🔎 Web search started by: ${userId}`);
             const user = await User.findOne({ userId: Number(userId) });
             const isAdmin = user.userId === ADMIN_ID;
+
             if (!isAdmin && user.matchLimit <= 0) {
-                console.log(`🚫 Match limit over for: ${userId}`);
                 const refLink = `https://t.me/${bot.botInfo.username}?start=${user.userId}`;
                 bot.telegram.sendMessage(user.userId, `❌ <b>Your match limit is over!</b>\n\nInvite friends to get more matches.\n🔗 ${refLink}`, { parse_mode: 'HTML' }).catch(e => {});
                 return io.to(socket.id).emit('limit_over');
             }
+
             await User.updateOne({ userId: Number(userId) }, { webStatus: 'searching', webSocketId: socket.id });
             const partner = await User.findOne({ userId: { $ne: Number(userId) }, webStatus: 'searching', webSocketId: { $ne: null } });
+
             if (partner && partner.webSocketId) {
                 console.log(`🤝 Web Match Found: ${userId} & ${partner.userId}`);
+
                 if (!isAdmin) await User.updateOne({ userId: user.userId }, { $inc: { matchLimit: -1 } });
                 if (partner.userId !== ADMIN_ID) await User.updateOne({ userId: partner.userId }, { $inc: { matchLimit: -1 } });
+
                 await User.updateOne({ userId: user.userId }, { webStatus: 'chatting', webPartnerId: partner.userId });
                 await User.updateOne({ userId: partner.userId }, { webStatus: 'chatting', webPartnerId: user.userId });
-                io.to(socket.id).emit('match_found');
-                io.to(partner.webSocketId).emit('match_found');
+
+                // প্রোফাইল লিঙ্ক তৈরি
+                const userLink = `https://t.me/user?id=${userId}`;
+                const partnerLink = `https://t.me/user?id=${partner.userId}`;
+
+                // সকেটের মাধ্যমে দুই ইউজারকেই ডাটা পাঠানো
+                // এখানে 'match_found' ইভেন্টের সাথে লিঙ্কগুলো পাঠিয়ে দিচ্ছি
+                io.to(socket.id).emit('match_found', { partnerLink: partnerLink });
+                io.to(partner.webSocketId).emit('match_found', { partnerLink: userLink });
             }
         } catch (err) { console.error("Web Match Error:", err); }
     });

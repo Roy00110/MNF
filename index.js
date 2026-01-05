@@ -29,7 +29,7 @@ const User = mongoose.model('User', new mongoose.Schema({
     firstName: String,
     partnerId: { type: Number, default: null },
     status: { type: String, default: 'idle' },
-    matchLimit: { type: Number, default: 1000 },
+    matchLimit: { type: Number, default: 10 },
     referrals: { type: Number, default: 0 },
     lastClaimed: { type: Date, default: null },
     webStatus: { type: String, default: 'idle' },
@@ -151,8 +151,8 @@ bot.start(async (ctx) => {
                 const referrer = await User.findOne({ userId: Number(startPayload) });
                 if (referrer) {
                     console.log(`🎁 Awarding referral bonus to ${referrer.userId} for inviting ${userId}`);
-                    await User.updateOne({ userId: referrer.userId }, { $inc: { matchLimit: 200, referrals: 1 } });
-                    bot.telegram.sendMessage(referrer.userId, `🎉 Someone joined via your link! You received +200 matches.`).catch(e => {});
+                    await User.updateOne({ userId: referrer.userId }, { $inc: { matchLimit: 50, referrals: 1 } });
+                    bot.telegram.sendMessage(referrer.userId, `🎉 Someone joined via your link! You received +50 matches.`).catch(e => {});
                 } else {
                     console.log(`ℹ️ Referrer ID ${startPayload} not found in DB.`);
                 }
@@ -161,7 +161,7 @@ bot.start(async (ctx) => {
 
         if (!user) {
             console.log(`🆕 Creating new user in DB: ${userId}`);
-            user = new User({ userId, firstName: ctx.from.first_name, matchLimit: 1000, hasReceivedReferralBonus: !!startPayload });
+            user = new User({ userId, firstName: ctx.from.first_name, matchLimit: 10, hasReceivedReferralBonus: !!startPayload });
             await user.save();
         } else if (startPayload && !user.hasReceivedReferralBonus) {
             console.log(`✅ Marking user ${userId} as bonus-processed.`);

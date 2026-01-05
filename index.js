@@ -29,7 +29,7 @@ const User = mongoose.model('User', new mongoose.Schema({
     firstName: String,
     partnerId: { type: Number, default: null },
     status: { type: String, default: 'idle' },
-    matchLimit: { type: Number, default: 100 },
+    matchLimit: { type: Number, default: 1000 },
     referrals: { type: Number, default: 0 },
     lastClaimed: { type: Date, default: null },
     webStatus: { type: String, default: 'idle' },
@@ -151,7 +151,7 @@ bot.start(async (ctx) => {
                 const referrer = await User.findOne({ userId: Number(startPayload) });
                 if (referrer) {
                     console.log(`🎁 Awarding referral bonus to ${referrer.userId} for inviting ${userId}`);
-                    await User.updateOne({ userId: referrer.userId }, { $inc: { matchLimit: 20, referrals: 1 } });
+                    await User.updateOne({ userId: referrer.userId }, { $inc: { matchLimit: 200, referrals: 1 } });
                     bot.telegram.sendMessage(referrer.userId, `🎉 Someone joined via your link! You received +20 matches.`).catch(e => {});
                 } else {
                     console.log(`ℹ️ Referrer ID ${startPayload} not found in DB.`);
@@ -161,7 +161,7 @@ bot.start(async (ctx) => {
 
         if (!user) {
             console.log(`🆕 Creating new user in DB: ${userId}`);
-            user = new User({ userId, firstName: ctx.from.first_name, matchLimit: 100, hasReceivedReferralBonus: !!startPayload });
+            user = new User({ userId, firstName: ctx.from.first_name, matchLimit: 1000, hasReceivedReferralBonus: !!startPayload });
             await user.save();
         } else if (startPayload && !user.hasReceivedReferralBonus) {
             console.log(`✅ Marking user ${userId} as bonus-processed.`);
@@ -349,7 +349,7 @@ bot.hears('👫 Refer & Earn', async (ctx) => {
         console.log(`👫 Referral info requested by ${ctx.from.id}`);
         const user = await User.findOne({ userId: ctx.from.id });
         const refLink = `https://t.me/${ctx.botInfo.username}?start=${ctx.from.id}`;
-        ctx.replyWithHTML(`👫 <b>Referral Program</b>\n\n🎁 Reward: +20 Matches per referral.\n🔗 Link: ${refLink}\n📊 Total Referrals: ${user.referrals || 0}`);
+        ctx.replyWithHTML(`👫 <b>Referral Program</b>\n\n🎁 Reward: +200 Matches per referral.\n🔗 Link: ${refLink}\n📊 Total Referrals: ${user.referrals || 0}`);
     } catch (err) { console.error("Referral Error:", err); }
 });
 

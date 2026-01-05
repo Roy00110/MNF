@@ -255,15 +255,13 @@
         const messages = document.getElementById('messages');
         const profileDiv = document.createElement('div');
         profileDiv.className = 'profile-card';
-        profileDiv.innerHTML = `
-            <div style="font-size: 13px; color: var(--text-main);">🤝 <b>Want to chat privately?</b></div>
-            <button onclick="tg.openLink('${data.partnerLink}')" class="profile-link" style="border:none; cursor:pointer; background:#0088cc; color:white; padding:8px 15px; border-radius:20px; margin-top:5px; font-weight:bold;">
-                👤 View Partner Profile
-            </button>
-        `;
-        messages.appendChild(profileDiv);
-        scrollDown();
-    }
+        // HTML এর ভেতর বাটনের কোড
+profileDiv.innerHTML = `
+    <div style="font-size: 13px; color: var(--text-main);">🤝 <b>Want to chat privately?</b></div>
+    <button onclick="tg.openTelegramLink('${data.partnerLink}')" class="profile-link" style="border:none; cursor:pointer; background:#0088cc; color:white; padding:8px 15px; border-radius:20px; margin-top:5px; font-weight:bold;">
+        👤 View Partner Profile
+    </button>
+`;
 });
 
 // লিঙ্ক ওপেন করার জন্য এই ফাংশনটি যোগ করুন

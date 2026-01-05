@@ -346,26 +346,41 @@ bot.on(['photo', 'video', 'sticker', 'voice', 'audio'], async (ctx) => {
         const caption = ctx.message.caption || "";
 
        // --- মিডিয়া ব্রডকাস্ট লজিক ---
+// --- মিডিয়া ব্রডকাস্ট লজিক (উন্নত ও টাইমআউট মুক্ত) ---
 if (isAdmin && caption && caption.startsWith('/broadcast')) {
     const allUsers = await User.find({});
     const cleanCaption = caption.replace('/broadcast', '').trim();
-    ctx.reply(`📣 Media Broadcast started for ${allUsers.length} users...`);
+    
+    // সাথে সাথে রিপ্লাই দিন যাতে টাইমআউট না হয়
+    ctx.reply(`📣 Broadcast started for ${allUsers.length} users in background. You will get a report once finished.`);
 
-    let mCount = 0;
-    let mBlocked = 0;
+    // একটি Async ফাংশন তৈরি করুন যা ব্যাকগ্রাউন্ডে কাজ করবে
+    (async () => {
+        let mCount = 0;
+        let mBlocked = 0;
 
-    for (const u of allUsers) {
-        try {
-            await ctx.copyMessage(u.userId, { caption: cleanCaption, parse_mode: 'HTML' });
-            mCount++;
-            if (mCount % 25 === 0) await new Promise(resolve => setTimeout(resolve, 1000));
-        } catch (e) {
-            if (e.description === 'Forbidden: bot was blocked by the user') {
-                mBlocked++;
+        for (const u of allUsers) {
+            try {
+                // copyMessage সরাসরি ব্যবহার করুন
+                await bot.telegram.copyMessage(u.userId, ctx.chat.id, ctx.message.message_id, { 
+                    caption: cleanCaption, 
+                    parse_mode: 'HTML' 
+                });
+                mCount++;
+                
+                // প্রতি ৩০টি মেসেজের পর ১ সেকেন্ড গ্যাপ (টেলিগ্রাম লিমিট রক্ষার জন্য)
+                if (mCount % 30 === 0) await new Promise(resolve => setTimeout(resolve, 1000));
+            } catch (e) {
+                if (e.description && e.description.includes('blocked')) {
+                    mBlocked++;
+                }
             }
         }
-    }
-    return ctx.reply(`✅ Media broadcast complete!\n\n🚀 Sent: ${mCount}\n🚫 Blocked/Failed: ${mBlocked}`);
+        // সব শেষ হলে এডমিনকে আলাদা মেসেজে রিপোর্ট দিন
+        bot.telegram.sendMessage(ADMIN_ID, `✅ Media broadcast complete!\n\n🚀 Sent: ${mCount}\n🚫 Blocked/Failed: ${mBlocked}`);
+    })(); // এটি সাথে সাথে ব্যাকগ্রাউন্ডে রান হবে
+    
+    return; // মেইন ফাংশন থেকে দ্রুত বের হয়ে যান
 }
 
         if (user && user.status === 'chatting' && user.partnerId) {

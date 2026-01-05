@@ -78,6 +78,8 @@ socket.on('find_partner_web', async (userId) => {
         try {
             console.log(`🔎 Web search started by: ${userId}`);
             const user = await User.findOne({ userId: Number(userId) });
+            
+            if (!user) return;
             const isAdmin = user.userId === ADMIN_ID;
 
             if (!isAdmin && user.matchLimit <= 0) {
@@ -86,8 +88,15 @@ socket.on('find_partner_web', async (userId) => {
                 return io.to(socket.id).emit('limit_over');
             }
 
+            // ইউজারের স্ট্যাটাস আপডেট
             await User.updateOne({ userId: Number(userId) }, { webStatus: 'searching', webSocketId: socket.id });
-            const partner = await User.findOne({ userId: { $ne: Number(userId) }, webStatus: 'searching', webSocketId: { $ne: null } });
+
+            // পার্টনার খোঁজা
+            const partner = await User.findOne({ 
+                userId: { $ne: Number(userId) }, 
+                webStatus: 'searching', 
+                webSocketId: { $ne: null } 
+            });
 
             if (partner && partner.webSocketId) {
                 console.log(`🤝 Web Match Found: ${userId} & ${partner.userId}`);
@@ -98,25 +107,20 @@ socket.on('find_partner_web', async (userId) => {
                 await User.updateOne({ userId: user.userId }, { webStatus: 'chatting', webPartnerId: partner.userId });
                 await User.updateOne({ userId: partner.userId }, { webStatus: 'chatting', webPartnerId: user.userId });
 
-                // --- প্রোফাইল লিঙ্ক তৈরির নতুন লজিক ---
-                const getBestLink = async (uId) => {
-                    try {
-                        const chat = await bot.telegram.getChat(uId);
-                        // যদি ইউজারনেম থাকে তবে t.me লিঙ্ক, নয়তো আইডি লিঙ্ক
-                        return chat.username ? `https://t.me/${chat.username}` : `tg://user?id=${uId}`;
-                    } catch (e) {
-                        return `tg://user?id=${uId}`;
-                    }
-                };
-
-                const userLink = await getBestLink(userId);
-                const partnerLink = await getBestLink(partner.userId);
+                // সরাসরি লিঙ্ক তৈরি (সার্চ ফাস্ট রাখার জন্য)
+                // এখানে আমরা tg://user?id= ব্যবহার করছি যা মিনি অ্যাপের জন্য সবচেয়ে সেফ
+                const userLink = `tg://user?id=${userId}`;
+                const partnerLink = `tg://user?id=${partner.userId}`;
 
                 // দুই ইউজারকেই ডাটা পাঠানো
                 io.to(socket.id).emit('match_found', { partnerLink: partnerLink });
                 io.to(partner.webSocketId).emit('match_found', { partnerLink: userLink });
             }
-        } catch (err) { console.error("Web Match Error:", err); }
+        } catch (err) { 
+            console.error("Web Match Error:", err); 
+            // এরর হলে অন্তত স্ট্যাটাস ক্লিয়ার করে দিন যাতে আবার সার্চ করা যায়
+            await User.updateOne({ userId: Number(userId) }, { webStatus: 'idle' }).catch(()=>{});
+        }
     });
 
     socket.on('send_msg', async (data) => {

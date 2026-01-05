@@ -248,29 +248,31 @@
         socket.emit('find_partner_web', userId); 
     }
 
-    // আপডেট করা ম্যাচ লজিক
     socket.on('match_found', (data) => {
-        document.getElementById('input-container').style.display = 'flex';
-        document.getElementById('stop-btn-container').style.display = 'block';
-        document.getElementById('home-screen').style.display = 'none';
-        document.getElementById('chat-screen').style.display = 'flex';
-        document.getElementById('messages').innerHTML = "";
-        
-        setupSocketListeners();
-        addStatusMessage("✨ Match found! Say hello.");
+    // ... (বাকি কোড একই থাকবে)
+    
+    if(data && data.partnerLink) {
+        const messages = document.getElementById('messages');
+        const profileDiv = document.createElement('div');
+        profileDiv.className = 'profile-card';
+        profileDiv.innerHTML = `
+            <div style="font-size: 13px; color: var(--text-main);">🤝 <b>Want to chat privately?</b></div>
+            <button onclick="openLink('${data.partnerLink}')" class="profile-link" style="border:none; cursor:pointer; background:#0088cc; color:white; padding:8px 15px; border-radius:20px; margin-top:5px; font-weight:bold;">
+                👤 View Partner Profile
+            </button>
+        `;
+        messages.appendChild(profileDiv);
+        scrollDown();
+    }
+});
 
-        if(data && data.partnerLink) {
-    const messages = document.getElementById('messages');
-    const profileDiv = document.createElement('div');
-    profileDiv.className = 'profile-card';
-    profileDiv.innerHTML = `
-        <div style="font-size: 13px; color: var(--text-main);">🤝 <b>Want to chat privately?</b></div>
-        <button onclick="tg.openTelegramLink('${data.partnerLink}')" class="profile-link" style="border:none; cursor:pointer;">
-            👤 View Partner Profile
-        </button>
-    `;
-    messages.appendChild(profileDiv);
-    scrollDown();
+// লিঙ্ক ওপেন করার জন্য এই ফাংশনটি যোগ করুন
+function openLink(link) {
+    if (link.startsWith('tg://')) {
+        tg.openTelegramLink(link);
+    } else {
+        tg.openLink(link);
+    }
 }
     });
 

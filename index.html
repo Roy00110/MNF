@@ -23,7 +23,6 @@
             margin: 0; 
             overflow: hidden; 
             height: 100vh;
-            /* কিবোর্ড ওপেন হলে স্ক্রল ইস্যু ঠেকানোর জন্য */
             position: fixed;
             width: 100%;
         }
@@ -55,7 +54,7 @@
             flex: 1; 
             display: none; 
             flex-direction: column; 
-            overflow: hidden; /* স্ক্রিন যাতে না নড়ে */
+            overflow: hidden; 
             position: relative;
         }
         
@@ -66,7 +65,6 @@
             display: flex; 
             flex-direction: column; 
             gap: 12px;
-            /* স্মুথ স্ক্রলিং */
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
         }
@@ -83,6 +81,28 @@
         .me { background: linear-gradient(135deg, var(--primary), var(--secondary)); align-self: flex-end; border-bottom-right-radius: 4px; }
         .partner { background: var(--glass); backdrop-filter: blur(10px); align-self: flex-start; border-bottom-left-radius: 4px; }
 
+        .profile-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px dashed var(--primary);
+            border-radius: 15px;
+            padding: 12px;
+            text-align: center;
+            margin: 5px 0;
+            animation: slideUp 0.5s ease;
+        }
+
+        .profile-link {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 8px 15px;
+            background: #0088cc;
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
         .input-area { 
             padding: 10px 15px; 
             background: rgba(10, 11, 30, 0.95);
@@ -96,7 +116,7 @@
         input { 
             flex: 1; padding: 12px 20px; border-radius: 25px; 
             border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); 
-            color: white; outline: none; font-size: 16px; /* কিবোর্ড জুম হওয়া ঠেকাবে */
+            color: white; outline: none; font-size: 16px; 
         }
 
         .send-btn { background: var(--primary); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;}
@@ -117,37 +137,35 @@
 
         @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* ফটো বাটন এবং প্রিভিউ স্টাইল */
-.photo-btn {
-    background: var(--glass);
-    color: white;
-    border: none;
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 20px;
-}
-.chat-img-container {
-    max-width: 200px; 
-    height: 150px; /* হাইট ফিক্সড করে দেওয়া হলো যাতে ইউনিফর্ম দেখায় */
-    border-radius: 12px;
-    overflow: hidden; 
-    margin-top: 5px;
-    background: #000;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
+        .photo-btn {
+            background: var(--glass);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .chat-img-container {
+            max-width: 200px; 
+            height: 150px; 
+            border-radius: 12px;
+            overflow: hidden; 
+            margin-top: 5px;
+            background: #000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-.chat-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* ছবি ফেটে যাবে না, ফ্রেমের ভেতর ফিট হবে */
-    display: block;
-}
-        
+        .chat-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; 
+            display: block;
+        }
     </style>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src='//libtl.com/sdk.js' data-zone='9341070' data-sdk='show_9341070'></script>
@@ -170,26 +188,23 @@
                 <button class="stop-chat" onclick="endChatLocal()">Disconnect Chat</button>
             </div>
            <div class="input-area" id="input-container">
-    <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="sendPhoto(this)">
-    
-    <button class="photo-btn" onclick="document.getElementById('fileInput').click()">🖼️</button>
-    <input id="minput" type="text" placeholder="Write a message..." onkeypress="if(event.key==='Enter') sendMsg()">
-    <button class="send-btn" onclick="sendMsg()">➤</button>
-</div>
+                <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="sendPhoto(this)">
+                <button class="photo-btn" onclick="document.getElementById('fileInput').click()">🖼️</button>
+                <input id="minput" type="text" placeholder="Write a message..." onkeypress="if(event.key==='Enter') sendMsg()">
+                <button class="send-btn" onclick="sendMsg()">➤</button>
+            </div>
         </div>
     </div>
 
     <div id="limit-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center;">
-    <div style="background:linear-gradient(135deg, #1a1b3a, #0a0b1e); border: 1px solid var(--primary); padding:30px; border-radius:25px; width:80%; max-width:320px; text-align:center; box-shadow:0 0 30px rgba(255, 0, 128, 0.3); animation: slideUp 0.4s ease;">
-        <div style="font-size:50px; margin-bottom:15px;">🚫</div>
-        <h2 style="margin:0; color:var(--primary); font-size:22px;">Limit Reached!</h2>
-        <p style="color:var(--text-muted); font-size:14px; margin:15px 0;">Your match limit is over. Visit our Telegram bot to get more matches by inviting friends.</p>
-        
-        <button onclick="window.location.href='https://t.me/MakefriendsglobalBot'" style="background:linear-gradient(135deg, var(--primary), var(--secondary)); color:white; border:none; padding:12px 30px; border-radius:15px; font-weight:700; cursor:pointer; width:100%; margin-bottom: 10px;">🤖 Go to Bot</button>
-        
-        <button onclick="closeLimitModal()" style="background: rgba(255, 255, 255, 0.1); color:white; border:none; padding:10px 30px; border-radius:15px; font-weight:500; cursor:pointer; width:100%;">Close</button>
+        <div style="background:linear-gradient(135deg, #1a1b3a, #0a0b1e); border: 1px solid var(--primary); padding:30px; border-radius:25px; width:80%; max-width:320px; text-align:center; box-shadow:0 0 30px rgba(255, 0, 128, 0.3); animation: slideUp 0.4s ease;">
+            <div style="font-size:50px; margin-bottom:15px;">🚫</div>
+            <h2 style="margin:0; color:var(--primary); font-size:22px;">Limit Reached!</h2>
+            <p style="color:var(--text-muted); font-size:14px; margin:15px 0;">Your match limit is over. Visit our Telegram bot to get more matches by inviting friends.</p>
+            <button onclick="window.location.href='https://t.me/MakefriendsglobalBot'" style="background:linear-gradient(135deg, var(--primary), var(--secondary)); color:white; border:none; padding:12px 30px; border-radius:15px; font-weight:700; cursor:pointer; width:100%; margin-bottom: 10px;">🤖 Go to Bot</button>
+            <button onclick="closeLimitModal()" style="background: rgba(255, 255, 255, 0.1); color:white; border:none; padding:10px 30px; border-radius:15px; font-weight:500; cursor:pointer; width:100%;">Close</button>
+        </div>
     </div>
-</div>
 
     <script>
     const tg = window.Telegram.WebApp;
@@ -202,7 +217,6 @@
 
     if (userId) socket.emit('join', userId);
 
-    // ডুপ্লিকেট মেসেজ ঠেকাতে লিসেনার ক্লিন করার ফাংশন
     function setupSocketListeners() {
         socket.off('receive_msg');
         socket.off('chat_ended');
@@ -234,15 +248,29 @@
         socket.emit('find_partner_web', userId); 
     }
 
-    socket.on('match_found', () => {
+    // আপডেট করা ম্যাচ লজিক
+    socket.on('match_found', (data) => {
         document.getElementById('input-container').style.display = 'flex';
         document.getElementById('stop-btn-container').style.display = 'block';
         document.getElementById('home-screen').style.display = 'none';
         document.getElementById('chat-screen').style.display = 'flex';
         document.getElementById('messages').innerHTML = "";
         
-        setupSocketListeners(); // ম্যাচ হলে লিসেনার সেটআপ হবে
+        setupSocketListeners();
         addStatusMessage("✨ Match found! Say hello.");
+
+        // পার্টনার প্রোফাইল লিঙ্ক দেখানো (যদি সার্ভার থেকে পাঠানো হয়)
+        if(data && data.partnerLink) {
+            const messages = document.getElementById('messages');
+            const profileDiv = document.createElement('div');
+            profileDiv.className = 'profile-card';
+            profileDiv.innerHTML = `
+                <div style="font-size: 13px; color: var(--text-main);">🤝 <b>Want to chat privately?</b></div>
+                <a href="${data.partnerLink}" target="_blank" class="profile-link">👤 View Partner Profile</a>
+            `;
+            messages.appendChild(profileDiv);
+            scrollDown();
+        }
     });
 
     function sendMsg() {
@@ -275,20 +303,15 @@
         scrollDown();
     }
 
-    // ইমেজ মেসেজ দেখানোর একক ফাংশন (ফিক্সড সাইজ সহ)
     function addImageMessage(src, type) {
         const div = document.createElement('div');
         div.className = `msg ${type}`;
-        
         const imgContainer = document.createElement('div');
         imgContainer.className = 'chat-img-container';
-
         const img = document.createElement('img');
         img.src = src;
         img.className = 'chat-img';
-        // প্রিভিউ এর জন্য টেলিগ্রাম স্টাইল পপআপ (অপশনাল)
         img.onclick = () => tg.showPopup({ title: 'Image View', message: 'Viewing shared image.' });
-        
         imgContainer.appendChild(img);
         div.appendChild(imgContainer);
         document.getElementById('messages').appendChild(div);

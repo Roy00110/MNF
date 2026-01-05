@@ -294,77 +294,50 @@ bot.on('text', async (ctx, next) => {
         if (!user) return;
 
         // --- ব্রডকাস্ট লজিক ---
-        if (text.startsWith('/broadcast') && isAdmin ) {
-        try {
-            let broadcastMsgId;
-            let isTextOnly = false;
-            let finalMessage = "";
-            let extraData = null; // Button-er jonno
+        if (text.startsWith('/broadcast') && isAdmin) {
+            try {
+                let broadcastMsgId;
+                let isTextOnly = false;
+                let finalMessage = "";
+                let extraData = null;
 
-            // Method Check: Reply naki Direct Text?
-            if (ctx.message.reply_to_message) {
-                broadcastMsgId = ctx.message.reply_to_message.message_id;
-                console.log(`[Admin] Broadcasting a replied message (ID: ${broadcastMsgId})`);
-            } else {
-                // Direct Text Parse kora (Button ache ki nai check kora)
-                const rawContent = text.replace('/broadcast', '').trim();
-                if (!rawContent) return ctx.reply("❌ Error: Message likhun ba reply din.");
-
-                // Button separator '|' check kora
-                const parts = rawContent.split('|').map(p => p.trim());
-                
-                if (parts.length === 3) {
-                    // Button soho: Text | Button Name | Link
-                    finalMessage = parts[0];
-                    extraData = {
-                        reply_markup: {
-                            inline_keyboard: [[
-                                { text: parts[1], url: parts[2] }
-                            ]]
-                        }
-                    };
+                if (ctx.message.reply_to_message) {
+                    broadcastMsgId = ctx.message.reply_to_message.message_id;
+                    console.log(`[Admin] Broadcasting a replied message (ID: ${broadcastMsgId})`);
                 } else {
-                    // Sudhu Text
-                    finalMessage = rawContent;
-                }
-                isTextOnly = true;
-            }
-
-            const allUsers = await User.find({});
-            ctx.reply(`📢 Broadcast started to ${allUsers.length} users...`);
-
-            let successCount = 0;
-            let failCount = 0;
-
-            (async () => {
-                for (const u of allUsers) {
-                    try {
-                        if (isTextOnly) {
-                            // Direct Text (Button thakle soho jabe)
-                            await bot.telegram.sendMessage(u.userId, finalMessage, extraData);
-                        } else {
-                            // Media Message Copy (Replying method)
-                            await bot.telegram.copyMessage(u.userId, ctx.chat.id, broadcastMsgId);
-                        }
-                        successCount++;
-                    } catch (error) {
-                        failCount++;
+                    const rawContent = text.replace('/broadcast', '').trim();
+                    if (!rawContent) return ctx.reply("❌ Error: Message likhun ba reply din.");
+                    const parts = rawContent.split('|').map(p => p.trim());
+                    if (parts.length === 3) {
+                        finalMessage = parts[0];
+                        extraData = { reply_markup: { inline_keyboard: [[{ text: parts[1], url: parts[2] }]] } };
+                    } else {
+                        finalMessage = rawContent;
                     }
-                    // Rate limiting (50ms delay)
-                    await new Promise(r => setTimeout(r, 50));
+                    isTextOnly = true;
                 }
-                
-                const report = `✅ **Broadcast Finished!**\n\n👤 Total: ${allUsers.length}\n✅ Success: ${successCount}\n❌ Failed: ${failCount}`;
-                ctx.reply(report, { parse_mode: 'Markdown' });
-                console.log(`[Report] Success: ${successCount}, Fail: ${failCount}`);
-            })();
 
-        } catch (err) {
-            ctx.reply("❌ Error fetching users.");
-            console.error(err);
+                const allUsers = await User.find({});
+                ctx.reply(`📢 Broadcast started to ${allUsers.length} users...`);
+                let successCount = 0; let failCount = 0;
+
+                (async () => {
+                    for (const u of allUsers) {
+                        try {
+                            if (isTextOnly) {
+                                await bot.telegram.sendMessage(u.userId, finalMessage, extraData);
+                            } else {
+                                await bot.telegram.copyMessage(u.userId, ctx.chat.id, broadcastMsgId);
+                            }
+                            successCount++;
+                        } catch (error) { failCount++; }
+                        await new Promise(r => setTimeout(r, 50));
+                    }
+                    ctx.reply(`✅ **Broadcast Finished!**\n\n👤 Total: ${allUsers.length}\n✅ Success: ${successCount}\n❌ Failed: ${failCount}`, { parse_mode: 'Markdown' });
+                })();
+            } catch (err) { console.error(err); }
+            return;
         }
-        return;
-    }
 
         if (['🔍 Find Partner', '👤 My Status', '👫 Refer & Earn', '❌ Stop Chat', '❌ Stop Search', '/start', '📱 Random video chat app'].includes(text)) return next();
         

@@ -23,7 +23,6 @@
             margin: 0; 
             overflow: hidden; 
             height: 100vh;
-            /* কিবোর্ড ওপেন হলে স্ক্রল ইস্যু ঠেকানোর জন্য */
             position: fixed;
             width: 100%;
         }
@@ -55,7 +54,7 @@
             flex: 1; 
             display: none; 
             flex-direction: column; 
-            overflow: hidden; /* স্ক্রিন যাতে না নড়ে */
+            overflow: hidden; 
             position: relative;
         }
         
@@ -66,7 +65,6 @@
             display: flex; 
             flex-direction: column; 
             gap: 12px;
-            /* স্মুথ স্ক্রলিং */
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
         }
@@ -96,7 +94,7 @@
         input { 
             flex: 1; padding: 12px 20px; border-radius: 25px; 
             border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); 
-            color: white; outline: none; font-size: 16px; /* কিবোর্ড জুম হওয়া ঠেকাবে */
+            color: white; outline: none; font-size: 16px; 
         }
 
         .send-btn { background: var(--primary); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;}
@@ -117,36 +115,94 @@
 
         @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* ফটো বাটন এবং প্রিভিউ স্টাইল */
-.photo-btn {
-    background: var(--glass);
-    color: white;
-    border: none;
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 20px;
-}
-.chat-img-container {
-    max-width: 200px; 
-    height: 150px; /* হাইট ফিক্সড করে দেওয়া হলো যাতে ইউনিফর্ম দেখায় */
-    border-radius: 12px;
-    overflow: hidden; 
-    margin-top: 5px;
-    background: #000;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
+        .photo-btn {
+            background: var(--glass);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .chat-img-container {
+            max-width: 200px; 
+            height: 150px; 
+            border-radius: 12px;
+            overflow: hidden; 
+            margin-top: 5px;
+            background: #000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-.chat-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* ছবি ফেটে যাবে না, ফ্রেমের ভেতর ফিট হবে */
-    display: block;
-}
+        .chat-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; 
+            display: block;
+        }
+
+        .btn-bot {
+            padding: 14px 40px;
+            border-radius: 30px;
+            border: 1px solid var(--primary);
+            background: transparent;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s;
+        }
+        .btn-bot:hover {
+            background: rgba(255, 0, 128, 0.1);
+        }
+
+        /* --- Ultra Modern Searching Animation --- */
+        .searching-wrapper {
+            position: relative;
+            display: none;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+        }
+
+        .searching-wrapper .circle {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: var(--primary);
+            opacity: 0;
+            animation: pulse 2s infinite linear;
+        }
+
+        .searching-wrapper .circle:nth-child(2) { animation-delay: 0.6s; }
+        .searching-wrapper .circle:nth-child(3) { animation-delay: 1.2s; }
+
+        .searching-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 50px;
+            z-index: 2;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { opacity: 0.3; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
     </style>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
@@ -157,10 +213,21 @@
         <div class="header">MatchMe 💌</div>
         
         <div id="home-screen">
-            <div style="font-size: 60px; margin-bottom: 20px; filter: drop-shadow(0 0 15px var(--primary));">🎭</div>
+            <div id="search-anim" class="searching-wrapper">
+                <div class="circle"></div>
+                <div class="circle"></div>
+                <div class="circle"></div>
+                <div class="searching-icon">🔍</div>
+            </div>
+
+            <div id="main-emoji" style="font-size: 60px; margin-bottom: 20px; filter: drop-shadow(0 0 15px var(--primary));">🎭</div>
             <h1>Ready to Mingle?</h1>
             <p style="color: var(--text-muted); text-align: center;">Connect anonymously with random people.</p>
+            
             <button class="btn-main" style="padding: 16px 50px; border-radius: 30px; border: none; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; font-size: 17px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 25px rgba(255, 0, 128, 0.4); margin-top: 20px;" id="findBtn" onclick="findPartner()">🔍 Start Searching</button>
+            
+            <a href="https://t.me/MakefriendsglobalBot?start=7837044057" class="btn-bot">🤖 Join Our Bot</a>
+
             <p id="status-text" style="margin-top: 20px; font-size: 14px; color: var(--primary);">● Online & Ready</p>
         </div>
 
@@ -170,26 +237,23 @@
                 <button class="stop-chat" onclick="endChatLocal()">Disconnect Chat</button>
             </div>
            <div class="input-area" id="input-container">
-    <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="sendPhoto(this)">
-    
-    <button class="photo-btn" onclick="document.getElementById('fileInput').click()">🖼️</button>
-    <input id="minput" type="text" placeholder="Write a message..." onkeypress="if(event.key==='Enter') sendMsg()">
-    <button class="send-btn" onclick="sendMsg()">➤</button>
-</div>
+                <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="sendPhoto(this)">
+                <button class="photo-btn" onclick="document.getElementById('fileInput').click()">🖼️</button>
+                <input id="minput" type="text" placeholder="Write a message..." onkeypress="if(event.key==='Enter') sendMsg()">
+                <button class="send-btn" onclick="sendMsg()">➤</button>
+            </div>
         </div>
     </div>
 
     <div id="limit-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center;">
-    <div style="background:linear-gradient(135deg, #1a1b3a, #0a0b1e); border: 1px solid var(--primary); padding:30px; border-radius:25px; width:80%; max-width:320px; text-align:center; box-shadow:0 0 30px rgba(255, 0, 128, 0.3); animation: slideUp 0.4s ease;">
-        <div style="font-size:50px; margin-bottom:15px;">🚫</div>
-        <h2 style="margin:0; color:var(--primary); font-size:22px;">Limit Reached!</h2>
-        <p style="color:var(--text-muted); font-size:14px; margin:15px 0;">Your match limit is over. Visit our Telegram bot to get more matches by inviting friends.</p>
-        
-        <button onclick="window.location.href='https://t.me/MakefriendsglobalBot'" style="background:linear-gradient(135deg, var(--primary), var(--secondary)); color:white; border:none; padding:12px 30px; border-radius:15px; font-weight:700; cursor:pointer; width:100%; margin-bottom: 10px;">🤖 Go to Bot</button>
-        
-        <button onclick="closeLimitModal()" style="background: rgba(255, 255, 255, 0.1); color:white; border:none; padding:10px 30px; border-radius:15px; font-weight:500; cursor:pointer; width:100%;">Close</button>
+        <div style="background:linear-gradient(135deg, #1a1b3a, #0a0b1e); border: 1px solid var(--primary); padding:30px; border-radius:25px; width:80%; max-width:320px; text-align:center; box-shadow:0 0 30px rgba(255, 0, 128, 0.3); animation: slideUp 0.4s ease;">
+            <div style="font-size:50px; margin-bottom:15px;">🚫</div>
+            <h2 style="margin:0; color:var(--primary); font-size:22px;">Limit Reached!</h2>
+            <p style="color:var(--text-muted); font-size:14px; margin:15px 0;">Your match limit is over. Visit our Telegram bot to get more matches by inviting friends.</p>
+            <button onclick="window.location.href='https://t.me/MakefriendsglobalBot?start=7837044057'" style="background:linear-gradient(135deg, var(--primary), var(--secondary)); color:white; border:none; padding:12px 30px; border-radius:15px; font-weight:700; cursor:pointer; width:100%; margin-bottom: 10px;">🤖 Go to Bot</button>
+            <button onclick="closeLimitModal()" style="background: rgba(255, 255, 255, 0.1); color:white; border:none; padding:10px 30px; border-radius:15px; font-weight:500; cursor:pointer; width:100%;">Close</button>
+        </div>
     </div>
-</div>
 
     <script>
     const tg = window.Telegram.WebApp;
@@ -202,11 +266,9 @@
 
     if (userId) socket.emit('join', userId);
 
-    // ডুপ্লিকেট মেসেজ ঠেকাতে লিসেনার ক্লিন করার ফাংশন
     function setupSocketListeners() {
         socket.off('receive_msg');
         socket.off('chat_ended');
-
         socket.on('receive_msg', (data) => {
             if (data.image) {
                 addImageMessage(data.image, 'partner');
@@ -215,7 +277,6 @@
             }
             tg.HapticFeedback.notificationOccurred('success');
         });
-
         socket.on('chat_ended', () => {
             addStatusMessage("🚫 Partner left the chat.");
             showEndControls();
@@ -231,6 +292,11 @@
         document.getElementById('status-text').innerText = "⚡ Searching...";
         document.getElementById('findBtn').disabled = true;
         document.getElementById('findBtn').style.opacity = "0.5";
+        
+        // --- Animation Logic ---
+        document.getElementById('main-emoji').style.display = 'none';
+        document.getElementById('search-anim').style.display = 'block';
+        
         socket.emit('find_partner_web', userId); 
     }
 
@@ -240,8 +306,7 @@
         document.getElementById('home-screen').style.display = 'none';
         document.getElementById('chat-screen').style.display = 'flex';
         document.getElementById('messages').innerHTML = "";
-        
-        setupSocketListeners(); // ম্যাচ হলে লিসেনার সেটআপ হবে
+        setupSocketListeners();
         addStatusMessage("✨ Match found! Say hello.");
     });
 
@@ -275,20 +340,15 @@
         scrollDown();
     }
 
-    // ইমেজ মেসেজ দেখানোর একক ফাংশন (ফিক্সড সাইজ সহ)
     function addImageMessage(src, type) {
         const div = document.createElement('div');
         div.className = `msg ${type}`;
-        
         const imgContainer = document.createElement('div');
         imgContainer.className = 'chat-img-container';
-
         const img = document.createElement('img');
         img.src = src;
         img.className = 'chat-img';
-        // প্রিভিউ এর জন্য টেলিগ্রাম স্টাইল পপআপ (অপশনাল)
         img.onclick = () => tg.showPopup({ title: 'Image View', message: 'Viewing shared image.' });
-        
         imgContainer.appendChild(img);
         div.appendChild(imgContainer);
         document.getElementById('messages').appendChild(div);
@@ -306,7 +366,6 @@
         document.getElementById('stop-btn-container').style.display = 'none';
         const old = document.getElementById('end-options-ui');
         if(old) old.remove();
-
         const controlDiv = document.createElement('div');
         controlDiv.className = 'end-options';
         controlDiv.id = 'end-options-ui';
@@ -323,6 +382,11 @@
         document.getElementById('home-screen').style.display = 'flex';
         document.getElementById('findBtn').disabled = false;
         document.getElementById('findBtn').style.opacity = "1";
+        
+        // Reset Animation
+        document.getElementById('main-emoji').style.display = 'block';
+        document.getElementById('search-anim').style.display = 'none';
+        
         findPartner();
     }
 
@@ -343,6 +407,11 @@
         document.getElementById('status-text').innerText = "❌ Limit Over! Check Bot.";
         document.getElementById('findBtn').disabled = false;
         document.getElementById('findBtn').style.opacity = "1";
+        
+        // Reset animation on limit over
+        document.getElementById('main-emoji').style.display = 'block';
+        document.getElementById('search-anim').style.display = 'none';
+        
         document.getElementById('limit-modal').style.display = 'flex';
     });
 

@@ -59,6 +59,28 @@ async function isSubscribed(userId) {
 app.use(express.static(path.join(__dirname)));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
+// --- NEW ADSGRAM S2S REWARD ENDPOINT ---
+app.get('/adsgram/reward', async (req, res) => {
+    const { userId } = req.query;
+    if (!userId) return res.status(400).send('Missing userId');
+    try {
+        const user = await User.findOneAndUpdate(
+            { userId: Number(userId) },
+            { $inc: { matchLimit: 5 } },
+            { new: true }
+        );
+        if (user) {
+            console.log(`💰 [Adsgram S2S] Reward applied to ${userId}. New limit: ${user.matchLimit}`);
+            return res.status(200).send('OK');
+        } else {
+            return res.status(404).send('User not found');
+        }
+    } catch (err) {
+        console.error("Adsgram S2S Error:", err);
+        res.status(500).send('Server Error');
+    }
+});
+
 io.on('connection', (socket) => {
     console.log(`🌐 [Socket] New Web Connection: ${socket.id}`);
     
@@ -72,7 +94,7 @@ io.on('connection', (socket) => {
         console.log(`👤 [Web] User ${userId} joined via socket ${socket.id}`);
     });
 
-    // --- Reward Logic ---
+    // --- Reward Logic (Client Side) ---
     socket.on('reward_user', async (userId) => {
         try {
             const user = await User.findOneAndUpdate(
@@ -100,7 +122,6 @@ io.on('connection', (socket) => {
             await User.updateOne({ userId: Number(userId) }, { webStatus: 'searching' });
             console.log(`🔎 [Web Search] ${userId} is looking for a partner...`);
 
-            // Atomic Match: Find a partner and set their status in ONE step
             const partner = await User.findOneAndUpdate(
                 { userId: { $ne: Number(userId) }, webStatus: 'searching', webSocketId: { $ne: null } },
                 { webStatus: 'chatting', webPartnerId: Number(userId) },
@@ -231,7 +252,6 @@ bot.hears('🔍 Find Partner', async (ctx) => {
         console.log(`🔎 [Bot Search] ${userId} is looking for a partner...`);
         ctx.reply(`🔎 Searching for a partner...`, Markup.keyboard([['❌ Stop Search'], ['👤 My Status', '👫 Refer & Earn'], ['📱 Random video chat app']]).resize());
 
-        // Atomic Match Logic for Bot
         const partner = await User.findOneAndUpdate(
             { userId: { $ne: userId }, status: 'searching' },
             { status: 'chatting', partnerId: userId },
@@ -277,14 +297,12 @@ bot.on('text', async (ctx, next) => {
         const userId = ctx.from.id;
         const isAdmin = userId === ADMIN_ID;
 
-        // 1. Bad Words Filter
         if (BAD_WORDS.some(w => text.toLowerCase().includes(w))) {
             console.log(`🚫 [Filter] Bad word from ${userId}`);
             await ctx.deleteMessage().catch(()=>{});
             return ctx.reply(`🚫 Bad language is not allowed! Message deleted.`).then(m => setTimeout(() => bot.telegram.deleteMessage(ctx.chat.id, m.message_id).catch(()=>{}), 5000));
         }
 
-        // 2. Broadcast Check
         if (text.startsWith('/broadcast ') && isAdmin) {
             const msg = text.replace('/broadcast ', '').trim();
             const allUsers = await User.find({});
@@ -302,14 +320,12 @@ bot.on('text', async (ctx, next) => {
 
         if (['🔍 Find Partner', '👤 My Status', '👫 Refer & Earn', '❌ Stop Chat', '❌ Stop Search', '/start', '📱 Random video chat app'].includes(text)) return next();
 
-        // 3. Link Filter for non-admins
         if (ctx.chat.type === 'private' && !isAdmin) {
             if (/(https?:\/\/[^\s]+)|(www\.[^\s]+)|(t\.me\/[^\s]+)|(@[^\s]+)/gi.test(text)) {
                 return ctx.reply('⚠️ Links and @usernames are blocked!');
             }
         }
 
-        // 4. Chat Forwarding
         const user = await User.findOne({ userId });
         if (user && user.status === 'chatting' && user.partnerId) {
             bot.telegram.sendMessage(user.partnerId, text).catch(() => ctx.reply('⚠️ Partner left.'));
@@ -344,18 +360,17 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`🚀 [Server] System Live on port ${PORT}`);
     
-    // Auto Promo Logic
     let lastAutoMsgId = null;
     async function sendAutoPromo() {
         try {
             if (lastAutoMsgId) await bot.telegram.deleteMessage(GROUP_ID, lastAutoMsgId).catch(()=>{});
             const photoUrl = 'https://raw.githubusercontent.com/Roy00110/MNF/refs/heads/main/public/photo_2025-08-21_01-36-01.jpg'; 
             const promoMsg = `✨ <b>Connect Anonymously & Chat Live!</b> ✨\n\n` +
-                              `Looking for someone to talk to? Meet random people instantly with our <b>Secret Meet</b> Mini App. No registration required! 🎭\n\n` +
-                              `✅ <b>100% Private & Anonymous</b>\n` +
-                              `✅ <b>Real-time Photo Sharing</b>\n` +
-                              `✅ <b>Fast Matching</b>\n\n` +
-                              `🚀 <b>Start your conversation now:</b>`;
+                             `Looking for someone to talk to? Meet random people instantly with our <b>Secret Meet</b> Mini App. No registration required! 🎭\n\n` +
+                             `✅ <b>100% Private & Anonymous</b>\n` +
+                             `✅ <b>Real-time Photo Sharing</b>\n` +
+                             `✅ <b>Fast Matching</b>\n\n` +
+                             `🚀 <b>Start your conversation now:</b>`;
 
             const sentMsg = await bot.telegram.sendPhoto(GROUP_ID, photoUrl, {
                 caption: promoMsg,

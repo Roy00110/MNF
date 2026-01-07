@@ -83,15 +83,23 @@ app.get('/adsgram/reward', async (req, res) => {
 io.on('connection', (socket) => {
     console.log(`🌐 [Socket] New Web Connection: ${socket.id}`);
     
-    socket.on('join', async (userId) => {
-        if (!userId) return;
-        await User.findOneAndUpdate(
-            { userId: Number(userId) }, 
-            { webSocketId: socket.id, webStatus: 'idle', webPartnerId: null }, 
-            { upsert: true }
-        );
-        console.log(`👤 [Web] User ${userId} joined via socket ${socket.id}`);
+   socket.on('join', async (userId) => {
+    if (!userId) return;
+    
+    // ১. ইউজার ডাটাবেসে আপডেট বা ইনসার্ট করা
+    const user = await User.findOneAndUpdate(
+        { userId: Number(userId) }, 
+        { webSocketId: socket.id, webStatus: 'idle', webPartnerId: null }, 
+        { upsert: true, new: true } // new: true দিলে আপডেট হওয়া ডাটা রিটার্ন করবে
+    );
+    
+    console.log(`👤 [Web] User ${userId} joined via socket ${socket.id}`);
+
+    // ২. গুরুত্বপূর্ণ: ফ্রন্টএন্ডে ইউজারের বর্তমান লিমিট পাঠিয়ে দেওয়া
+    socket.emit('user_data', { 
+        limit: user.matchLimit || 0 
     });
+});
 
     socket.on('reward_user', async (userId) => {
         try {

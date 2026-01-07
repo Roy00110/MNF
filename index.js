@@ -30,7 +30,7 @@ const User = mongoose.model('User', new mongoose.Schema({
     firstName: String,
     partnerId: { type: Number, default: null },
     status: { type: String, default: 'idle' },
-    matchLimit: { type: Number, default: 1000 },
+    matchLimit: { type: Number, default: 20 },
     referrals: { type: Number, default: 0 },
     lastClaimed: { type: Date, default: null },
     webStatus: { type: String, default: 'idle' },
@@ -97,7 +97,7 @@ io.on('connection', (socket) => {
         try {
             const user = await User.findOneAndUpdate(
                 { userId: Number(userId) },
-                { $inc: { matchLimit: 5 } },
+                { $inc: { matchLimit: 10 } },
                 { new: true }
             );
             console.log(`🎁 [Reward Success] User ${userId} watched video. Balance: ${user.matchLimit}`);
@@ -183,7 +183,7 @@ bot.start(async (ctx) => {
         }
 
         if (!user) {
-            user = new User({ userId, firstName: ctx.from.first_name, matchLimit: 1000, hasReceivedReferralBonus: !!startPayload });
+            user = new User({ userId, firstName: ctx.from.first_name, matchLimit: 20, hasReceivedReferralBonus: !!startPayload });
             await user.save();
         } else if (startPayload && !user.hasReceivedReferralBonus) {
             await User.updateOne({ userId }, { hasReceivedReferralBonus: true });
@@ -335,7 +335,7 @@ bot.on('text', async (ctx, next) => {
         if (!isAdmin) {
             if (/(https?:\/\/[^\s]+)|(www\.[^\s]+)|(t\.me\/[^\s]+)|(@[^\s]+)/gi.test(text)) {
                 await ctx.deleteMessage().catch(()=>{});
-                return ctx.reply('⚠️ Links and @usernames are blocked!');
+                return ctx.reply('⚠️ Links not allowed!');
             }
         }
 

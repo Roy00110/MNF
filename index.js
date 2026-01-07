@@ -72,6 +72,21 @@ io.on('connection', (socket) => {
         console.log(`👤 [Web] User ${userId} joined via socket ${socket.id}`);
     });
 
+    // --- Reward Logic ---
+    socket.on('reward_user', async (userId) => {
+        try {
+            const user = await User.findOneAndUpdate(
+                { userId: Number(userId) },
+                { $inc: { matchLimit: 5 } }, // Reward 5 matches
+                { new: true }
+            );
+            console.log(`🎁 [Reward Success] User ${userId} watched video. Balance: ${user.matchLimit}`);
+            socket.emit('reward_confirmed', user.matchLimit);
+        } catch (err) {
+            console.log('❌ [Reward Error]:', err);
+        }
+    });
+
     socket.on('find_partner_web', async (userId) => {
         try {
             const user = await User.findOne({ userId: Number(userId) });

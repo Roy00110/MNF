@@ -222,8 +222,8 @@ bot.start(async (ctx) => {
             if (startPayload && !isNaN(startPayload) && Number(startPayload) !== userId) {
                 const referrer = await User.findOne({ userId: Number(startPayload) });
                 if (referrer) {
-                    await User.updateOne({ userId: referrer.userId }, { $inc: { matchLimit: 50, referrals: 1 } });
-                    bot.telegram.sendMessage(referrer.userId, `🎉 Someone joined via your link! You received +50 matches.`).catch(() => {});
+                    await User.updateOne({ userId: referrer.userId }, { $inc: { matchLimit: 20, referrals: 1 } });
+                    bot.telegram.sendMessage(referrer.userId, `🎉 Someone joined via your link! You received +20 matches.`).catch(() => {});
                 }
             }
         }
@@ -390,7 +390,7 @@ bot.on('text', async (ctx, next) => {
 bot.hears('👫 Refer & Earn', async (ctx) => {
     const user = await User.findOne({ userId: ctx.from.id });
     const refLink = `https://t.me/${ctx.botInfo.username}?start=${ctx.from.id}`;
-    ctx.replyWithHTML(`👫 <b>Referral Program</b>\n\n🎁 Reward: +50 Matches per referral.\n🔗 Link: ${refLink}\n📊 Total Referrals: ${user.referrals || 0}`);
+    ctx.replyWithHTML(`👫 <b>Referral Program</b>\n\n🎁 Reward: +20 Matches per referral.\n🔗 Link: ${refLink}\n📊 Total Referrals: ${user.referrals || 0}`);
 });
 
 bot.hears('👤 My Status', async (ctx) => {

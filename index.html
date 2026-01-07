@@ -221,6 +221,13 @@
         document.getElementById('limit-modal').style.display = 'flex';
     });
 
+    // সার্ভার থেকে ইউজারের লিমিট ডাটা রিসিভ করা
+socket.on('user_data', (data) => {
+    if (data && data.limit !== undefined) {
+        document.getElementById('match-count').innerText = data.limit;
+    }
+});
+
     function sendMessage() {
         const inp = document.getElementById('main-input');
         if(!inp.value.trim()) return;

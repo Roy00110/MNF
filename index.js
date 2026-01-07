@@ -24,7 +24,7 @@ mongoose.connect(MONGO_URI)
     .then(() => console.log('✅ [DB] Connected to MongoDB Successfully'))
     .catch(err => console.log('❌ [DB] Error:', err));
 
-// --- User Model ---
+// --- User Model (Updated with missing fields) ---
 const User = mongoose.model('User', new mongoose.Schema({
     userId: { type: Number, unique: true },
     firstName: String,
@@ -36,7 +36,11 @@ const User = mongoose.model('User', new mongoose.Schema({
     webStatus: { type: String, default: 'idle' },
     webPartnerId: { type: Number, default: null },
     webSocketId: { type: String, default: null },
-    hasReceivedReferralBonus: { type: Boolean, default: false }
+    hasReceivedReferralBonus: { type: Boolean, default: false },
+    // Missing Fields Added
+    joinedChannel: { type: Boolean, default: false }, 
+    lastSpin: { type: Date, default: null },          
+    isVip: { type: Boolean, default: false }
 }));
 
 // --- Helper Functions ---
@@ -85,33 +89,67 @@ io.on('connection', (socket) => {
     
    socket.on('join', async (userId) => {
     if (!userId) return;
-    
-    // ১. ইউজার ডাটাবেসে আপডেট বা ইনসার্ট করা
     const user = await User.findOneAndUpdate(
         { userId: Number(userId) }, 
         { webSocketId: socket.id, webStatus: 'idle', webPartnerId: null }, 
-        { upsert: true, new: true } // new: true দিলে আপডেট হওয়া ডাটা রিটার্ন করবে
+        { upsert: true, new: true }
     );
-    
     console.log(`👤 [Web] User ${userId} joined via socket ${socket.id}`);
-
-    // ২. গুরুত্বপূর্ণ: ফ্রন্টএন্ডে ইউজারের বর্তমান লিমিট পাঠিয়ে দেওয়া
-    socket.emit('user_data', { 
-        limit: user.matchLimit || 0 
-    });
+    socket.emit('user_data', { limit: user.matchLimit || 0 });
 });
 
     socket.on('reward_user', async (userId) => {
         try {
             const user = await User.findOneAndUpdate(
                 { userId: Number(userId) },
-                { $inc: { matchLimit: 10 } },
+                { $inc: { matchLimit: 15 } }, // Updated to 15 as per previous logic
                 { new: true }
             );
             console.log(`🎁 [Reward Success] User ${userId} watched video. Balance: ${user.matchLimit}`);
             socket.emit('reward_confirmed', user.matchLimit);
+            socket.emit('user_data', { limit: user.matchLimit });
         } catch (err) {
             console.log('❌ [Reward Error]:', err);
+        }
+    });
+
+    // --- Added Daily Claim Logic ---
+    socket.on('claim_daily', async (userId) => {
+        const user = await User.findOne({ userId: Number(userId) });
+        const today = new Date().toDateString();
+        if (user && (!user.lastClaimed || user.lastClaimed.toDateString() !== today)) {
+            user.matchLimit += 5;
+            user.lastClaimed = new Date();
+            await user.save();
+            console.log(`📅 [Daily Claim] User: ${userId} claimed bonus`);
+            socket.emit('user_data', { limit: user.matchLimit });
+        }
+    });
+
+    // --- Added Lucky Spin Logic ---
+    socket.on('lucky_spin', async (userId) => {
+        const user = await User.findOne({ userId: Number(userId) });
+        const today = new Date().toDateString();
+        if (user && (!user.lastSpin || user.lastSpin.toDateString() !== today)) {
+            const winAmount = Math.floor(Math.random() * 50) + 1;
+            user.matchLimit += winAmount;
+            user.lastSpin = new Date();
+            await user.save();
+            console.log(`🎰 [Lucky Spin] User: ${userId} won ${winAmount}`);
+            socket.emit('user_data', { limit: user.matchLimit });
+            socket.emit('spin_result', { amount: winAmount });
+        }
+    });
+
+    // --- Added Social Task Logic ---
+    socket.on('social_task', async (userId) => {
+        const user = await User.findOne({ userId: Number(userId) });
+        if (user && !user.joinedChannel) {
+            user.matchLimit += 10;
+            user.joinedChannel = true;
+            await user.save();
+            console.log(`📱 [Social Task] User: ${userId} completed task`);
+            socket.emit('user_data', { limit: user.matchLimit });
         }
     });
 
@@ -135,6 +173,7 @@ io.on('connection', (socket) => {
                 if (partner.userId !== ADMIN_ID) await User.updateOne({ userId: partner.userId }, { $inc: { matchLimit: -1 } });
                 io.to(socket.id).emit('match_found');
                 io.to(partner.webSocketId).emit('match_found');
+                console.log(`🤝 [Web Match] ${userId} matched with ${partner.userId}`);
             }
         } catch (err) { console.error("Web Match Error:", err); }
     });
@@ -164,7 +203,6 @@ io.on('connection', (socket) => {
 });
 
 // --- Telegram Bot Logic ---
-
 bot.start(async (ctx) => {
     try {
         const userId = ctx.from.id;
@@ -224,7 +262,6 @@ bot.action('check_sub', async (ctx) => {
     }
 });
 
-// Verification Handlers
 bot.action(['verify_1', 'verify_2'], async (ctx) => {
     try {
         await User.updateOne({ userId: ctx.from.id }, { $inc: { matchLimit: 5 } });
@@ -265,6 +302,7 @@ bot.hears('🔍 Find Partner', async (ctx) => {
             const matchText = (link) => `✅ Partner found! Start chatting...\n\n🤝 <b>Add each other to chat privately:</b>\n👤 <a href="${link}">Click here to view Partner Profile</a>`;
             ctx.reply(matchText(partnerLink), { parse_mode: 'HTML', ...menu });
             bot.telegram.sendMessage(partner.userId, matchText(userLink), { parse_mode: 'HTML', ...menu }).catch(() => {});
+            console.log(`🤝 [Bot Match] ${userId} matched with ${partner.userId}`);
         }
     } catch (err) { console.error("Match Error:", err); }
 });
@@ -281,13 +319,11 @@ bot.hears('📱 Random video chat app', async (ctx) => {
     ctx.replyWithHTML(videoChatMsg, { disable_web_page_preview: true });
 });
 
-// --- Media Filter & Universal Broadcast Logic ---
 bot.on(['photo', 'video', 'video_note', 'voice', 'audio', 'document'], async (ctx) => {
     const userId = ctx.from.id;
     const isAdmin = userId === ADMIN_ID;
     const caption = ctx.message.caption || "";
 
-    // Broadcast logic for media
     if (isAdmin && caption.startsWith('/broadcast')) {
         const allUsers = await User.find({});
         ctx.reply(`📣 Media Broadcast started to ${allUsers.length} users...`);
@@ -302,7 +338,6 @@ bot.on(['photo', 'video', 'video_note', 'voice', 'audio', 'document'], async (ct
         return ctx.reply(`✅ Media Broadcast complete. Sent to ${count} users.`);
     }
 
-    // Block media in chat
     const user = await User.findOne({ userId });
     if (user && user.status === 'chatting') {
         await ctx.deleteMessage().catch(()=>{});
@@ -316,7 +351,6 @@ bot.on('text', async (ctx, next) => {
         const userId = ctx.from.id;
         const isAdmin = userId === ADMIN_ID;
 
-        // Broadcast logic for text
         if (text.startsWith('/broadcast ') && isAdmin) {
             const msg = text.replace('/broadcast ', '').trim();
             const allUsers = await User.find({});
@@ -339,7 +373,6 @@ bot.on('text', async (ctx, next) => {
 
         if (['🔍 Find Partner', '👤 My Status', '👫 Refer & Earn', '❌ Stop Chat', '❌ Stop Search', '/start', '📱 Random video chat app'].includes(text)) return next();
 
-        // Block links and usernames
         if (!isAdmin) {
             if (/(https?:\/\/[^\s]+)|(www\.[^\s]+)|(t\.me\/[^\s]+)|(@[^\s]+)/gi.test(text)) {
                 await ctx.deleteMessage().catch(()=>{});

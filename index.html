@@ -41,66 +41,55 @@
             display: flex; align-items: center; gap: 8px;
         }
 
-        #chat-area { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        /* --- Tabs Logic --- */
+        #tab-container { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+        .tab-content { display: none; }
+        .active-tab { display: block; }
 
+        /* --- Earn Tab Styling --- */
+        .earn-section { padding: 20px; text-align: center; }
+        .earn-card {
+            background: var(--glass-bg); border: 1px solid rgba(255, 77, 148, 0.2);
+            border-radius: 15px; padding: 15px; margin-bottom: 15px;
+            display: flex; align-items: center; justify-content: space-between; text-align: left;
+        }
+        .earn-info h4 { margin: 0; color: var(--text-main); font-size: 1rem; }
+        .earn-info p { margin: 3px 0 0; color: #b4a9c3; font-size: 0.8rem; }
+        .earn-btn { 
+            background: var(--gradient); border: none; color: white; padding: 8px 15px; 
+            border-radius: 10px; font-weight: bold; font-size: 0.8rem; cursor: pointer;
+        }
+
+        /* --- Navigation Bar --- */
+        .nav-bar {
+            position: fixed; bottom: 0; width: 100%; background: rgba(26, 11, 46, 0.95);
+            display: flex; justify-content: space-around; padding: 12px 0;
+            border-top: 1px solid rgba(255, 77, 148, 0.2); z-index: 200;
+        }
+        .nav-item { color: #b4a9c3; font-size: 0.75rem; display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
+        .nav-item.active { color: var(--accent); }
+        .nav-item i { font-size: 1.2rem; }
+
+        /* --- Existing Styles Unchanged --- */
+        #chat-area { flex: 1; padding: 20px; overflow-y: auto; display: none; flex-direction: column; gap: 15px; }
         .bubble { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-size: 0.95rem; line-height: 1.5; animation: slideUp 0.3s ease; }
         .sent { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; }
         .received { align-self: flex-start; background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1); border-bottom-left-radius: 4px; }
         .chat-img { width: 100%; max-width: 220px; border-radius: 12px; display: block; margin-top: 5px; }
-
-        #home-screen {
-            position: absolute; inset: 0; background: var(--bg-dark);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 50; text-align: center;
-        }
-
-        /* --- New Dating Animation (Heart Pulse) --- */
-        .dating-animation {
-            width: 150px; height: 150px; position: relative;
-            display: flex; align-items: center; justify-content: center; margin-bottom: 20px;
-        }
+        #home-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-top: 50px;}
+        .dating-animation { width: 150px; height: 150px; position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
         .heart-icon { color: var(--accent); font-size: 4rem; z-index: 2; position: relative; }
-        
-        .heart-pulse {
-            position: absolute; width: 60px; height: 60px; background: var(--accent);
-            transform: rotate(45deg); opacity: 0; border-radius: 50% 50% 0 0;
-        }
-        .heart-pulse::before {
-            content: ''; position: absolute; width: 60px; height: 60px; 
-            background: var(--accent); border-radius: 50%; left: -30px;
-        }
+        .heart-pulse { position: absolute; width: 60px; height: 60px; background: var(--accent); transform: rotate(45deg); opacity: 0; border-radius: 50% 50% 0 0; }
+        .heart-pulse::before { content: ''; position: absolute; width: 60px; height: 60px; background: var(--accent); border-radius: 50%; left: -30px; }
         .searching .heart-pulse { animation: heartPulse 2s infinite; opacity: 0.4; }
-
-        @keyframes heartPulse {
-            0% { transform: scale(1) rotate(45deg); opacity: 0.5; }
-            100% { transform: scale(2.5) rotate(45deg); opacity: 0; }
-        }
-
-        .btn-match {
-            background: var(--gradient); color: white; border: none;
-            padding: 16px 50px; border-radius: 30px; font-weight: bold; font-size: 1.1rem; 
-            cursor: pointer; box-shadow: 0 10px 25px rgba(255, 77, 148, 0.4); transition: 0.3s;
-        }
-        .btn-match:active { transform: scale(0.95); }
-
-        .btn-bot {
-            margin-top: 25px; background: rgba(255, 255, 255, 0.05); color: #ff99cc;
-            padding: 10px 22px; border-radius: 20px; text-decoration: none; font-size: 0.9rem;
-            display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255, 77, 148, 0.2);
-        }
-
-        /* --- Input Bar --- */
-        .input-box {
-            padding: 15px 20px; background: rgba(26, 11, 46, 0.95); display: flex; align-items: center; gap: 12px;
-            border-top: 1px solid rgba(255, 77, 148, 0.2); padding-bottom: env(safe-area-inset-bottom, 15px);
-        }
+        @keyframes heartPulse { 0% { transform: scale(1) rotate(45deg); opacity: 0.5; } 100% { transform: scale(2.5) rotate(45deg); opacity: 0; } }
+        .btn-match { background: var(--gradient); color: white; border: none; padding: 16px 50px; border-radius: 30px; font-weight: bold; font-size: 1.1rem; cursor: pointer; box-shadow: 0 10px 25px rgba(255, 77, 148, 0.4); }
+        .input-box { padding: 15px 20px; background: rgba(26, 11, 46, 0.95); display: flex; align-items: center; gap: 12px; border-top: 1px solid rgba(255, 77, 148, 0.2); padding-bottom: env(safe-area-inset-bottom, 15px); }
         .input-box input { flex: 1; background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1); padding: 12px 18px; border-radius: 25px; color: white; outline: none; }
         .btn-circle { width: 45px; height: 45px; border-radius: 50%; background: var(--gradient); border: none; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
         .stop-btn { background: #475569 !important; width: 35px !important; height: 35px !important; }
-
         #limit-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-content { background: #2d164d; padding: 30px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid var(--accent); }
-
         .hidden { display: none !important; }
     </style>
 </head>
@@ -114,21 +103,77 @@
     </div>
 </header>
 
+<div id="tab-container">
+    <div id="home-tab" class="tab-content active-tab">
+        <div id="home-screen">
+            <div class="dating-animation" id="anim-container">
+                <div class="heart-pulse"></div>
+                <i class="fa-solid fa-heart heart-icon"></i>
+            </div>
+            <h2 id="status-text" style="margin-bottom: 10px;">Find Your Match</h2>
+            <p style="color: #b4a9c3; margin-bottom: 30px; padding: 0 40px; font-size: 0.9rem;">Chat anonymously and meet new people around the world.</p>
+            <button class="btn-match" id="findBtn" onclick="handleFind()">Start Matching</button>
+        </div>
+    </div>
+
+    <div id="earn-tab" class="tab-content">
+        <div class="earn-section">
+            <h2 style="margin-bottom: 20px;">Earn Match Power ⚡</h2>
+            
+            <div class="earn-card">
+                <div class="earn-info">
+                    <h4>Watch & Earn</h4>
+                    <p>Get +15 bonus matches</p>
+                </div>
+                <button class="earn-btn" onclick="watchRewardAd()">Watch</button>
+            </div>
+
+            <div class="earn-card">
+                <div class="earn-info">
+                    <h4>Daily Bonus</h4>
+                    <p>Claim 5 matches every day</p>
+                </div>
+                <button class="earn-btn" id="dailyBtn" onclick="claimDaily()">Claim</button>
+            </div>
+
+            <div class="earn-card">
+                <div class="earn-info">
+                    <h4>Invite Friends</h4>
+                    <p>Share with friends for +20</p>
+                </div>
+                <button class="earn-btn" onclick="inviteFriends()">Invite</button>
+            </div>
+
+            <div class="earn-card">
+                <div class="earn-info">
+                    <h4>Join Channel</h4>
+                    <p>Follow us for +10 matches</p>
+                </div>
+                <button class="earn-btn" onclick="joinChannel()">Join</button>
+            </div>
+
+            <div class="earn-card" style="border: 1px solid #fbbf24; background: rgba(251, 191, 36, 0.05);">
+                <div class="earn-info">
+                    <h4>Lucky Spin 🎡</h4>
+                    <p>Win 1 to 50 matches daily</p>
+                </div>
+                <button class="earn-btn" style="background: #fbbf24; color: #1a0b2e;" onclick="luckySpin()">Spin</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="chat-area"></div>
 
-<div id="home-screen">
-    <div class="dating-animation" id="anim-container">
-        <div class="heart-pulse"></div>
-        <i class="fa-solid fa-heart heart-icon"></i>
+<div class="nav-bar" id="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('home', this)">
+        <i class="fa-solid fa-fire"></i>
+        <span>Matching</span>
     </div>
-    <h2 id="status-text" style="margin-bottom: 10px;">Find Your Match</h2>
-    <p style="color: #b4a9c3; margin-bottom: 30px; padding: 0 40px; font-size: 0.9rem;">Chat anonymously and meet new people around the world.</p>
-    
-    <button class="btn-match" id="findBtn" onclick="handleFind()">Start Matching</button>
-
-    <a href="https://t.me/MakefriendsglobalBot?start=7837044057" class="btn-bot">
-        <i class="fa-brands fa-telegram"></i> Daily Bonus Rewards
-    </a>
+    <div class="nav-item" onclick="switchTab('earn', this)">
+        <i class="fa-solid fa-bolt"></i>
+        <span>Earn Limit</span>
+    </div>
 </div>
 
 <div class="input-box hidden" id="input-bar">
@@ -145,9 +190,9 @@
     <div class="modal-content">
         <div style="font-size:50px; margin-bottom: 10px;">💝</div>
         <h2 style="color:var(--accent); margin-top: 0;">Limit Reached!</h2>
-        <p style="color:#b4a9c3;">Watch a video to get <b>+10 bonus matches</b> instantly!</p>
-        <button id="rewardBtn" onclick="watchRewardAd()" style="background:var(--gradient); color:white; border:none; padding:15px; border-radius:20px; font-weight:800; width:100%; cursor:pointer; margin-top: 10px;">📺 Watch & Play</button>
-        <button onclick="location.reload()" style="background:transparent; color:white; border:none; margin-top:15px; opacity:0.6;">Maybe later</button>
+        <p style="color:#b4a9c3;">Watch a video to get <b>+15 bonus matches</b> instantly!</p>
+        <button id="rewardBtnModal" onclick="watchRewardAd()" style="background:var(--gradient); color:white; border:none; padding:15px; border-radius:20px; font-weight:800; width:100%; cursor:pointer; margin-top: 10px;">📺 Watch & Play</button>
+        <button onclick="document.getElementById('limit-modal').style.display='none'" style="background:transparent; color:white; border:none; margin-top:15px; opacity:0.6;">Maybe later</button>
     </div>
 </div>
 
@@ -164,6 +209,44 @@
 
     if (userId) socket.emit('join', userId);
 
+    // --- Tab Switching Logic ---
+    function switchTab(tabName, el) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active-tab'));
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        
+        document.getElementById(tabName + '-tab').classList.add('active-tab');
+        el.classList.add('active');
+    }
+
+    // --- Earn Features Logic ---
+    function claimDaily() {
+        socket.emit('claim_daily', userId);
+        tg.HapticFeedback.notificationOccurred('success');
+        document.getElementById('dailyBtn').disabled = true;
+        document.getElementById('dailyBtn').innerText = "Done";
+        tg.showAlert("You received 5 free matches! 🎉");
+    }
+
+    function inviteFriends() {
+        const shareLink = `https://t.me/YourBotName?start=${userId}`;
+        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=Hey! Come and chat with me on MatchMe! 💖`);
+    }
+
+    function joinChannel() {
+        tg.openTelegramLink('https://t.me/+666ngR_ca9ZmODk1'); // Replace with your link
+        socket.emit('social_task', userId);
+    }
+
+    function luckySpin() {
+        tg.showConfirm("Do you want to use your daily Lucky Spin?", (ok) => {
+            if(ok) {
+                socket.emit('lucky_spin', userId);
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+        });
+    }
+
+    // --- Original Core Logic ---
     function handleFind() {
         AdsgramInterstitial.show().then(() => startSearching()).catch(() => startSearching());
     }
@@ -176,28 +259,21 @@
     }
 
     function watchRewardAd() {
-        const btn = document.getElementById('rewardBtn');
-        btn.innerText = "⏳ Loading Video...";
-        btn.disabled = true;
         AdsgramRewarded.show().then((result) => {
             if (result.done) {
                 socket.emit('reward_user', userId);
                 tg.HapticFeedback.notificationOccurred('success');
-                btn.innerText = "✅ Matches Added!";
-                setTimeout(() => location.reload(), 1500);
-            } else {
-                btn.disabled = false;
-                btn.innerText = "📺 Watch Video (+10)";
+                tg.showAlert("15 matches added successfully!");
+                setTimeout(() => location.reload(), 1000);
             }
-        }).catch(() => {
-            alert("Video not available. Try again!");
-            btn.disabled = false;
-        });
+        }).catch(() => alert("Ad failed to load."));
     }
 
     socket.on('match_found', () => {
         tg.HapticFeedback.notificationOccurred('success');
-        document.getElementById('home-screen').classList.add('hidden');
+        document.getElementById('tab-container').classList.add('hidden');
+        document.getElementById('bottom-nav').classList.add('hidden');
+        document.getElementById('chat-area').style.display = 'flex';
         document.getElementById('input-bar').classList.remove('hidden');
         showSystemMsg("❤️ You matched with a stranger!");
     });
@@ -213,20 +289,15 @@
         setTimeout(() => location.reload(), 2000);
     });
 
-    socket.on('reward_confirmed', (newLimit) => {
-        document.getElementById('match-count').innerText = newLimit;
+    socket.on('user_data', (data) => {
+        if (data && data.limit !== undefined) {
+            document.getElementById('match-count').innerText = data.limit;
+        }
     });
 
     socket.on('limit_over', () => {
         document.getElementById('limit-modal').style.display = 'flex';
     });
-
-    // সার্ভার থেকে ইউজারের লিমিট ডাটা রিসিভ করা
-socket.on('user_data', (data) => {
-    if (data && data.limit !== undefined) {
-        document.getElementById('match-count').innerText = data.limit;
-    }
-});
 
     function sendMessage() {
         const inp = document.getElementById('main-input');
@@ -236,7 +307,7 @@ socket.on('user_data', (data) => {
         inp.value = '';
     }
 
-    document.getElementById('main-input').addEventListener('keypress', function (e) {
+    document.getElementById('main-input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
     });
 
@@ -244,9 +315,8 @@ socket.on('user_data', (data) => {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
             reader.onload = (e) => {
-                const imgData = e.target.result;
-                createBubble(imgData, 'sent', true);
-                socket.emit('send_msg', { senderId: userId, image: imgData });
+                createBubble(e.target.result, 'sent', true);
+                socket.emit('send_msg', { senderId: userId, image: e.target.result });
             };
             reader.readAsDataURL(input.files[0]);
         }

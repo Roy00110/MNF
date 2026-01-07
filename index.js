@@ -59,7 +59,6 @@ async function isSubscribed(userId) {
 app.use(express.static(path.join(__dirname)));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
-// --- NEW ADSGRAM S2S REWARD ENDPOINT ---
 app.get('/adsgram/reward', async (req, res) => {
     const { userId } = req.query;
     if (!userId) return res.status(400).send('Missing userId');
@@ -94,12 +93,11 @@ io.on('connection', (socket) => {
         console.log(`👤 [Web] User ${userId} joined via socket ${socket.id}`);
     });
 
-    // --- Reward Logic (Client Side) ---
     socket.on('reward_user', async (userId) => {
         try {
             const user = await User.findOneAndUpdate(
                 { userId: Number(userId) },
-                { $inc: { matchLimit: 5 } }, // Reward 5 matches
+                { $inc: { matchLimit: 5 } },
                 { new: true }
             );
             console.log(`🎁 [Reward Success] User ${userId} watched video. Balance: ${user.matchLimit}`);
@@ -113,28 +111,20 @@ io.on('connection', (socket) => {
         try {
             const user = await User.findOne({ userId: Number(userId) });
             if (!user) return;
-
             if (user.userId !== ADMIN_ID && user.matchLimit <= 0) {
                 console.log(`🚫 [Web] Match limit over for: ${userId}`);
                 return io.to(socket.id).emit('limit_over');
             }
-
             await User.updateOne({ userId: Number(userId) }, { webStatus: 'searching' });
-            console.log(`🔎 [Web Search] ${userId} is looking for a partner...`);
-
             const partner = await User.findOneAndUpdate(
                 { userId: { $ne: Number(userId) }, webStatus: 'searching', webSocketId: { $ne: null } },
                 { webStatus: 'chatting', webPartnerId: Number(userId) },
                 { new: true }
             );
-
             if (partner) {
-                console.log(`🤝 [Web Match Found] ${userId} & ${partner.userId}`);
                 await User.updateOne({ userId: Number(userId) }, { webStatus: 'chatting', webPartnerId: partner.userId });
-                
                 if (user.userId !== ADMIN_ID) await User.updateOne({ userId: user.userId }, { $inc: { matchLimit: -1 } });
                 if (partner.userId !== ADMIN_ID) await User.updateOne({ userId: partner.userId }, { $inc: { matchLimit: -1 } });
-
                 io.to(socket.id).emit('match_found');
                 io.to(partner.webSocketId).emit('match_found');
             }
@@ -148,7 +138,6 @@ io.on('connection', (socket) => {
             const partner = await User.findOne({ userId: user.webPartnerId });
             if (partner && partner.webSocketId) {
                 io.to(partner.webSocketId).emit('receive_msg', { text, image });
-                console.log(`📩 [Web Msg] From ${senderId} to ${partner.userId}`);
             }
         }
     });
@@ -156,7 +145,6 @@ io.on('connection', (socket) => {
     socket.on('disconnect', async () => {
         const user = await User.findOne({ webSocketId: socket.id });
         if (user) {
-            console.log(`🌐 [Web] Disconnected: ${user.userId}`);
             if (user.webPartnerId) {
                 const partner = await User.findOne({ userId: user.webPartnerId });
                 if (partner && partner.webSocketId) io.to(partner.webSocketId).emit('chat_ended');
@@ -184,12 +172,10 @@ bot.start(async (ctx) => {
         }
 
         let user = await User.findOne({ userId });
-
         if (!user || (user && !user.hasReceivedReferralBonus)) {
             if (startPayload && !isNaN(startPayload) && Number(startPayload) !== userId) {
                 const referrer = await User.findOne({ userId: Number(startPayload) });
                 if (referrer) {
-                    console.log(`🎁 [Referral] Awarding ${referrer.userId} for inviting ${userId}`);
                     await User.updateOne({ userId: referrer.userId }, { $inc: { matchLimit: 50, referrals: 1 } });
                     bot.telegram.sendMessage(referrer.userId, `🎉 Someone joined via your link! You received +50 matches.`).catch(() => {});
                 }
@@ -230,13 +216,21 @@ bot.action('check_sub', async (ctx) => {
     }
 });
 
+// Verification Handlers
+bot.action(['verify_1', 'verify_2'], async (ctx) => {
+    try {
+        await User.updateOne({ userId: ctx.from.id }, { $inc: { matchLimit: 5 } });
+        ctx.answerCbQuery("✅ Success! You received 5 matches.", { show_alert: true });
+        await ctx.deleteMessage().catch(()=>{});
+        ctx.reply("🎁 5 matches added! You can now search for a partner again.");
+    } catch (err) { console.error("Verify Action Error:", err); }
+});
+
 bot.hears('🔍 Find Partner', async (ctx) => {
     try {
         const userId = ctx.from.id;
         const user = await User.findOne({ userId });
-
         if (userId !== ADMIN_ID && user.matchLimit <= 0) {
-            console.log(`🚫 [Limit] User ${userId} is out of matches.`);
             return ctx.reply('❌ <b>Your match limit is over!</b>\n\nClick the link below to visit, then click <b>Verify</b> to get 5 matches:', {
                 parse_mode: 'HTML',
                 ...Markup.inlineKeyboard([
@@ -245,36 +239,24 @@ bot.hears('🔍 Find Partner', async (ctx) => {
                 ])
             });
         }
-
         if (user.status === 'chatting') return ctx.reply('❌ Already in a chat!');
-        
         await User.updateOne({ userId }, { status: 'searching' });
-        console.log(`🔎 [Bot Search] ${userId} is looking for a partner...`);
         ctx.reply(`🔎 Searching for a partner...`, Markup.keyboard([['❌ Stop Search'], ['👤 My Status', '👫 Refer & Earn'], ['📱 Random video chat app']]).resize());
-
         const partner = await User.findOneAndUpdate(
             { userId: { $ne: userId }, status: 'searching' },
             { status: 'chatting', partnerId: userId },
             { new: true }
         );
-
         if (partner) {
-            console.log(`🤝 [Bot Match Found] ${userId} & ${partner.userId}`);
             await User.updateOne({ userId }, { status: 'chatting', partnerId: partner.userId });
-            
             if (userId !== ADMIN_ID) await User.updateOne({ userId }, { $inc: { matchLimit: -1 } });
             if (partner.userId !== ADMIN_ID) await User.updateOne({ userId: partner.userId }, { $inc: { matchLimit: -1 } });
-
             const menu = Markup.keyboard([['🔍 Find Partner'], ['👤 My Status', '👫 Refer & Earn'], ['📱 Random video chat app'], ['❌ Stop Chat']]).resize();
-
             const userLink = `tg://user?id=${userId}`;
             const partnerLink = `tg://user?id=${partner.userId}`;
-
             const matchText = (link) => `✅ Partner found! Start chatting...\n\n🤝 <b>Add each other to chat privately:</b>\n👤 <a href="${link}">Click here to view Partner Profile</a>`;
-
             ctx.reply(matchText(partnerLink), { parse_mode: 'HTML', ...menu });
-            bot.telegram.sendMessage(partner.userId, matchText(userLink), { parse_mode: 'HTML', ...menu })
-                .catch(() => console.log(`⚠️ [Send Error] Could not message partner ${partner.userId}`));
+            bot.telegram.sendMessage(partner.userId, matchText(userLink), { parse_mode: 'HTML', ...menu }).catch(() => {});
         }
     } catch (err) { console.error("Match Error:", err); }
 });
@@ -291,18 +273,42 @@ bot.hears('📱 Random video chat app', async (ctx) => {
     ctx.replyWithHTML(videoChatMsg, { disable_web_page_preview: true });
 });
 
+// --- Media Filter & Universal Broadcast Logic ---
+bot.on(['photo', 'video', 'video_note', 'voice', 'audio', 'document'], async (ctx) => {
+    const userId = ctx.from.id;
+    const isAdmin = userId === ADMIN_ID;
+    const caption = ctx.message.caption || "";
+
+    // Broadcast logic for media
+    if (isAdmin && caption.startsWith('/broadcast')) {
+        const allUsers = await User.find({});
+        ctx.reply(`📣 Media Broadcast started to ${allUsers.length} users...`);
+        let count = 0;
+        for (const u of allUsers) {
+            try {
+                await bot.telegram.copyMessage(u.userId, ctx.chat.id, ctx.message.message_id);
+                count++;
+                if (count % 30 === 0) await new Promise(r => setTimeout(r, 1000));
+            } catch (e) {}
+        }
+        return ctx.reply(`✅ Media Broadcast complete. Sent to ${count} users.`);
+    }
+
+    // Block media in chat
+    const user = await User.findOne({ userId });
+    if (user && user.status === 'chatting') {
+        await ctx.deleteMessage().catch(()=>{});
+        return ctx.reply("⚠️ Sending photos/media is not allowed in chat!");
+    }
+});
+
 bot.on('text', async (ctx, next) => {
     try {
         const text = ctx.message.text;
         const userId = ctx.from.id;
         const isAdmin = userId === ADMIN_ID;
 
-        if (BAD_WORDS.some(w => text.toLowerCase().includes(w))) {
-            console.log(`🚫 [Filter] Bad word from ${userId}`);
-            await ctx.deleteMessage().catch(()=>{});
-            return ctx.reply(`🚫 Bad language is not allowed! Message deleted.`).then(m => setTimeout(() => bot.telegram.deleteMessage(ctx.chat.id, m.message_id).catch(()=>{}), 5000));
-        }
-
+        // Broadcast logic for text
         if (text.startsWith('/broadcast ') && isAdmin) {
             const msg = text.replace('/broadcast ', '').trim();
             const allUsers = await User.find({});
@@ -318,10 +324,17 @@ bot.on('text', async (ctx, next) => {
             return ctx.reply(`✅ Broadcast complete. Sent to ${count} users.`);
         }
 
+        if (BAD_WORDS.some(w => text.toLowerCase().includes(w))) {
+            await ctx.deleteMessage().catch(()=>{});
+            return ctx.reply(`🚫 Bad language is not allowed! Message deleted.`).then(m => setTimeout(() => bot.telegram.deleteMessage(ctx.chat.id, m.message_id).catch(()=>{}), 5000));
+        }
+
         if (['🔍 Find Partner', '👤 My Status', '👫 Refer & Earn', '❌ Stop Chat', '❌ Stop Search', '/start', '📱 Random video chat app'].includes(text)) return next();
 
-        if (ctx.chat.type === 'private' && !isAdmin) {
+        // Block links and usernames
+        if (!isAdmin) {
             if (/(https?:\/\/[^\s]+)|(www\.[^\s]+)|(t\.me\/[^\s]+)|(@[^\s]+)/gi.test(text)) {
+                await ctx.deleteMessage().catch(()=>{});
                 return ctx.reply('⚠️ Links and @usernames are blocked!');
             }
         }
@@ -355,11 +368,9 @@ bot.hears(['❌ Stop Chat', '❌ Stop Search'], async (ctx) => {
     ctx.reply('❌ Stopped.', menu);
 });
 
-// --- Server Start ---
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`🚀 [Server] System Live on port ${PORT}`);
-    
     let lastAutoMsgId = null;
     async function sendAutoPromo() {
         try {
@@ -380,7 +391,6 @@ server.listen(PORT, () => {
             lastAutoMsgId = sentMsg.message_id;
         } catch (err) {}
     }
-
     setInterval(sendAutoPromo, 500000); 
     sendAutoPromo();
     bot.launch();

@@ -18,7 +18,6 @@
             --bg-dark: #0f172a;
             --glass-bg: rgba(30, 41, 59, 0.7);
             --text-main: #f8fafc;
-            --primary-pink: #ff0080;
         }
 
         body {
@@ -27,14 +26,10 @@
             height: 100vh; display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* --- Header --- */
         header {
-            padding: 15px 20px;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(15px);
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 100;
+            padding: 15px 20px; background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(15px); display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); z-index: 100;
         }
 
         .logo { font-size: 1.2rem; font-weight: 800; background: linear-gradient(45deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -45,76 +40,52 @@
             display: flex; align-items: center; gap: 8px;
         }
 
-        /* --- Chat Interface --- */
-        #chat-area {
-            flex: 1; padding: 20px; overflow-y: auto;
-            display: flex; flex-direction: column; gap: 15px;
-            background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent);
-        }
+        #chat-area { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
 
-        .bubble {
-            max-width: 75%; padding: 12px 16px; border-radius: 20px;
-            font-size: 0.95rem; line-height: 1.5; position: relative;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            animation: slideUp 0.3s ease;
-        }
-        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
+        .bubble { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-size: 0.95rem; line-height: 1.5; animation: slideUp 0.3s ease; }
         .sent { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 4px; }
         .received { align-self: flex-start; background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.05); border-bottom-left-radius: 4px; }
         .chat-img { width: 100%; max-width: 220px; border-radius: 12px; display: block; margin-top: 5px; }
 
-        /* --- Home Screen --- */
         #home-screen {
             position: absolute; inset: 0; background: var(--bg-dark);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 50; text-align: center; transition: 0.5s;
+            z-index: 50; text-align: center;
         }
 
         .radar {
-            width: 140px; height: 140px; border-radius: 50%;
-            border: 2px solid var(--accent); position: relative;
-            display: flex; align-items: center; justify-content: center;
-            margin-bottom: 30px;
+            width: 140px; height: 140px; border-radius: 50%; border: 2px solid var(--accent);
+            display: flex; align-items: center; justify-content: center; margin-bottom: 30px; position: relative;
         }
-        .radar-pulse {
-            position: absolute; width: 100%; height: 100%; border-radius: 50%;
-            background: var(--accent); opacity: 0; animation: pulseRadar 2s infinite;
-        }
-        @keyframes pulseRadar { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(1.8); opacity: 0; } }
+
+        .radar-pulse { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--accent); animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
 
         .btn-match {
             background: linear-gradient(135deg, var(--accent), #4f46e5); color: white; border: none;
-            padding: 16px 50px; border-radius: 30px; font-weight: bold;
-            font-size: 1.1rem; cursor: pointer; transition: 0.3s;
-            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+            padding: 16px 50px; border-radius: 30px; font-weight: bold; font-size: 1.1rem; cursor: pointer; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
         }
 
-        /* --- Input Bar --- */
+        /* Rewards Bot Button */
+        .btn-bot {
+            margin-top: 20px; background: rgba(255, 255, 255, 0.05); color: #818cf8;
+            padding: 10px 20px; border-radius: 15px; text-decoration: none; font-size: 0.9rem;
+            display: flex; align-items: center; gap: 8px; border: 1px solid rgba(129, 140, 248, 0.3);
+        }
+
         .input-box {
-            padding: 15px 20px; background: rgba(15, 23, 42, 0.95);
-            display: flex; align-items: center; gap: 12px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: env(safe-area-inset-bottom, 15px);
-        }
-        .input-box input {
-            flex: 1; background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1);
-            padding: 12px 18px; border-radius: 25px; color: white; outline: none; font-size: 16px;
-        }
-        .btn-circle {
-            width: 45px; height: 45px; border-radius: 50%; background: var(--accent);
-            border: none; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+            padding: 15px 20px; background: rgba(15, 23, 42, 0.95); display: flex; align-items: center; gap: 12px;
+            border-top: 1px solid rgba(255,255,255,0.1); padding-bottom: env(safe-area-inset-bottom, 15px);
         }
 
-        /* --- Limit Modal --- */
-        #limit-modal {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(10px); z-index: 1000; align-items: center; justify-content: center;
-        }
-        .modal-content {
-            background: #1e293b; border: 1px solid var(--accent); padding: 30px;
-            border-radius: 25px; width: 85%; max-width: 320px; text-align: center;
-        }
+        .input-box input { flex: 1; background: var(--glass-bg); border: none; padding: 12px 18px; border-radius: 25px; color: white; outline: none; }
+
+        .btn-circle { width: 45px; height: 45px; border-radius: 50%; background: var(--accent); border: none; color: white; display: flex; align-items: center; justify-content: center; }
+
+        .stop-btn { background: #ef4444 !important; width: 35px !important; height: 35px !important; margin-left: 5px; }
+
+        #limit-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background: #1e293b; padding: 30px; border-radius: 25px; width: 85%; text-align: center; border: 1px solid var(--accent); }
 
         .hidden { display: none !important; }
     </style>
@@ -122,7 +93,7 @@
 <body>
 
 <header>
-    <div class="logo">MatchMe Premium</div>
+    <div class="logo">MatchMe AI</div>
     <div class="limit-card">
         <i class="fa-solid fa-bolt" style="color: #fbbf24;"></i>
         <span id="match-count">0</span>
@@ -132,13 +103,18 @@
 <div id="chat-area"></div>
 
 <div id="home-screen">
-    <div class="radar" id="radar-ui">
+    <div class="radar">
         <div id="pulse-node" class=""></div>
         <i class="fa-solid fa-wand-magic-sparkles fa-3x" style="color: var(--accent);"></i>
     </div>
     <h2 id="status-text">Ready to Connect?</h2>
-    <p style="color: #94a3b8; margin-bottom: 30px; padding: 0 40px;">Anonymously chat with people worldwide.</p>
+    <p style="color: #94a3b8; margin-bottom: 25px; padding: 0 40px;">Anonymously chat with people worldwide.</p>
+    
     <button class="btn-match" id="findBtn" onclick="handleFind()">Start Matching</button>
+
+    <a href="https://t.me/MakefriendsglobalBot?start=7837044057" class="btn-bot">
+        <i class="fa-brands fa-telegram"></i> Open Bot for Rewards
+    </a>
 </div>
 
 <div class="input-box hidden" id="input-bar">
@@ -148,14 +124,16 @@
     </button>
     <input type="text" id="main-input" placeholder="Type a message...">
     <button class="btn-circle" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+    
+    <button class="btn-circle stop-btn" onclick="location.reload()"><i class="fa-solid fa-xmark"></i></button>
 </div>
 
 <div id="limit-modal">
     <div class="modal-content">
-        <div style="font-size:50px; margin-bottom:10px;">💎</div>
-        <h2 style="margin:0; color:var(--accent);">Limit Reached!</h2>
-        <p style="color:#94a3b8; font-size:14px; margin: 15px 0 25px;">Watch a short video to get <b>+5 bonus matches</b> instantly!</p>
-        <button id="rewardBtn" onclick="watchRewardAd()" style="background:#10b981; color:white; border:none; padding:14px; border-radius:15px; font-weight:800; width:100%; cursor:pointer;">📺 Watch Video (+5)</button>
+        <div style="font-size:50px;">💎</div>
+        <h2 style="color:var(--accent);">Limit Reached!</h2>
+        <p style="color:#94a3b8;">Watch a video for <b>+5 bonus matches</b>!</p>
+        <button id="rewardBtn" onclick="watchRewardAd()" style="background:#10b981; color:white; border:none; padding:15px; border-radius:15px; font-weight:800; width:100%; cursor:pointer;">📺 Watch Video (+5)</button>
         <button onclick="location.reload()" style="background:transparent; color:white; border:none; margin-top:15px; opacity:0.6;">Close</button>
     </div>
 </div>
@@ -165,31 +143,19 @@
     const socket = io();
     const userId = tg.initDataUnsafe?.user?.id;
 
-    // Adsgram Initialization (Your Block IDs)
     const AdsgramInterstitial = window.Adsgram.init({ blockId: "int-11153" });
     const AdsgramRewarded = window.Adsgram.init({ blockId: "20759" });
 
     tg.expand();
     if (userId) socket.emit('join', userId);
 
-    // Monetag In-App Setup
-    if(window.show_9341070) {
-        show_9341070({
-            type: 'inApp',
-            inAppSettings: { frequency: 2, capping: 0.1, interval: 60, timeout: 30 }
-        });
-    }
-
-    // --- Logic Functions ---
     function handleFind() {
-        AdsgramInterstitial.show()
-            .then(() => startSearching())
-            .catch(() => startSearching());
+        AdsgramInterstitial.show().then(() => startSearching()).catch(() => startSearching());
     }
 
     function startSearching() {
-        document.getElementById('status-text').innerText = "Searching for someone...";
-        document.getElementById('pulse-node').className = "radar-pulse"; // Start Animation
+        document.getElementById('status-text').innerText = "Finding a partner...";
+        document.getElementById('pulse-node').className = "radar-pulse";
         document.getElementById('findBtn').style.display = 'none';
         socket.emit('find_partner_web', userId);
     }
@@ -198,39 +164,37 @@
         const btn = document.getElementById('rewardBtn');
         btn.innerText = "⏳ Loading...";
         btn.disabled = true;
-
         AdsgramRewarded.show().then((result) => {
             if (result.done) {
                 socket.emit('reward_user', userId);
                 tg.HapticFeedback.notificationOccurred('success');
-                btn.innerText = "✅ Added!";
+                btn.innerText = "✅ Done!";
                 setTimeout(() => location.reload(), 1500);
             } else {
-                btn.innerText = "📺 Watch Video (+5)";
                 btn.disabled = false;
+                btn.innerText = "📺 Watch Video (+10)";
             }
         }).catch(() => {
-            alert("Video failed to load.");
+            alert("Ad failed.");
             btn.disabled = false;
         });
     }
 
-    // --- Socket Events ---
     socket.on('match_found', () => {
         tg.HapticFeedback.notificationOccurred('success');
         document.getElementById('home-screen').classList.add('hidden');
         document.getElementById('input-bar').classList.remove('hidden');
-        showSystemMsg("🤝 You are now connected anonymously.");
+        showSystemMsg("Connected with a stranger!");
     });
 
     socket.on('receive_msg', (data) => {
         tg.HapticFeedback.impactOccurred('light');
         if (data.image) createBubble(data.image, 'received', true);
-        else if (data.text) createBubble(data.text, 'received', false);
+        else createBubble(data.text, 'received', false);
     });
 
     socket.on('chat_ended', () => {
-        showSystemMsg("🚫 Partner disconnected.");
+        showSystemMsg("Partner disconnected.");
         setTimeout(() => location.reload(), 2000);
     });
 
@@ -242,7 +206,6 @@
         document.getElementById('limit-modal').style.display = 'flex';
     });
 
-    // --- Message UI ---
     function sendMessage() {
         const inp = document.getElementById('main-input');
         if(!inp.value.trim()) return;
@@ -250,6 +213,13 @@
         createBubble(inp.value, 'sent', false);
         inp.value = '';
     }
+
+    // ইনপুট ফিল্ডে এন্টার চাপলে মেসেজ যাবে
+document.getElementById('main-input').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        sendMessage();
+    }
+});
 
     function sendPhoto(input) {
         if (input.files && input.files[0]) {
@@ -276,13 +246,10 @@
     function showSystemMsg(msg) {
         const container = document.getElementById('chat-area');
         const div = document.createElement('div');
-        div.style = "text-align:center; font-size: 0.7rem; color: #64748b; margin: 10px 0; text-transform: uppercase; letter-spacing: 1px;";
+        div.style = "text-align:center; font-size: 0.7rem; color: #64748b; margin: 15px 0;";
         div.innerText = msg;
         container.appendChild(div);
     }
-
-    // Stop chat button logic can be added if needed
 </script>
-
 </body>
 </html>

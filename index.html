@@ -157,8 +157,9 @@
         const userId = tg.initDataUnsafe?.user?.id;
 
         // --- Ad Initialization ---
+        // Your Block ID 20759 is now applied to AdsgramRewarded
         const AdsgramInterstitial = window.Adsgram.init({ blockId: "int-11153" });
-        const AdsgramRewarded = window.Adsgram.init({ blockId: "YOUR_REWARDED_BLOCK_ID" }); // Replace this!
+        const AdsgramRewarded = window.Adsgram.init({ blockId: "20759" }); 
 
         tg.expand();
         if (userId) socket.emit('join', userId);
@@ -191,9 +192,11 @@
             btn.innerText = "⏳ Loading Video...";
             btn.disabled = true;
 
+            // Trigger Rewarded Video (Block ID: 20759)
             AdsgramRewarded.show().then((result) => {
                 if (result.done) {
-                    socket.emit('reward_user', userId);
+                    // Logic for server-side reward happens via the Reward URL you set in dashboard
+                    socket.emit('reward_user', userId); 
                     tg.HapticFeedback.notificationOccurred('success');
                     btn.innerText = "✅ Matches Added!";
                     setTimeout(() => location.reload(), 1500);

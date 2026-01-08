@@ -332,20 +332,39 @@ bot.on(['photo', 'video', 'video_note', 'voice', 'audio', 'document'], async (ct
     const isAdmin = userId === ADMIN_ID;
     const caption = ctx.message.caption || "";
 
+    // --- ১. মিডিয়া ব্রডকাস্ট লজিক (Manual Link সহ) ---
     if (isAdmin && caption.startsWith('/broadcast')) {
+        const parts = caption.split('|');
+        const link = parts[1] ? parts[1].trim() : null; // পাইপ (|) এর পরের অংশ লিঙ্ক
+
         const allUsers = await User.find({});
-        ctx.reply(`📣 Media Broadcast started to ${allUsers.length} users...`);
+        ctx.reply(`📣 Media Broadcast started to ${allUsers.length} users... ${link ? '\n🔗 With Button' : '\n🚫 No Button'}`);
+        
         let count = 0;
         for (const u of allUsers) {
             try {
-                await bot.telegram.copyMessage(u.userId, ctx.chat.id, ctx.message.message_id);
+                const extra = {};
+                // যদি লিঙ্ক থাকে তবেই বাটন যুক্ত হবে
+                if (link) {
+                    extra.reply_markup = {
+                        inline_keyboard: [[{ text: '🚀 Open Link', url: link }]]
+                    };
+                }
+                
+                // copyMessage দিয়ে অরিজিনাল মিডিয়াটি হুবহু পাঠানো হচ্ছে
+                await bot.telegram.copyMessage(u.userId, ctx.chat.id, ctx.message.message_id, extra);
                 count++;
+                
+                // স্প্যামিং এড়াতে প্রতি ৩০ মেসেজ পর ১ সেকেন্ড বিরতি
                 if (count % 30 === 0) await new Promise(r => setTimeout(r, 1000));
-            } catch (e) {}
+            } catch (e) {
+                // ইউজার ব্লক করলে ইগনোর করবে
+            }
         }
         return ctx.reply(`✅ Media Broadcast complete. Sent to ${count} users.`);
     }
 
+    // --- ২. চ্যাটিং অবস্থায় মিডিয়া ব্লক করা (আপনার আগের লজিক) ---
     const user = await User.findOne({ userId });
     if (user && user.status === 'chatting') {
         await ctx.deleteMessage().catch(()=>{});
@@ -359,14 +378,26 @@ bot.on('text', async (ctx, next) => {
         const userId = ctx.from.id;
         const isAdmin = userId === ADMIN_ID;
 
+        // --- ১. ব্রডকাস্ট লজিক (আপনার চাহিদা অনুযায়ী আপডেট করা) ---
         if (text.startsWith('/broadcast ') && isAdmin) {
-            const msg = text.replace('/broadcast ', '').trim();
+            const fullContent = text.replace('/broadcast ', '').trim();
+            const parts = fullContent.split('|');
+            const msg = parts[0].trim();
+            const link = parts[1] ? parts[1].trim() : null;
+
             const allUsers = await User.find({});
-            ctx.reply(`📣 Broadcast started to ${allUsers.length} users...`);
+            ctx.reply(`📣 Broadcast started to ${allUsers.length} users... ${link ? '\n🔗 With Button' : '\n🚫 No Button'}`);
+            
             let count = 0;
             for (const u of allUsers) {
                 try {
-                    await bot.telegram.sendMessage(u.userId, msg, { parse_mode: 'HTML' });
+                    const extra = { parse_mode: 'HTML' };
+                    if (link) {
+                        extra.reply_markup = {
+                            inline_keyboard: [[{ text: '🚀 Open Link', url: link }]]
+                        };
+                    }
+                    await bot.telegram.sendMessage(u.userId, msg, extra);
                     count++;
                     if (count % 30 === 0) await new Promise(r => setTimeout(r, 1000));
                 } catch (e) {}
@@ -374,13 +405,17 @@ bot.on('text', async (ctx, next) => {
             return ctx.reply(`✅ Broadcast complete. Sent to ${count} users.`);
         }
 
+        // --- ২. ব্যাড ওয়ার্ড ফিল্টার (অক্ষুণ্ণ রাখা হয়েছে) ---
         if (BAD_WORDS.some(w => text.toLowerCase().includes(w))) {
             await ctx.deleteMessage().catch(()=>{});
-            return ctx.reply(`🚫 Bad language is not allowed! Message deleted.`).then(m => setTimeout(() => bot.telegram.deleteMessage(ctx.chat.id, m.message_id).catch(()=>{}), 5000));
+            return ctx.reply(`🚫 Bad language is not allowed! Message deleted.`)
+                .then(m => setTimeout(() => bot.telegram.deleteMessage(ctx.chat.id, m.message_id).catch(()=>{}), 5000));
         }
 
+        // --- ৩. মেনু বাটন চেক (অক্ষুণ্ণ রাখা হয়েছে) ---
         if (['🔍 Find Partner', '👤 My Status', '👫 Refer & Earn', '❌ Stop Chat', '❌ Stop Search', '/start', '📱 Random video chat app'].includes(text)) return next();
 
+        // --- ৪. লিঙ্ক ফিল্টার (অক্ষুণ্ণ রাখা হয়েছে) ---
         if (!isAdmin) {
             if (/(https?:\/\/[^\s]+)|(www\.[^\s]+)|(t\.me\/[^\s]+)|(@[^\s]+)/gi.test(text)) {
                 await ctx.deleteMessage().catch(()=>{});
@@ -388,11 +423,15 @@ bot.on('text', async (ctx, next) => {
             }
         }
 
+        // --- ৫. পার্টনার চ্যাটিং লজিক (অক্ষুণ্ণ রাখা হয়েছে) ---
         const user = await User.findOne({ userId });
         if (user && user.status === 'chatting' && user.partnerId) {
-            bot.telegram.sendMessage(user.partnerId, text).catch(() => ctx.reply('⚠️ Partner left.'));
+            bot.telegram.sendMessage(user.partnerId, text)
+                .catch(() => ctx.reply('⚠️ Partner left.'));
         }
-    } catch (err) { console.error("Text Handler Error:", err); }
+    } catch (err) { 
+        console.error("Text Handler Error:", err); 
+    }
 });
 
 bot.hears('👫 Refer & Earn', async (ctx) => {

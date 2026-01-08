@@ -126,6 +126,11 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on('cancel_search', (userId) => {
+    // ওয়েটিং লিস্ট থেকে ইউজারকে সরিয়ে দেওয়ার কোড
+    waitingUsers = waitingUsers.filter(u => u.userId !== userId);
+});
+
     // --- Added Lucky Spin Logic ---
     socket.on('lucky_spin', async (userId) => {
         const user = await User.findOne({ userId: Number(userId) });

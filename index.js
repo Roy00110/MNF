@@ -464,9 +464,27 @@ bot.on('text', async (ctx, next) => {
     } catch (err) { console.error("Text Handler Error:", err); }
 });
 bot.hears('👫 Refer & Earn', async (ctx) => {
-    const user = await User.findOne({ userId: ctx.from.id });
-    const refLink = `https://t.me/${ctx.botInfo.username}?start=${ctx.from.id}`;
-    ctx.replyWithHTML(`👫 <b>Referral Program</b>\n\n🎁 Reward: +20 Matches per referral.\n🔗 Link: ${refLink}\n📊 Total Referrals: ${user.referrals || 0}`);
+    try {
+        const user = await User.findOne({ userId: ctx.from.id });
+        
+        // --- এই অংশটুকু অ্যাড করা হয়েছে ক্র্যাশ বন্ধ করতে ---
+        if (!user) {
+            return ctx.reply("❌ আপনি এখনও নিবন্ধিত নন। দয়া করে বটের ইনবক্সে গিয়ে /start দিন।");
+        }
+        // -------------------------------------------
+
+        const refLink = `https://t.me/${ctx.botInfo.username}?start=${ctx.from.id}`;
+        
+        await ctx.replyWithHTML(
+            `👫 <b>Referral Program</b>\n\n` +
+            `🎁 Reward: +20 Matches per referral.\n` +
+            `🔗 Link: ${refLink}\n` +
+            `📊 Total Referrals: ${user.referrals || 0}`
+        );
+    } catch (e) {
+        console.error(e);
+        ctx.reply("একটি ত্রুটি ঘটেছে। পরে আবার চেষ্টা করুন।");
+    }
 });
 
 bot.hears('👤 My Status', async (ctx) => {

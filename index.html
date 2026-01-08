@@ -261,15 +261,16 @@
     });
 }
 
-    /// সার্চ কাউন্ট রাখার জন্য ভ্যারিয়েবল (ফাংশনের বাইরে রাখতে হবে)
-    let searchCounter = 0;
+   // মেমোরি থেকে আগের কাউন্ট খুঁজে বের করবে, না থাকলে ০ ধরবে
+    let searchCounter = localStorage.getItem('mySearchCount') || 0;
 
-    // --- Original Core Logic (Updated: Adsgram ad every 5 clicks) ---
+    // --- Original Core Logic (Updated: Persistent Counter) ---
     function handleFind() {
-        searchCounter++; // প্রতি ক্লিকে কাউন্টার বাড়বে
+        searchCounter++; // কাউন্ট ১ বাড়লো
+        localStorage.setItem('mySearchCount', searchCounter); // মেমোরিতে সেভ করে রাখলো
 
-        // যদি ৫ নম্বর ক্লিক হয়, তবে Adsgram অ্যাড দেখাবে
-        if (searchCounter % 5 === 0) {
+        // যদি ৫ নম্বর ক্লিক হয়
+        if (searchCounter % 2 === 0) {
             AdsgramInterstitial.show().then(() => {
                 console.log("Ad shown, starting search...");
                 startSearching();
@@ -278,7 +279,7 @@
                 startSearching();
             });
         } else {
-            // বাকি ১, ২, ৩, ৪ নম্বর ক্লিকে কোনো অ্যাড আসবে না, সরাসরি সার্চ হবে
+            // বাকি সময় সরাসরি সার্চ
             startSearching();
         }
     }

@@ -332,39 +332,48 @@ bot.on(['photo', 'video', 'video_note', 'voice', 'audio', 'document'], async (ct
     const isAdmin = userId === ADMIN_ID;
     const caption = ctx.message.caption || "";
 
-    // --- ১. মিডিয়া ব্রডকাস্ট লজিক (Manual Link সহ) ---
+    // --- ১. মিডিয়া ব্রডকাস্ট লজিক (Manual Link + Background Processing) ---
     if (isAdmin && caption.startsWith('/broadcast')) {
-        const parts = caption.split('|');
-        const link = parts[1] ? parts[1].trim() : null; // পাইপ (|) এর পরের অংশ লিঙ্ক
+        // তাৎক্ষণিক রেসপন্স যাতে টাইমআউট এরর না আসে
+        ctx.reply("⏳ Media Broadcast started in background. I will notify you when finished.").catch(() => {});
 
-        const allUsers = await User.find({});
-        ctx.reply(`📣 Media Broadcast started to ${allUsers.length} users... ${link ? '\n🔗 With Button' : '\n🚫 No Button'}`);
-        
-        let count = 0;
-        for (const u of allUsers) {
+        (async () => {
             try {
-                const extra = {};
-                // যদি লিঙ্ক থাকে তবেই বাটন যুক্ত হবে
-                if (link) {
-                    extra.reply_markup = {
-                        inline_keyboard: [[{ text: '🚀 Open Link', url: link }]]
-                    };
+                const parts = caption.split('|');
+                const link = parts[1] ? parts[1].trim() : null;
+
+                const allUsers = await User.find({});
+                let count = 0;
+                let failedCount = 0;
+
+                for (const u of allUsers) {
+                    try {
+                        const extra = {};
+                        if (link) {
+                            extra.reply_markup = {
+                                inline_keyboard: [[{ text: '🚀 Open Link', url: link }]]
+                            };
+                        }
+                        
+                        await bot.telegram.copyMessage(u.userId, ctx.chat.id, ctx.message.message_id, extra);
+                        count++;
+                        
+                        // প্রতি ২৫ মেসেজ পর ১.৫ সেকেন্ড বিরতি (টেলিগ্রাম লিমিট রক্ষার জন্য)
+                        if (count % 25 === 0) await new Promise(r => setTimeout(r, 1500));
+                    } catch (e) {
+                        failedCount++;
+                    }
                 }
-                
-                // copyMessage দিয়ে অরিজিনাল মিডিয়াটি হুবহু পাঠানো হচ্ছে
-                await bot.telegram.copyMessage(u.userId, ctx.chat.id, ctx.message.message_id, extra);
-                count++;
-                
-                // স্প্যামিং এড়াতে প্রতি ৩০ মেসেজ পর ১ সেকেন্ড বিরতি
-                if (count % 30 === 0) await new Promise(r => setTimeout(r, 1000));
-            } catch (e) {
-                // ইউজার ব্লক করলে ইগনোর করবে
+                // শেষ হলে অ্যাডমিনকে রিপোর্ট দেওয়া
+                bot.telegram.sendMessage(ADMIN_ID, `✅ <b>Media Broadcast Finished!</b>\n\n🚀 Sent to: ${count} users\n❌ Failed: ${failedCount}`, { parse_mode: 'HTML' }).catch(() => {});
+            } catch (err) {
+                console.error("BG Media Broadcast Error:", err);
             }
-        }
-        return ctx.reply(`✅ Media Broadcast complete. Sent to ${count} users.`);
+        })();
+        return;
     }
 
-    // --- ২. চ্যাটিং অবস্থায় মিডিয়া ব্লক করা (আপনার আগের লজিক) ---
+    // --- ২. চ্যাটিং অবস্থায় মিডিয়া ব্লক করা ---
     const user = await User.findOne({ userId });
     if (user && user.status === 'chatting') {
         await ctx.deleteMessage().catch(()=>{});
@@ -378,44 +387,55 @@ bot.on('text', async (ctx, next) => {
         const userId = ctx.from.id;
         const isAdmin = userId === ADMIN_ID;
 
-        // --- ১. ব্রডকাস্ট লজিক (আপনার চাহিদা অনুযায়ী আপডেট করা) ---
+        // --- ১. ব্রডকাস্ট লজিক (Manual Link + Background Processing) ---
         if (text.startsWith('/broadcast ') && isAdmin) {
             const fullContent = text.replace('/broadcast ', '').trim();
             const parts = fullContent.split('|');
             const msg = parts[0].trim();
             const link = parts[1] ? parts[1].trim() : null;
 
-            const allUsers = await User.find({});
-            ctx.reply(`📣 Broadcast started to ${allUsers.length} users... ${link ? '\n🔗 With Button' : '\n🚫 No Button'}`);
-            
-            let count = 0;
-            for (const u of allUsers) {
+            ctx.reply("⏳ Text Broadcast started in background...").catch(() => {});
+
+            (async () => {
                 try {
-                    const extra = { parse_mode: 'HTML' };
-                    if (link) {
-                        extra.reply_markup = {
-                            inline_keyboard: [[{ text: '🚀 Open Link', url: link }]]
-                        };
+                    const allUsers = await User.find({});
+                    let count = 0;
+                    let failedCount = 0;
+
+                    for (const u of allUsers) {
+                        try {
+                            const extra = { parse_mode: 'HTML' };
+                            if (link) {
+                                extra.reply_markup = {
+                                    inline_keyboard: [[{ text: '🚀 Open Link', url: link }]]
+                                };
+                            }
+                            await bot.telegram.sendMessage(u.userId, msg, extra);
+                            count++;
+                            if (count % 25 === 0) await new Promise(r => setTimeout(r, 1500));
+                        } catch (e) {
+                            failedCount++;
+                        }
                     }
-                    await bot.telegram.sendMessage(u.userId, msg, extra);
-                    count++;
-                    if (count % 30 === 0) await new Promise(r => setTimeout(r, 1000));
-                } catch (e) {}
-            }
-            return ctx.reply(`✅ Broadcast complete. Sent to ${count} users.`);
+                    bot.telegram.sendMessage(ADMIN_ID, `✅ <b>Text Broadcast Finished!</b>\n\n🚀 Sent to: ${count} users\n❌ Failed: ${failedCount}`, { parse_mode: 'HTML' }).catch(() => {});
+                } catch (err) {
+                    console.error("BG Text Broadcast Error:", err);
+                }
+            })();
+            return;
         }
 
-        // --- ২. ব্যাড ওয়ার্ড ফিল্টার (অক্ষুণ্ণ রাখা হয়েছে) ---
+        // --- ২. ব্যাড ওয়ার্ড ফিল্টার ---
         if (BAD_WORDS.some(w => text.toLowerCase().includes(w))) {
             await ctx.deleteMessage().catch(()=>{});
             return ctx.reply(`🚫 Bad language is not allowed! Message deleted.`)
                 .then(m => setTimeout(() => bot.telegram.deleteMessage(ctx.chat.id, m.message_id).catch(()=>{}), 5000));
         }
 
-        // --- ৩. মেনু বাটন চেক (অক্ষুণ্ণ রাখা হয়েছে) ---
+        // --- ৩. মেনু বাটন চেক ---
         if (['🔍 Find Partner', '👤 My Status', '👫 Refer & Earn', '❌ Stop Chat', '❌ Stop Search', '/start', '📱 Random video chat app'].includes(text)) return next();
 
-        // --- ৪. লিঙ্ক ফিল্টার (অক্ষুণ্ণ রাখা হয়েছে) ---
+        // --- ৪. লিঙ্ক ফিল্টার ---
         if (!isAdmin) {
             if (/(https?:\/\/[^\s]+)|(www\.[^\s]+)|(t\.me\/[^\s]+)|(@[^\s]+)/gi.test(text)) {
                 await ctx.deleteMessage().catch(()=>{});
@@ -423,7 +443,7 @@ bot.on('text', async (ctx, next) => {
             }
         }
 
-        // --- ৫. পার্টনার চ্যাটিং লজিক (অক্ষুণ্ণ রাখা হয়েছে) ---
+        // --- ৫. পার্টনার চ্যাটিং লজিক ---
         const user = await User.findOne({ userId });
         if (user && user.status === 'chatting' && user.partnerId) {
             bot.telegram.sendMessage(user.partnerId, text)
@@ -433,7 +453,6 @@ bot.on('text', async (ctx, next) => {
         console.error("Text Handler Error:", err); 
     }
 });
-
 bot.hears('👫 Refer & Earn', async (ctx) => {
     const user = await User.findOne({ userId: ctx.from.id });
     const refLink = `https://t.me/${ctx.botInfo.username}?start=${ctx.from.id}`;

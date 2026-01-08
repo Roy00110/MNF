@@ -59,6 +59,7 @@
             background: var(--gradient); border: none; color: white; padding: 8px 15px; 
             border-radius: 10px; font-weight: bold; font-size: 0.8rem; cursor: pointer;
         }
+        .earn-btn:disabled { opacity: 0.6; cursor: not-allowed; background: #475569 !important; }
 
         /* --- Navigation Bar --- */
         .nav-bar {
@@ -123,16 +124,16 @@
             
             <div class="earn-card">
                 <div class="earn-info">
-                    <h4>Watch & Earn</h4>
-                    <p>Get +15 bonus matches</p>
+                    <h4>Watch & Earn ⚡</h4>
+                    <p>Get +15 bonus Power ⚡</p>
                 </div>
-                <button class="earn-btn" onclick="watchRewardAd()">Watch</button>
+                <button class="earn-btn" id="watchBtn" onclick="watchRewardAd()">Watch</button>
             </div>
 
             <div class="earn-card">
                 <div class="earn-info">
                     <h4>Daily Bonus 🎁</h4>
-                    <p>Claim 5 matches every day</p>
+                    <p>Claim 5 ⚡ every day</p>
                 </div>
                 <button class="earn-btn" id="dailyBtn" onclick="claimDaily()">Claim</button>
             </div>
@@ -140,15 +141,15 @@
             <div class="earn-card">
                 <div class="earn-info">
                     <h4>Invite Friends 👥</h4>
-                    <p>Share with friends for +20</p>
+                    <p>Share with friends for +20 ⚡</p>
                 </div>
                 <button class="earn-btn" onclick="inviteFriends()">Invite</button>
             </div>
 
             <div class="earn-card">
                 <div class="earn-info">
-                    <h4>Join Channel📢</h4>
-                    <p>Follow us for +10 matches</p>
+                    <h4>Join Channel 📢</h4>
+                    <p>Follow us for +10 ⚡</p>
                 </div>
                 <button class="earn-btn" onclick="joinChannel()">Join</button>
             </div>
@@ -156,9 +157,9 @@
             <div class="earn-card" style="border: 1px solid #fbbf24; background: rgba(251, 191, 36, 0.05);">
                 <div class="earn-info">
                     <h4>Lucky Spin 🎡</h4>
-                    <p>Win 1 to 50 matches daily</p>
+                    <p>Win 1 to 50 ⚡ daily</p>
                 </div>
-                <button class="earn-btn" style="background: #fbbf24; color: #1a0b2e;" onclick="luckySpin()">Spin</button>
+                <button class="earn-btn" id="spinBtn" style="background: #fbbf24; color: #1a0b2e;" onclick="luckySpin()">Spin</button>
             </div>
         </div>
     </div>
@@ -213,6 +214,22 @@
 
     if (userId) socket.emit('join', userId);
 
+    // --- LocalStorage Check for Daily Actions ---
+    window.onload = () => {
+        const today = new Date().toDateString();
+        if (localStorage.getItem('lastDailyBonus') === today) {
+            const btn = document.getElementById('dailyBtn');
+            btn.disabled = true;
+            btn.innerText = "Done";
+        }
+        if (localStorage.getItem('lastLuckySpin') === today) {
+            const btn = document.getElementById('spinBtn');
+            btn.disabled = true;
+            btn.innerText = "Done";
+            btn.style.background = "#475569";
+        }
+    };
+
     function switchTab(tabName, el) {
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active-tab'));
         document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
@@ -225,8 +242,13 @@
         show_9341070('pop').then(() => {
             socket.emit('claim_daily', userId);
             tg.HapticFeedback.notificationOccurred('success');
-            document.getElementById('dailyBtn').disabled = true;
-            document.getElementById('dailyBtn').innerText = "Done";
+            
+            // Save to LocalStorage
+            localStorage.setItem('lastDailyBonus', new Date().toDateString());
+            
+            const btn = document.getElementById('dailyBtn');
+            btn.disabled = true;
+            btn.innerText = "Done";
             tg.showAlert("You received 5 free matches! 🎉");
         }).catch(e => {
             tg.showAlert("Please watch the full ad to claim your bonus!");
@@ -249,6 +271,15 @@
                 show_9341070().then(() => {
                     socket.emit('lucky_spin', userId); 
                     tg.HapticFeedback.impactOccurred('medium');
+                    
+                    // Save to LocalStorage
+                    localStorage.setItem('lastLuckySpin', new Date().toDateString());
+                    
+                    const btn = document.getElementById('spinBtn');
+                    btn.disabled = true;
+                    btn.innerText = "Done";
+                    btn.style.background = "#475569";
+                    btn.style.color = "white";
                 }).catch((err) => {
                     tg.showAlert("Ad not available or skipped. Please try again to spin!");
                 });
@@ -310,15 +341,29 @@
         tg.HapticFeedback.impactOccurred('light');
     }
 
-    function watchRewardAd() {
-        AdsgramRewarded.show().then((result) => {
+    async function watchRewardAd() {
+        const btn = document.getElementById('watchBtn');
+        const modalBtn = document.getElementById('rewardBtnModal');
+        
+        btn.disabled = true;
+        modalBtn.disabled = true;
+
+        try {
+            const result = await AdsgramRewarded.show();
             if (result.done) {
                 socket.emit('reward_user', userId);
                 tg.HapticFeedback.notificationOccurred('success');
                 tg.showAlert("15 matches added successfully!");
                 setTimeout(() => location.reload(), 1000);
+            } else {
+                btn.disabled = false;
+                modalBtn.disabled = false;
             }
-        }).catch(() => alert("Ad failed to load."));
+        } catch (error) {
+            alert("Ad failed to load or skipped.");
+            btn.disabled = false;
+            modalBtn.disabled = false;
+        }
     }
 
     socket.on('match_found', () => {

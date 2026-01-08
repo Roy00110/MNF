@@ -208,9 +208,11 @@
 
 <script>
     const tg = window.Telegram.WebApp;
+    tg.ready(); // পপ-আপ ঠিকমতো কাজ করার জন্য এটি প্রয়োজন
+    
     const socket = io();
     const userId = tg.initDataUnsafe?.user?.id;
-    let isSearching = false; // সার্চ স্টেট ট্র্যাক করার জন্য
+    let isSearching = false; 
 
     const AdsgramInterstitial = window.Adsgram.init({ blockId: "int-11153" });
     const AdsgramRewarded = window.Adsgram.init({ blockId: "20759" });
@@ -229,10 +231,14 @@
         el.classList.add('active');
     }
 
-    // --- Updated Policy for Monetag Safety ---
-function showPolicy() {
-    tg.showAlert("MatchMe Community Guidelines:\n\n1. Respect others: We have zero tolerance for harassment or offensive language.\n2. Privacy: We do not store or share your private conversations.\n3. Safe usage: Avoid sharing personal contact details with strangers.\n4. Account: Any violation of our rules will result in a permanent ban.");
-}
+    // --- Updated Policy with showPopup for better stability ---
+    function showPolicy() {
+        tg.showPopup({
+            title: 'MatchMe Community Guidelines',
+            message: "1. Respect others: We have zero tolerance for harassment or offensive language.\n2. Privacy: We do not store or share your private conversations.\n3. Safe usage: Avoid sharing personal contact details with strangers.\n4. Account: Any violation of our rules will result in a permanent ban.",
+            buttons: [{type: 'ok', text: 'I Understand'}]
+        });
+    }
 
     // --- Earn Features Logic ---
     function claimDaily() {
@@ -263,22 +269,16 @@ function showPolicy() {
                 show_9341070().then(() => {
                     socket.emit('lucky_spin', userId); 
                     tg.HapticFeedback.impactOccurred('medium');
-                    console.log('User rewarded after watching ad!');
                 }).catch((err) => {
                     tg.showAlert("Ad not available or skipped. Please try again to spin!");
-                    console.error("Monetag Error:", err);
                 });
             }
         });
     }
 
-    // Search count tracker
     let searchCounter = localStorage.getItem('mySearchCount') || 0;
 
     function handleFind() {
-        const btn = document.getElementById('findBtn');
-        
-        // যদি অলরেডি সার্চ চলে, তবে এটা ক্যানসেল বাটন হিসেবে কাজ করবে
         if (isSearching) {
             cancelSearch();
             return;
@@ -309,7 +309,7 @@ function showPolicy() {
         isSearching = true;
         const btn = document.getElementById('findBtn');
         btn.innerText = "Cancel Search";
-        btn.classList.add('btn-cancel'); // ধূসর কালার করার জন্য
+        btn.classList.add('btn-cancel'); 
 
         document.getElementById('status-text').innerText = "Finding someone special...";
         document.getElementById('anim-container').classList.add('searching');
@@ -326,7 +326,7 @@ function showPolicy() {
         document.getElementById('status-text').innerText = "Find Your Match";
         document.getElementById('anim-container').classList.remove('searching');
         
-        socket.emit('cancel_search', userId); // সার্ভারে ক্যানসেল ইভেন্ট পাঠাবে
+        socket.emit('cancel_search', userId); 
         tg.HapticFeedback.impactOccurred('light');
     }
 
@@ -342,7 +342,7 @@ function showPolicy() {
     }
 
     socket.on('match_found', () => {
-        isSearching = false; // ম্যাচ হলে সার্চ স্টেট বন্ধ
+        isSearching = false; 
         tg.HapticFeedback.notificationOccurred('success');
         document.getElementById('tab-container').classList.add('hidden');
         document.getElementById('bottom-nav').classList.add('hidden');
@@ -369,7 +369,7 @@ function showPolicy() {
     });
 
     socket.on('limit_over', () => {
-        cancelSearch(); // লিমিট শেষ হলে সার্চ মোড অফ হবে
+        cancelSearch(); 
         document.getElementById('limit-modal').style.display = 'flex';
     });
 
@@ -414,7 +414,6 @@ function showPolicy() {
         container.appendChild(div);
     }
 
-    // In-App Interstitial
     show_9341070({
       type: 'inApp',
       inAppSettings: {

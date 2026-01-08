@@ -241,28 +241,48 @@
         socket.emit('social_task', userId);
     }
 
-    function luckySpin() {
-        tg.showConfirm("Do you want to use your daily Lucky Spin?", (ok) => {
-            if(ok) {
-                show_9341070('pop').then(() => {
-                    socket.emit('lucky_spin', userId);
-                    tg.HapticFeedback.impactOccurred('medium');
-                }).catch(e => {
-                    tg.showAlert("Watch the ad to spin the wheel!");
-                });
-            }
-        });
-    }
+     function luckySpin() {
+    tg.showConfirm("Do you want to use your daily Lucky Spin?", (ok) => {
+        if (ok) {
+            // Monetag Rewarded Interstitial ফাংশন কল
+            show_9341070().then(() => {
+                // বিজ্ঞাপন সফলভাবে দেখা শেষ হলে এই অংশটুকু চলবে
+                socket.emit('lucky_spin', userId); 
+                tg.HapticFeedback.impactOccurred('medium');
+                
+                // ইউজারকে সাকসেস মেসেজ দিতে পারিস (সার্ভার থেকে spin_result হ্যান্ডেল করা থাকলে ভালো)
+                console.log('User rewarded after watching ad!');
+            }).catch((err) => {
+                // যদি বিজ্ঞাপন লোড না হয় বা ইউজার কেটে দেয়
+                tg.showAlert("Ad not available or skipped. Please try again to spin!");
+                console.error("Monetag Error:", err);
+            });
+        }
+    });
+}
 
-    // --- Original Core Logic ---
+    // --- Original Core Logic (Updated to prevent ads on every click) ---
     function handleFind() {
-        AdsgramInterstitial.show().then(() => startSearching()).catch(() => startSearching());
+        // এখানে Adsgram সরিয়ে সরাসরি startSearching কল করা হয়েছে
+        // ফলে প্রতি ক্লিকে অ্যাড আসবে না
+        startSearching();
     }
 
     function startSearching() {
+        // প্রথমে চেক করবে ইউজারের লিমিট আছে কি না
+        const currentLimit = parseInt(document.getElementById('match-count').innerText);
+        
+        if (currentLimit <= 0) {
+            // লিমিট শেষ হলে অ্যাড মডাল দেখাবে
+            document.getElementById('limit-modal').style.display = 'flex';
+            return;
+        }
+
+        // লিমিট থাকলে সার্চ শুরু হবে
         document.getElementById('status-text').innerText = "Finding someone special...";
         document.getElementById('anim-container').classList.add('searching');
         document.getElementById('findBtn').style.display = 'none';
+        
         socket.emit('find_partner_web', userId);
     }
 

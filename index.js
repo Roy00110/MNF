@@ -298,7 +298,7 @@ bot.hears('🔍 Find Partner', async (ctx) => {
 
         // ৩. চ্যাট রিডাইরেক্ট (বট চ্যাট না করে মিনি অ্যাপে পাঠাবে)
         const miniAppMsg = `🚀 <b>Ready to Find Your Match?</b>\n\n` +
-                           `We have moved our matching system to our <b>Mini App</b> for a better experience with photo sharing and instant connection! ⚡\n\n` +
+                           `Start our  <b>Mini App</b>  experience with photo sharing and instant connection With strangers! ⚡\n\n` +
                            `👇 <b>Click the button below to start:</b>`;
 
         ctx.reply(miniAppMsg, {

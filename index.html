@@ -70,10 +70,6 @@
         .nav-item.active { color: var(--accent); }
         .nav-item i { font-size: 1.2rem; }
 
-        /* --- Policy Footer --- */
-        .policy-text { font-size: 10px; color: #64748b; margin-top: 20px; padding: 0 20px; line-height: 1.4; }
-        .policy-link { color: var(--accent); text-decoration: none; font-weight: bold; cursor: pointer; }
-
         /* --- Existing Styles Unchanged --- */
         #chat-area { flex: 1; padding: 20px; overflow-y: auto; display: none; flex-direction: column; gap: 15px; }
         .bubble { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-size: 0.95rem; line-height: 1.5; animation: slideUp 0.3s ease; }
@@ -118,11 +114,6 @@
             <h2 id="status-text" style="margin-bottom: 10px;">Find Your Match</h2>
             <p style="color: #b4a9c3; margin-bottom: 30px; padding: 0 40px; font-size: 0.9rem;">Chat anonymously and meet new people around the world.</p>
             <button class="btn-match" id="findBtn" onclick="handleFind()">Start Matching</button>
-            
-            <div class="policy-text">
-                By using MatchMe, you agree to our <span class="policy-link" onclick="showPolicy()">Privacy Policy</span>. 
-                Keep the community safe.
-            </div>
         </div>
     </div>
 
@@ -140,7 +131,7 @@
 
             <div class="earn-card">
                 <div class="earn-info">
-                    <h4>Daily Bonus</h4>
+                    <h4>Daily Bonus 🎁</h4>
                     <p>Claim 5 matches every day</p>
                 </div>
                 <button class="earn-btn" id="dailyBtn" onclick="claimDaily()">Claim</button>
@@ -148,7 +139,7 @@
 
             <div class="earn-card">
                 <div class="earn-info">
-                    <h4>Invite Friends</h4>
+                    <h4>Invite Friends 👥</h4>
                     <p>Share with friends for +20</p>
                 </div>
                 <button class="earn-btn" onclick="inviteFriends()">Invite</button>
@@ -156,7 +147,7 @@
 
             <div class="earn-card">
                 <div class="earn-info">
-                    <h4>Join Channel</h4>
+                    <h4>Join Channel📢</h4>
                     <p>Follow us for +10 matches</p>
                 </div>
                 <button class="earn-btn" onclick="joinChannel()">Join</button>
@@ -182,7 +173,7 @@
     </div>
     <div class="nav-item" onclick="switchTab('earn', this)">
         <i class="fa-solid fa-bolt"></i>
-        <span>Earn Limit</span>
+        <span>Earn Power</span>
     </div>
 </div>
 
@@ -198,17 +189,17 @@
 
 <div id="limit-modal">
     <div class="modal-content">
-        <div style="font-size:50px; margin-bottom: 10px;">💝</div>
-        <h2 style="color:var(--accent); margin-top: 0;">Limit Reached!</h2>
-        <p style="color:#b4a9c3;">Watch a video to get <b>+15 bonus matches</b> instantly!</p>
-        <button id="rewardBtnModal" onclick="watchRewardAd()" style="background:var(--gradient); color:white; border:none; padding:15px; border-radius:20px; font-weight:800; width:100%; cursor:pointer; margin-top: 10px;">📺 Watch & Play</button>
+        <div style="font-size:50px; margin-bottom: 10px;">⚡</div>
+        <h2 style="color:var(--accent); margin-top: 0;">Power Limit Reached!</h2>
+        <p style="color:#b4a9c3;">Watch a video to get <b>+15 Match Power</b> instantly!</p>
+        <button id="rewardBtnModal" onclick="watchRewardAd()" style="background:var(--gradient); color:white; border:none; padding:15px; border-radius:20px; font-weight:800; width:100%; cursor:pointer; margin-top: 10px;">📺 Watch & Recharge</button>
         <button onclick="document.getElementById('limit-modal').style.display='none'" style="background:transparent; color:white; border:none; margin-top:15px; opacity:0.6;">Maybe later</button>
     </div>
 </div>
 
 <script>
     const tg = window.Telegram.WebApp;
-    tg.ready(); // পপ-আপ ঠিকমতো কাজ করার জন্য এটি প্রয়োজন
+    tg.ready(); 
     
     const socket = io();
     const userId = tg.initDataUnsafe?.user?.id;
@@ -222,7 +213,6 @@
 
     if (userId) socket.emit('join', userId);
 
-    // --- Tab Switching Logic ---
     function switchTab(tabName, el) {
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active-tab'));
         document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
@@ -231,12 +221,6 @@
         el.classList.add('active');
     }
 
-    // --- Policy Display (English Version) ---
-function showPolicy() {
-    tg.showAlert("MatchMe Rules & Privacy:\n\n1. We do not store your private chat history.\n2. Any kind of harassment or bad behavior will lead to a permanent ban.\n3. This app is for users aged 18 and above.\n4. Do not share personal information with strangers for your own safety.");
-}
-
-    // --- Earn Features Logic ---
     function claimDaily() {
         show_9341070('pop').then(() => {
             socket.emit('claim_daily', userId);

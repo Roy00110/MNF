@@ -275,6 +275,17 @@ bot.hears('🔍 Find Partner', async (ctx) => {
     try {
         const userId = ctx.from.id;
         const user = await User.findOne({ userId });
+
+        // ১. সাবস্ক্রিপশন চেক (যদি ইউজার চ্যানেল জয়েন না করে থাকে)
+        if (!(await isSubscribed(userId))) {
+            const buttons = CHANNELS.map(c => [Markup.button.url(`Join ${c}`, `https://t.me/${c.replace('@', '')}`)]);
+            return ctx.reply(`⚠️ <b>Access Denied!</b>\nYou must join our channels to use this bot.`, {
+                parse_mode: 'HTML',
+                ...Markup.inlineKeyboard([...buttons, [Markup.button.callback('✅ I have Joined', 'check_sub')]])
+            });
+        }
+
+        // ২. লিমিট চেক (লিমিট না থাকলে ভেরিফিকেশন বাটন দেখাবে)
         if (userId !== ADMIN_ID && user.matchLimit <= 0) {
             return ctx.reply('❌ <b>Your match limit is over!</b>\n\nClick the link below to visit, then click <b>Verify</b> to get 5 matches:', {
                 parse_mode: 'HTML',
@@ -284,27 +295,24 @@ bot.hears('🔍 Find Partner', async (ctx) => {
                 ])
             });
         }
-        if (user.status === 'chatting') return ctx.reply('❌ Already in a chat!');
-        await User.updateOne({ userId }, { status: 'searching' });
-        ctx.reply(`🔎 Searching for a partner...`, Markup.keyboard([['❌ Stop Search'], ['👤 My Status', '👫 Refer & Earn'], ['📱 Random video chat app']]).resize());
-        const partner = await User.findOneAndUpdate(
-            { userId: { $ne: userId }, status: 'searching' },
-            { status: 'chatting', partnerId: userId },
-            { new: true }
-        );
-        if (partner) {
-            await User.updateOne({ userId }, { status: 'chatting', partnerId: partner.userId });
-            if (userId !== ADMIN_ID) await User.updateOne({ userId }, { $inc: { matchLimit: -1 } });
-            if (partner.userId !== ADMIN_ID) await User.updateOne({ userId: partner.userId }, { $inc: { matchLimit: -1 } });
-            const menu = Markup.keyboard([['🔍 Find Partner'], ['👤 My Status', '👫 Refer & Earn'], ['📱 Random video chat app'], ['❌ Stop Chat']]).resize();
-            const userLink = `tg://user?id=${userId}`;
-            const partnerLink = `tg://user?id=${partner.userId}`;
-            const matchText = (link) => `✅ Partner found! Start chatting...\n\n🤝 <b>Add each other to chat privately:</b>\n👤 <a href="${link}">Click here to view Partner Profile</a>`;
-            ctx.reply(matchText(partnerLink), { parse_mode: 'HTML', ...menu });
-            bot.telegram.sendMessage(partner.userId, matchText(userLink), { parse_mode: 'HTML', ...menu }).catch(() => {});
-            console.log(`🤝 [Bot Match] ${userId} matched with ${partner.userId}`);
-        }
-    } catch (err) { console.error("Match Error:", err); }
+
+        // ৩. চ্যাট রিডাইরেক্ট (বট চ্যাট না করে মিনি অ্যাপে পাঠাবে)
+        const miniAppMsg = `🚀 <b>Ready to Find Your Match?</b>\n\n` +
+                           `We have moved our matching system to our <b>Mini App</b> for a better experience with photo sharing and instant connection! ⚡\n\n` +
+                           `👇 <b>Click the button below to start:</b>`;
+
+        ctx.reply(miniAppMsg, {
+            parse_mode: 'HTML',
+            ...Markup.inlineKeyboard([
+                [Markup.button.url('🚀 Open Mini App', 'https://t.me/MakefriendsglobalBot/Letschat')]
+            ])
+        });
+
+        console.log(`📲 [Redirect] User ${userId} redirected to Mini App`);
+
+    } catch (err) { 
+        console.error("Find Partner Error:", err); 
+    }
 });
 
 bot.hears('📱 Random video chat app', async (ctx) => {

@@ -70,6 +70,10 @@
         .nav-item.active { color: var(--accent); }
         .nav-item i { font-size: 1.2rem; }
 
+        /* --- Policy Footer --- */
+        .policy-text { font-size: 10px; color: #64748b; margin-top: 20px; padding: 0 20px; line-height: 1.4; }
+        .policy-link { color: var(--accent); text-decoration: none; font-weight: bold; cursor: pointer; }
+
         /* --- Existing Styles Unchanged --- */
         #chat-area { flex: 1; padding: 20px; overflow-y: auto; display: none; flex-direction: column; gap: 15px; }
         .bubble { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-size: 0.95rem; line-height: 1.5; animation: slideUp 0.3s ease; }
@@ -113,6 +117,11 @@
             <h2 id="status-text" style="margin-bottom: 10px;">Find Your Match</h2>
             <p style="color: #b4a9c3; margin-bottom: 30px; padding: 0 40px; font-size: 0.9rem;">Chat anonymously and meet new people around the world.</p>
             <button class="btn-match" id="findBtn" onclick="handleFind()">Start Matching</button>
+            
+            <div class="policy-text">
+                By using MatchMe, you agree to our <span class="policy-link" onclick="showPolicy()">Privacy Policy</span>. 
+                Keep the community safe. 18+ Only.
+            </div>
         </div>
     </div>
 
@@ -218,6 +227,11 @@
         el.classList.add('active');
     }
 
+    // --- Policy Display ---
+    function showPolicy() {
+        tg.showAlert("MatchMe Privacy Policy:\n\n1. We do not store your private chats.\n2. We only use your Telegram ID to manage match limits.\n3. Harassment or illegal activities will lead to a permanent ban.\n4. You must be 18+ to use this service.");
+    }
+
     // --- Earn Features Logic ---
     function claimDaily() {
         show_9341070('pop').then(() => {
@@ -237,64 +251,51 @@
     }
 
     function joinChannel() {
-        tg.openTelegramLink('https://t.me/+666ngR_ca9ZmODk1'); // Replace with your link
+        tg.openTelegramLink('https://t.me/+666ngR_ca9ZmODk1'); 
         socket.emit('social_task', userId);
     }
 
-     function luckySpin() {
-    tg.showConfirm("Do you want to use your daily Lucky Spin?", (ok) => {
-        if (ok) {
-            // Monetag Rewarded Interstitial ফাংশন কল
-            show_9341070().then(() => {
-                // বিজ্ঞাপন সফলভাবে দেখা শেষ হলে এই অংশটুকু চলবে
-                socket.emit('lucky_spin', userId); 
-                tg.HapticFeedback.impactOccurred('medium');
-                
-                // ইউজারকে সাকসেস মেসেজ দিতে পারিস (সার্ভার থেকে spin_result হ্যান্ডেল করা থাকলে ভালো)
-                console.log('User rewarded after watching ad!');
-            }).catch((err) => {
-                // যদি বিজ্ঞাপন লোড না হয় বা ইউজার কেটে দেয়
-                tg.showAlert("Ad not available or skipped. Please try again to spin!");
-                console.error("Monetag Error:", err);
-            });
-        }
-    });
-}
+    function luckySpin() {
+        tg.showConfirm("Do you want to use your daily Lucky Spin?", (ok) => {
+            if (ok) {
+                show_9341070().then(() => {
+                    socket.emit('lucky_spin', userId); 
+                    tg.HapticFeedback.impactOccurred('medium');
+                    console.log('User rewarded after watching ad!');
+                }).catch((err) => {
+                    tg.showAlert("Ad not available or skipped. Please try again to spin!");
+                    console.error("Monetag Error:", err);
+                });
+            }
+        });
+    }
 
-   // মেমোরি থেকে আগের কাউন্ট খুঁজে বের করবে, না থাকলে ০ ধরবে
+    // Search count tracker
     let searchCounter = localStorage.getItem('mySearchCount') || 0;
 
-    // --- Original Core Logic (Updated: Persistent Counter) ---
     function handleFind() {
-        searchCounter++; // কাউন্ট ১ বাড়লো
-        localStorage.setItem('mySearchCount', searchCounter); // মেমোরিতে সেভ করে রাখলো
+        searchCounter++;
+        localStorage.setItem('mySearchCount', searchCounter);
 
-        // যদি ৫ নম্বর ক্লিক হয়
         if (searchCounter % 5 === 0) {
             AdsgramInterstitial.show().then(() => {
-                console.log("Ad shown, starting search...");
                 startSearching();
             }).catch((e) => {
-                console.log("Ad skipped/error, still starting search...");
                 startSearching();
             });
         } else {
-            // বাকি সময় সরাসরি সার্চ
             startSearching();
         }
     }
 
     function startSearching() {
-        // প্রথমে চেক করবে ইউজারের লিমিট আছে কি না
         const currentLimit = parseInt(document.getElementById('match-count').innerText);
         
         if (currentLimit <= 0) {
-            // লিমিট শেষ হলে অ্যাড মডাল দেখাবে
             document.getElementById('limit-modal').style.display = 'flex';
             return;
         }
 
-        // লিমিট থাকলে সার্চ শুরু হবে
         document.getElementById('status-text').innerText = "Finding someone special...";
         document.getElementById('anim-container').classList.add('searching');
         document.getElementById('findBtn').style.display = 'none';

@@ -470,10 +470,29 @@ bot.hears('👫 Refer & Earn', async (ctx) => {
 });
 
 bot.hears('👤 My Status', async (ctx) => {
-    const user = await User.findOne({ userId: ctx.from.id });
-    ctx.replyWithHTML(`👤 <b>Profile:</b>\nMatches Left: ${ctx.from.id === ADMIN_ID ? 'Unlimited' : user.matchLimit}\nReferrals: ${user.referrals || 0}`);
-});
+    try {
+        const user = await User.findOne({ userId: ctx.from.id });
 
+        // যদি ইউজার ডাটাবেজে না থাকে
+        if (!user) {
+            return ctx.reply("❌ You are not registered. Please send /start to register!");
+        }
+
+        // অ্যাডমিন চেক এবং প্রোফাইল ডিটেইলস
+        const matchDisplay = (ctx.from.id === Number(ADMIN_ID)) ? 'Unlimited' : (user.matchLimit || 0);
+        const referralCount = user.referrals || 0;
+
+        await ctx.replyWithHTML(
+            `👤 <b>Profile:</b>\n` +
+            `━━━━━━━━━━━━━━\n` +
+            `⚡ Matches Left: <b>${matchDisplay}</b>\n` +
+            `👥 Referrals: <b>${referralCount}</b>`
+        );
+    } catch (error) {
+        console.error("Status Error:", error);
+        ctx.reply("⚠️ An error occurred while fetching your status.");
+    }
+});
 bot.hears(['❌ Stop Chat', '❌ Stop Search'], async (ctx) => {
     const user = await User.findOne({ userId: ctx.from.id });
     const menu = Markup.keyboard([['🔍 Find Partner'], ['👤 My Status', '👫 Refer & Earn'], ['❌ Stop Chat']]).resize();

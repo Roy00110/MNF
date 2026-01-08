@@ -231,14 +231,10 @@
         el.classList.add('active');
     }
 
-    // --- Updated Policy with showPopup for better stability ---
-    function showPolicy() {
-        tg.showPopup({
-            title: 'MatchMe Community Guidelines',
-            message: "1. Respect others: We have zero tolerance for harassment or offensive language.\n2. Privacy: We do not store or share your private conversations.\n3. Safe usage: Avoid sharing personal contact details with strangers.\n4. Account: Any violation of our rules will result in a permanent ban.",
-            buttons: [{type: 'ok', text: 'I Understand'}]
-        });
-    }
+    // --- Policy Display (English Version) ---
+function showPolicy() {
+    tg.showAlert("MatchMe Rules & Privacy:\n\n1. We do not store your private chat history.\n2. Any kind of harassment or bad behavior will lead to a permanent ban.\n3. This app is for users aged 18 and above.\n4. Do not share personal information with strangers for your own safety.");
+}
 
     // --- Earn Features Logic ---
     function claimDaily() {

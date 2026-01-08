@@ -261,11 +261,26 @@
     });
 }
 
-    // --- Original Core Logic (Updated to prevent ads on every click) ---
+    /// সার্চ কাউন্ট রাখার জন্য ভ্যারিয়েবল (ফাংশনের বাইরে রাখতে হবে)
+    let searchCounter = 0;
+
+    // --- Original Core Logic (Updated: Adsgram ad every 5 clicks) ---
     function handleFind() {
-        // এখানে Adsgram সরিয়ে সরাসরি startSearching কল করা হয়েছে
-        // ফলে প্রতি ক্লিকে অ্যাড আসবে না
-        startSearching();
+        searchCounter++; // প্রতি ক্লিকে কাউন্টার বাড়বে
+
+        // যদি ৫ নম্বর ক্লিক হয়, তবে Adsgram অ্যাড দেখাবে
+        if (searchCounter % 5 === 0) {
+            AdsgramInterstitial.show().then(() => {
+                console.log("Ad shown, starting search...");
+                startSearching();
+            }).catch((e) => {
+                console.log("Ad skipped/error, still starting search...");
+                startSearching();
+            });
+        } else {
+            // বাকি ১, ২, ৩, ৪ নম্বর ক্লিকে কোনো অ্যাড আসবে না, সরাসরি সার্চ হবে
+            startSearching();
+        }
     }
 
     function startSearching() {

@@ -87,7 +87,8 @@
         .heart-pulse::before { content: ''; position: absolute; width: 60px; height: 60px; background: var(--accent); border-radius: 50%; left: -30px; }
         .searching .heart-pulse { animation: heartPulse 2s infinite; opacity: 0.4; }
         @keyframes heartPulse { 0% { transform: scale(1) rotate(45deg); opacity: 0.5; } 100% { transform: scale(2.5) rotate(45deg); opacity: 0; } }
-        .btn-match { background: var(--gradient); color: white; border: none; padding: 16px 50px; border-radius: 30px; font-weight: bold; font-size: 1.1rem; cursor: pointer; box-shadow: 0 10px 25px rgba(255, 77, 148, 0.4); }
+        .btn-match { background: var(--gradient); color: white; border: none; padding: 16px 50px; border-radius: 30px; font-weight: bold; font-size: 1.1rem; cursor: pointer; box-shadow: 0 10px 25px rgba(255, 77, 148, 0.4); transition: all 0.3s ease; }
+        .btn-cancel { background: #475569 !important; box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important; }
         .input-box { padding: 15px 20px; background: rgba(26, 11, 46, 0.95); display: flex; align-items: center; gap: 12px; border-top: 1px solid rgba(255, 77, 148, 0.2); padding-bottom: env(safe-area-inset-bottom, 15px); }
         .input-box input { flex: 1; background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1); padding: 12px 18px; border-radius: 25px; color: white; outline: none; }
         .btn-circle { width: 45px; height: 45px; border-radius: 50%; background: var(--gradient); border: none; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
@@ -209,6 +210,7 @@
     const tg = window.Telegram.WebApp;
     const socket = io();
     const userId = tg.initDataUnsafe?.user?.id;
+    let isSearching = false; // সার্চ স্টেট ট্র্যাক করার জন্য
 
     const AdsgramInterstitial = window.Adsgram.init({ blockId: "int-11153" });
     const AdsgramRewarded = window.Adsgram.init({ blockId: "20759" });
@@ -274,6 +276,14 @@ function showPolicy() {
     let searchCounter = localStorage.getItem('mySearchCount') || 0;
 
     function handleFind() {
+        const btn = document.getElementById('findBtn');
+        
+        // যদি অলরেডি সার্চ চলে, তবে এটা ক্যানসেল বাটন হিসেবে কাজ করবে
+        if (isSearching) {
+            cancelSearch();
+            return;
+        }
+
         searchCounter++;
         localStorage.setItem('mySearchCount', searchCounter);
 
@@ -296,11 +306,28 @@ function showPolicy() {
             return;
         }
 
+        isSearching = true;
+        const btn = document.getElementById('findBtn');
+        btn.innerText = "Cancel Search";
+        btn.classList.add('btn-cancel'); // ধূসর কালার করার জন্য
+
         document.getElementById('status-text').innerText = "Finding someone special...";
         document.getElementById('anim-container').classList.add('searching');
-        document.getElementById('findBtn').style.display = 'none';
         
         socket.emit('find_partner_web', userId);
+    }
+
+    function cancelSearch() {
+        isSearching = false;
+        const btn = document.getElementById('findBtn');
+        btn.innerText = "Start Matching";
+        btn.classList.remove('btn-cancel');
+
+        document.getElementById('status-text').innerText = "Find Your Match";
+        document.getElementById('anim-container').classList.remove('searching');
+        
+        socket.emit('cancel_search', userId); // সার্ভারে ক্যানসেল ইভেন্ট পাঠাবে
+        tg.HapticFeedback.impactOccurred('light');
     }
 
     function watchRewardAd() {
@@ -315,6 +342,7 @@ function showPolicy() {
     }
 
     socket.on('match_found', () => {
+        isSearching = false; // ম্যাচ হলে সার্চ স্টেট বন্ধ
         tg.HapticFeedback.notificationOccurred('success');
         document.getElementById('tab-container').classList.add('hidden');
         document.getElementById('bottom-nav').classList.add('hidden');
@@ -341,6 +369,7 @@ function showPolicy() {
     });
 
     socket.on('limit_over', () => {
+        cancelSearch(); // লিমিট শেষ হলে সার্চ মোড অফ হবে
         document.getElementById('limit-modal').style.display = 'flex';
     });
 

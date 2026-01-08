@@ -270,7 +270,7 @@
         localStorage.setItem('mySearchCount', searchCounter); // মেমোরিতে সেভ করে রাখলো
 
         // যদি ৫ নম্বর ক্লিক হয়
-        if (searchCounter % 2 === 0) {
+        if (searchCounter % 5 === 0) {
             AdsgramInterstitial.show().then(() => {
                 console.log("Ad shown, starting search...");
                 startSearching();

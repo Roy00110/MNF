@@ -348,7 +348,7 @@ bot.hears('🔍 Find Partner', async (ctx) => {
         ctx.reply(miniAppMsg, {
             parse_mode: 'HTML',
             ...Markup.inlineKeyboard([
-                [Markup.button.url('🚀 Open Mini App', 'https://t.me/MakefriendsglobalBot/Letschat')]
+                [Markup.button.url('🚀 Start Chat here', 'https://t.me/MakefriendsglobalBot/Letschat')]
             ])
         });
 
@@ -513,7 +513,7 @@ bot.hears('👫 Refer & Earn', async (ctx) => {
         
         // --- এই অংশটুকু অ্যাড করা হয়েছে ক্র্যাশ বন্ধ করতে ---
         if (!user) {
-            return ctx.reply("❌ আপনি এখনও নিবন্ধিত নন। দয়া করে বটের ইনবক্সে গিয়ে /start দিন।");
+            return ctx.reply("❌ You are not registered yet. Please go to the bot's inbox and send /start.");
         }
         // -------------------------------------------
 
@@ -527,7 +527,7 @@ bot.hears('👫 Refer & Earn', async (ctx) => {
         );
     } catch (e) {
         console.error(e);
-        ctx.reply("একটি ত্রুটি ঘটেছে। পরে আবার চেষ্টা করুন।");
+        ctx.reply("Something went wrong. Please try again later.");
     }
 });
 

@@ -98,15 +98,21 @@
         #limit-modal, #video-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-content { background: #2d164d; padding: 30px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid var(--accent); }
         .hidden { display: none !important; }
+        
+        /* Video Call Button Header Styling */
+        #video-btn-header { display: none; color: #22c55e; font-size: 1.3rem; margin-right: 15px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <header>
     <div class="logo">MatchMe 💖</div>
-    <div class="limit-card">
-        <i class="fa-solid fa-bolt" style="color: #fbbf24;"></i>
-        <span id="match-count">0</span>
+    <div style="display: flex; align-items: center;">
+        <i class="fa-solid fa-video" id="video-btn-header" onclick="document.getElementById('video-modal').style.display='flex'"></i>
+        <div class="limit-card">
+            <i class="fa-solid fa-bolt" style="color: #fbbf24;"></i>
+            <span id="match-count">0</span>
+        </div>
     </div>
 </header>
 
@@ -197,10 +203,6 @@
         <i class="fa-solid fa-camera"></i>
     </button>
     
-    <button class="btn-circle" style="background: var(--glass-bg); color: #22c55e;" onclick="document.getElementById('video-modal').style.display='flex'">
-        <i class="fa-solid fa-video"></i>
-    </button>
-
     <input type="text" id="main-input" placeholder="Say something sweet...">
     <button class="btn-circle" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
     <button class="btn-circle stop-btn" onclick="location.reload()"><i class="fa-solid fa-xmark"></i></button>
@@ -384,6 +386,10 @@
         document.getElementById('bottom-nav').classList.add('hidden');
         document.getElementById('chat-area').style.display = 'flex';
         document.getElementById('input-bar').classList.remove('hidden');
+        
+        // Show Video button in header when matched
+        document.getElementById('video-btn-header').style.display = 'block';
+        
         showSystemMsg("❤️ You matched with a stranger!");
     });
 
@@ -395,6 +401,7 @@
 
     socket.on('chat_ended', () => {
         showSystemMsg("💔 Partner left the chat.");
+        document.getElementById('video-btn-header').style.display = 'none';
         setTimeout(() => location.reload(), 2000);
     });
 

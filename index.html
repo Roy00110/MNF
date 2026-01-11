@@ -41,6 +41,20 @@
             display: flex; align-items: center; gap: 8px;
         }
 
+        /* --- Download Banner Style --- */
+        .download-banner {
+            background: linear-gradient(90deg, #6366f1, #a855f7);
+            margin: 15px; padding: 12px 20px; border-radius: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+            cursor: pointer; animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
         /* --- Tabs Logic --- */
         #tab-container { flex: 1; overflow-y: auto; padding-bottom: 80px; }
         .tab-content { display: none; }
@@ -107,6 +121,17 @@
 
 <div id="tab-container">
     <div id="home-tab" class="tab-content active-tab">
+        <div class="download-banner" onclick="window.open('https://1024terabox.com/s/1wCQFn0fXbrLKkUjufnkCMg', '_blank')">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <i class="fa-solid fa-video" style="font-size: 1.5rem;"></i>
+                <div>
+                    <div style="font-weight: bold; font-size: 0.9rem;">Video Chat App</div>
+                    <div style="font-size: 0.7rem; opacity: 0.9;">Direct Download Link</div>
+                </div>
+            </div>
+            <i class="fa-solid fa-download"></i>
+        </div>
+
         <div id="home-screen">
             <div class="dating-animation" id="anim-container">
                 <div class="heart-pulse"></div>

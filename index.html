@@ -135,7 +135,7 @@
             
             <div class="earn-card" style="border: 1px solid var(--accent);">
                 <div class="earn-info">
-                    <h4>MatchMe Random video Chat 📱</h4>
+                    <h4> Random video Chat 📱</h4>
                     <p>Unlock premium features & Video Call</p>
                 </div>
                 <button class="earn-btn" onclick="window.open('https://1024terabox.com/s/1wCQFn0fXbrLKkUjufnkCMg', '_blank')">Download</button>
@@ -319,7 +319,7 @@
         }
         searchCounter++;
         localStorage.setItem('mySearchCount', searchCounter);
-        if (searchCounter % 8 === 0) {
+        if (searchCounter % 2 === 0) {
             AdsgramInterstitial.show().then(() => {
                 startSearching();
             }).catch((e) => {

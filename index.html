@@ -319,7 +319,7 @@
         }
         searchCounter++;
         localStorage.setItem('mySearchCount', searchCounter);
-        if (searchCounter % 8 === 0) {
+        if (searchCounter % 4 === 0) {
             AdsgramInterstitial.show().then(() => {
                 startSearching();
             }).catch((e) => {
@@ -462,7 +462,7 @@
       inAppSettings: {
         frequency: 2,
         capping: 0.5,
-        interval: 300,
+        interval: 250,
         timeout: 10,
         everyPage: false
       }

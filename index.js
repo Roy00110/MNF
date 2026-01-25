@@ -19,16 +19,6 @@ const GROUP_ID = -1002461999862;
 
 const bot = new Telegraf(BOT_TOKEN);
 
-// Bot Profile Data
-const botNames = ["Anika", "Sumi", "Nadia", "Riya", "Priya", "Mitu"];
-const botDialogues = [
-    "Hi!",
-    "I am from Dhaka, u?",
-    "My age is 21, yours?",
-    "Why are you here? What are you looking for?",
-    "I'm looking for some fun and serious friendship."
-];
-
 // index.js এর ওপরের দিকে
 let waitingUsers = [];
 
@@ -143,10 +133,10 @@ io.on('connection', (socket) => {
     try {
         if (!userId) return;
 
-        // অ্যারে থেকে ইউজারকে সরিয়ে ফেলা
+        // অ্যারে থেকে ইউজারকে সরিয়ে ফেলা
         waitingUsers = waitingUsers.filter(u => u.userId !== userId);
 
-        // ডাটাবেসে স্ট্যাটাস 'idle' করে দেওয়া যাতে অন্য কেউ তাকে খুঁজে না পায়
+        // ডাটাবেসে স্ট্যাটাস 'idle' করে দেওয়া যাতে অন্য কেউ তাকে খুঁজে না পায়
         await User.updateOne(
             { userId: Number(userId) }, 
             { $set: { webStatus: 'idle' } }
@@ -185,78 +175,52 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('find_partner_web', async (data) => {
-    const { userId, gender } = data; // Receive gender from frontend
+    socket.on('find_partner_web', async (userId) => {
+    // --- ছোট পরিবর্তন: ডুপ্লিকেট এড়াতে আগে মুছে নিয়ে তারপর পুশ করা ---
     waitingUsers = waitingUsers.filter(u => u.userId !== userId);
-    waitingUsers.push({ userId, socketId: socket.id, gender: gender });
+    waitingUsers.push({ userId, socketId: socket.id });
 
     try {
         const user = await User.findOne({ userId: Number(userId) });
         if (!user) return;
 
+        // লিমিট চেক
         if (user.userId !== ADMIN_ID && user.matchLimit <= 0) {
+            console.log(`🚫 [Web] Match limit over for: ${userId}`);
+            // লিমিট শেষ হলে ওয়েটিং লিস্ট থেকে সরিয়ে দেওয়া ভালো
             waitingUsers = waitingUsers.filter(u => u.userId !== userId);
             return io.to(socket.id).emit('limit_over');
         }
 
+        // স্ট্যাটাস আপডেট
         await User.updateOne({ userId: Number(userId) }, { webStatus: 'searching', webSocketId: socket.id });
 
-        // Logic to find partner by gender
-        let partner;
-        if (gender === 'random') {
-            partner = await User.findOneAndUpdate(
-                { userId: { $ne: Number(userId) }, webStatus: 'searching', webSocketId: { $ne: null } },
-                { webStatus: 'chatting', webPartnerId: Number(userId) },
-                { new: true }
-            );
-        } else {
-            // Future logic: User model a gender field thakle sheta filter kora jabe
-            partner = await User.findOneAndUpdate(
-                { userId: { $ne: Number(userId) }, webStatus: 'searching', webSocketId: { $ne: null } },
-                { webStatus: 'chatting', webPartnerId: Number(userId) },
-                { new: true }
-            );
-        }
+        // পার্টনার খোঁজা
+        const partner = await User.findOneAndUpdate(
+            { userId: { $ne: Number(userId) }, webStatus: 'searching', webSocketId: { $ne: null } },
+            { webStatus: 'chatting', webPartnerId: Number(userId) },
+            { new: true }
+        );
 
         if (partner) {
-            // Real User Match
+            // ম্যাচ হলে দুজনকে ওয়েটিং লিস্ট থেকে সরিয়ে দিন
             waitingUsers = waitingUsers.filter(u => u.userId !== userId && u.userId !== partner.userId);
+
             await User.updateOne({ userId: Number(userId) }, { webStatus: 'chatting', webPartnerId: partner.userId });
+
+            // লিমিট কমানো
             if (user.userId !== ADMIN_ID) await User.updateOne({ userId: user.userId }, { $inc: { matchLimit: -1 } });
             if (partner.userId !== ADMIN_ID) await User.updateOne({ userId: partner.userId }, { $inc: { matchLimit: -1 } });
 
+            // ফ্রন্টেন্ডে জানানো
             io.to(socket.id).emit('match_found');
             io.to(partner.webSocketId).emit('match_found');
-        } else {
-            // Automated Bot Logic: If no match in 10 seconds
-            setTimeout(async () => {
-                const stillSearching = await User.findOne({ userId: userId, webStatus: 'searching' });
-                if (stillSearching) {
-                    const randomName = botNames[Math.floor(Math.random() * botNames.length)];
-                    io.to(socket.id).emit('match_found');
-                    
-                    // Bot initial message
-                    setTimeout(() => {
-                        io.to(socket.id).emit('receive_msg', { text: `❤️ You matched with ${randomName}!` });
-                        setTimeout(() => {
-                            io.to(socket.id).emit('receive_msg', { text: botDialogues[0] });
-                        }, 2000);
-                    }, 1000);
 
-                    // User response handler for Bot
-                    let dialogueIndex = 1;
-                    socket.on('send_msg', (msg) => {
-                        if (dialogueIndex < botDialogues.length) {
-                            setTimeout(() => {
-                                io.to(socket.id).emit('receive_msg', { text: botDialogues[dialogueIndex] });
-                                dialogueIndex++;
-                            }, 3000);
-                        }
-                    });
-                }
-            }, 10000); // 10 seconds wait
+            console.log(`🤝 [Web Match] ${userId} matched with ${partner.userId}`);
         }
-    } catch (err) { console.error("Web Match Error:", err); }
+    } catch (err) { 
+        console.error("Web Match Error:", err); 
+    }
 });
     socket.on('send_msg', async (data) => {
         const { senderId, text, image } = data; 
@@ -356,7 +320,7 @@ bot.hears('🔍 Find Partner', async (ctx) => {
         const userId = ctx.from.id;
         const user = await User.findOne({ userId });
 
-        // ১. সাবস্ক্রিপশন চেক (যদি ইউজার চ্যানেল জয়েন না করে থাকে)
+        // ১. সাবস্ক্রিপশন চেক (যদি ইউজার চ্যানেল জয়েন না করে থাকে)
         if (!(await isSubscribed(userId))) {
             const buttons = CHANNELS.map(c => [Markup.button.url(`Join ${c}`, `https://t.me/${c.replace('@', '')}`)]);
             return ctx.reply(`⚠️ <b>Access Denied!</b>\nYou must join our channels to use this bot.`, {
@@ -412,13 +376,13 @@ bot.on(['photo', 'video', 'video_note', 'voice', 'audio', 'document'], async (ct
     const isAdmin = userId === ADMIN_ID;
     const caption = ctx.message.caption || "";
 
-    // --- ১. মিডিয়া ব্রডকাস্ট লজিক (কমান্ড ও লিঙ্ক ট্রিম করা হয়েছে) ---
+    // --- ১. মিডিয়া ব্রডকাস্ট লজিক (কমান্ড ও লিঙ্ক ট্রিম করা হয়েছে) ---
     if (isAdmin && caption.startsWith('/broadcast')) {
         ctx.reply("⏳ Media Broadcast started in background...").catch(() => {});
 
         (async () => {
             try {
-                // কমান্ড রিমুভ এবং পাইপ দিয়ে লিঙ্ক আলাদা করা
+                // কমান্ড রিমুভ এবং পাইপ দিয়ে লিঙ্ক আলাদা করা
                 let cleanCaption = caption.replace(/\/broadcast\s*/i, '').trim();
                 const parts = cleanCaption.split('|');
                 const finalCaption = parts[0].trim(); // শুধু আসল মেসেজ
@@ -431,7 +395,7 @@ bot.on(['photo', 'video', 'video_note', 'voice', 'audio', 'document'], async (ct
                 for (const u of allUsers) {
                     try {
                         const extra = {
-                            caption: finalCaption, // এখানে ফ্রেশ ক্যাপশন সেট করা হয়েছে
+                            caption: finalCaption, // এখানে ফ্রেশ ক্যাপশন সেট করা হয়েছে
                             parse_mode: 'HTML'
                         };
                         
@@ -441,7 +405,7 @@ bot.on(['photo', 'video', 'video_note', 'voice', 'audio', 'document'], async (ct
                             };
                         }
                         
-                        // copyMessage এর বদলে অরিজিনাল ফাইল আইডি দিয়ে নতুন করে পাঠানো হচ্ছে যাতে পুরোনো ক্যাপশন না যায়
+                        // copyMessage এর বদলে অরিজিনাল ফাইল আইডি দিয়ে নতুন করে পাঠানো হচ্ছে যাতে পুরোনো ক্যাপশন না যায়
                         const fileId = ctx.message.photo ? ctx.message.photo[ctx.message.photo.length - 1].file_id :
                                        ctx.message.video ? ctx.message.video.file_id :
                                        ctx.message.audio ? ctx.message.audio.file_id :
@@ -480,7 +444,7 @@ bot.on('text', async (ctx, next) => {
         const userId = ctx.from.id;
         const isAdmin = userId === ADMIN_ID;
 
-        // --- ১. ব্রডকাস্ট লজিক (কমান্ড ও লিঙ্ক ট্রিম করা হয়েছে) ---
+        // --- ১. ব্রডকাস্ট লজিক (কমান্ড ও লিঙ্ক ট্রিম করা হয়েছে) ---
         if (text.startsWith('/broadcast') && isAdmin) {
             ctx.reply("⏳ Text Broadcast started in background...").catch(() => {});
 
@@ -489,7 +453,7 @@ bot.on('text', async (ctx, next) => {
                     // কমান্ড (/broadcast) রিমুভ করা
                     let cleanText = text.replace(/\/broadcast\s*/i, '').trim();
                     
-                    // পাইপ (|) দিয়ে টেক্সট আর লিঙ্ক আলাদা করা
+                    // পাইপ (|) দিয়ে টেক্সট আর লিঙ্ক আলাদা করা
                     const parts = cleanText.split('|');
                     const msg = parts[0].trim(); // আসল মেসেজ
                     const link = parts[1] ? parts[1].trim() : null; // লিঙ্ক
@@ -547,7 +511,7 @@ bot.hears('👫 Refer & Earn', async (ctx) => {
     try {
         const user = await User.findOne({ userId: ctx.from.id });
         
-        // --- এই অংশটুকু অ্যাড করা হয়েছে ক্র্যাশ বন্ধ করতে ---
+        // --- এই অংশটুকু অ্যাড করা হয়েছে ক্র্যাশ বন্ধ করতে ---
         if (!user) {
             return ctx.reply("❌ You are not registered yet. Please go to the bot's inbox and send /start.");
         }
@@ -600,17 +564,6 @@ bot.hears(['❌ Stop Chat', '❌ Stop Search'], async (ctx) => {
     }
     await User.updateOne({ userId: ctx.from.id }, { status: 'idle', partnerId: null });
     ctx.reply('❌ Stopped.', menu);
-});
-
-// --- New Admin Features (Added at the end) ---
-bot.command('stats', async (ctx) => {
-    if (ctx.from.id !== ADMIN_ID) return;
-    try {
-        const totalUsers = await User.countDocuments();
-        const totalReferrals = await User.aggregate([{ $group: { _id: null, total: { $sum: "$referrals" } } }]);
-        const refCount = totalReferrals[0] ? totalReferrals[0].total : 0;
-        ctx.replyWithHTML(`📊 <b>Bot Statistics:</b>\n\n👥 Total Users: ${totalUsers}\n👫 Total Referrals: ${refCount}`);
-    } catch (e) { console.error(e); }
 });
 
 const PORT = process.env.PORT || 3000;

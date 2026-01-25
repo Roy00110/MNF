@@ -101,9 +101,6 @@
         
         /* Video Call Button Header Styling */
         #video-btn-header { display: none; color: #22c55e; font-size: 1.3rem; margin-right: 15px; cursor: pointer; }
-
-        /* New Link Bubble Style */
-        .link-bubble { background: var(--glass-bg); border: 1px solid var(--accent); padding: 10px 15px; border-radius: 15px; text-decoration: none; color: white; display: inline-flex; align-items: center; gap: 8px; font-weight: bold; margin-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -322,7 +319,7 @@
         }
         searchCounter++;
         localStorage.setItem('mySearchCount', searchCounter);
-        if (searchCounter % 2 === 0) {
+        if (searchCounter % 3 === 0) {
             AdsgramInterstitial.show().then(() => {
                 startSearching();
             }).catch((e) => {
@@ -394,9 +391,6 @@
         document.getElementById('video-btn-header').style.display = 'block';
         
         showSystemMsg("❤️ You matched with a stranger!");
-        
-        // Added: Show Profile Link Message
-        createLinkBubble("https://www.effectivegatecpm.com/k8hkwgsm3z?key=2cb2941afdb3af8f1ca4ced95e61e00f");
     });
 
     socket.on('receive_msg', (data) => {
@@ -455,18 +449,6 @@
         container.scrollTop = container.scrollHeight;
     }
 
-    // New Function to create clickable link bubble
-    function createLinkBubble(url) {
-        const container = document.getElementById('chat-area');
-        const a = document.createElement('a');
-        a.href = url;
-        a.target = "_blank";
-        a.className = "link-bubble";
-        a.innerHTML = `<i class="fa-solid fa-user"></i> See Profile`;
-        container.appendChild(a);
-        container.scrollTop = container.scrollHeight;
-    }
-
     function showSystemMsg(msg) {
         const container = document.getElementById('chat-area');
         const div = document.createElement('div');
@@ -481,7 +463,7 @@
         frequency: 2,
         capping: 0.5,
         interval: 150,
-        timeout: 15,
+        timeout: 20,
         everyPage: false
       }
     });

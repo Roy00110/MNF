@@ -310,16 +310,19 @@
         });
     }
 
-    let searchCounter = localStorage.getItem('mySearchCount') || 0;
+ let searchCounter = localStorage.getItem('mySearchCount') || 0;
 
     function handleFind() {
         if (isSearching) {
             cancelSearch();
             return;
         }
+        
         searchCounter++;
         localStorage.setItem('mySearchCount', searchCounter);
-        if (searchCounter % 3 === 0) {
+
+        // ১ম সার্চে এবং এরপর প্রতি ৩ বার পরপর অ্যাড দেখাবে (1, 4, 7, 10...)
+        if (searchCounter == 1 || (searchCounter > 1 && (searchCounter - 1) % 3 === 0)) {
             AdsgramInterstitial.show().then(() => {
                 startSearching();
             }).catch((e) => {

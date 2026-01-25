@@ -137,6 +137,14 @@
         <div class="earn-section">
             <h2 style="margin-bottom: 20px;">Earn Match Power ⚡</h2>
             
+            <div class="earn-card" style="border: 1px solid #22c55e; background: rgba(34, 197, 94, 0.05);">
+                <div class="earn-info">
+                    <h4 style="color: #22c55e;">Get Free Premium 💎</h4>
+                    <p>Unlock for 1 hour by watching ad</p>
+                </div>
+                <button class="earn-btn" style="background: #22c55e;" onclick="p_adextra(function(){}, function(){})">Get Free</button>
+            </div>
+
             <div class="earn-card" style="border: 1px solid var(--accent);">
                 <div class="earn-info">
                     <h4> Random video Chat 📱</h4>
@@ -239,7 +247,6 @@
     const socket = io();
     const userId = tg.initDataUnsafe?.user?.id;
     let isSearching = false; 
-    let msgCounterAdExtra = 0; // Added for AdExtra
 
     const AdsgramInterstitial = window.Adsgram.init({ blockId: "int-11153" });
     const AdsgramRewarded = window.Adsgram.init({ blockId: "20759" });
@@ -386,7 +393,6 @@
 
     socket.on('match_found', () => {
         isSearching = false; 
-        msgCounterAdExtra = 0; // Reset counter on new match
         tg.HapticFeedback.notificationOccurred('success');
         document.getElementById('tab-container').classList.add('hidden');
         document.getElementById('bottom-nav').classList.add('hidden');
@@ -425,18 +431,9 @@
     function sendMessage() {
         const inp = document.getElementById('main-input');
         if(!inp.value.trim()) return;
-        
         socket.emit('send_msg', { senderId: userId, text: inp.value });
         createBubble(inp.value, 'sent', false);
         inp.value = '';
-
-        // AdExtra logic for 2nd message
-        msgCounterAdExtra++;
-        if(msgCounterAdExtra === 2) {
-            if(typeof p_adextra === 'function') {
-                p_adextra(function(){}, function(){});
-            }
-        }
     }
 
     document.getElementById('main-input').addEventListener('keypress', (e) => {
@@ -449,14 +446,6 @@
             reader.onload = (e) => {
                 createBubble(e.target.result, 'sent', true);
                 socket.emit('send_msg', { senderId: userId, image: e.target.result });
-                
-                // Also count photo as message for AdExtra
-                msgCounterAdExtra++;
-                if(msgCounterAdExtra === 2) {
-                    if(typeof p_adextra === 'function') {
-                        p_adextra(function(){}, function(){});
-                    }
-                }
             };
             reader.readAsDataURL(input.files[0]);
         }
@@ -486,7 +475,7 @@
         frequency: 2,
         capping: 0.5,
         interval: 150,
-        timeout: 60,
+        timeout: 30,
         everyPage: false
       }
     });

@@ -9,7 +9,6 @@
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src='//libtl.com/sdk.js' data-zone='9341070' data-sdk='show_9341070'></script>
-    <script async src="https://partner.adextra.io/jt/b83f9fc7b9f0a78edc05d9ae26278a61fe9fc2af.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
@@ -90,14 +89,6 @@
         .btn-match { background: var(--gradient); color: white; border: none; padding: 16px 50px; border-radius: 30px; font-weight: bold; font-size: 1.1rem; cursor: pointer; box-shadow: 0 10px 25px rgba(255, 77, 148, 0.4); transition: all 0.3s ease; }
         .btn-cancel { background: #475569 !important; box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important; }
         
-        /* --- Premium Section Styling --- */
-        .premium-box { margin-top: 25px; background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 20px; border: 1px solid rgba(251, 191, 36, 0.3); width: 85%; }
-        .premium-title { font-size: 0.85rem; color: #fbbf24; margin-bottom: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
-        .premium-btns { display: flex; gap: 10px; justify-content: center; }
-        .btn-prem { flex: 1; border: none; padding: 12px; border-radius: 15px; color: white; font-weight: bold; font-size: 0.85rem; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 5px; }
-        .btn-male { background: #3b82f6; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); }
-        .btn-female { background: #ec4899; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3); }
-
         .input-box { padding: 15px 20px; background: rgba(26, 11, 46, 0.95); display: flex; align-items: center; gap: 12px; border-top: 1px solid rgba(255, 77, 148, 0.2); padding-bottom: env(safe-area-inset-bottom, 15px); }
         .input-box input { flex: 1; background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1); padding: 12px 18px; border-radius: 25px; color: white; outline: none; }
         .btn-circle { width: 45px; height: 45px; border-radius: 50%; background: var(--gradient); border: none; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
@@ -110,11 +101,13 @@
         
         /* Video Call Button Header Styling */
         #video-btn-header { display: none; color: #22c55e; font-size: 1.3rem; margin-right: 15px; cursor: pointer; }
+
+        /* Gender Section Style */
+        .gender-box { display: flex; gap: 10px; margin-top: 20px; width: 90%; max-width: 400px; }
+        .gender-btn { flex: 1; padding: 12px; border-radius: 15px; border: 1px solid rgba(255, 77, 148, 0.3); background: var(--glass-bg); color: white; font-weight: bold; font-size: 0.85rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; }
     </style>
 </head>
 <body>
-
-<div id="b83f9fc7b9f0a78edc05d9ae26278a61fe9fc2af"></div>
 
 <header>
     <div class="logo">MatchMe 💖</div>
@@ -135,20 +128,18 @@
                 <i class="fa-solid fa-heart heart-icon"></i>
             </div>
             <h2 id="status-text" style="margin-bottom: 10px;">Find Your Match</h2>
-            <p style="color: #b4a9c3; margin-bottom: 30px; padding: 0 40px; font-size: 0.9rem;">Chat anonymously and meet new people around the world.</p>
-            
+            <p style="color: #b4a9c3; margin-bottom: 25px; padding: 0 40px; font-size: 0.9rem;">Chat anonymously and meet new people around the world.</p>
             <button class="btn-match" id="findBtn" onclick="handleFind()">Start Matching</button>
 
-            <div class="premium-box">
-                <div class="premium-title">✨ Premium Filter</div>
-                <div class="premium-btns">
-                    <button class="btn-prem btn-male" onclick="handlePremiumMatch('male')">
-                        <i class="fa-solid fa-mars"></i> Match Male
-                    </button>
-                    <button class="btn-prem btn-female" onclick="handlePremiumMatch('female')">
-                        <i class="fa-solid fa-venus"></i> Match Female
-                    </button>
-                </div>
+            <div class="gender-box" id="gender-section">
+                <button class="gender-btn" id="maleBtn" onclick="handleGenderMatch('male')">
+                    <i class="fa-solid fa-mars" style="color: #60a5fa;"></i>
+                    Male (<span id="m-lim">25</span>)
+                </button>
+                <button class="gender-btn" id="femaleBtn" onclick="handleGenderMatch('female')">
+                    <i class="fa-solid fa-venus" style="color: #f472b6;"></i>
+                    Female (<span id="f-lim">25</span>)
+                </button>
             </div>
         </div>
     </div>
@@ -281,6 +272,7 @@
             btn.innerText = "Done";
             btn.style.background = "#475569";
         }
+        updateGenderUI();
     };
 
     function switchTab(tabName, el) {
@@ -336,34 +328,6 @@
 
     let searchCounter = localStorage.getItem('mySearchCount') || 0;
 
-    // Premium Match Logic [cite: 54, 55]
-    function handlePremiumMatch(gender) {
-        if (isSearching) return;
-        
-        tg.HapticFeedback.impactOccurred('heavy');
-        
-        // 1. Show AdExtra Ad first 
-        try {
-            if (typeof p_adextra === 'function') {
-                p_adextra(() => {
-                    // onSuccess: Now show Adsgram
-                    AdsgramInterstitial.show().then(() => {
-                        startSearching();
-                    }).catch(() => startSearching());
-                }, () => {
-                    // onError: Still try to show Adsgram
-                    AdsgramInterstitial.show().then(() => {
-                        startSearching();
-                    }).catch(() => startSearching());
-                });
-            } else {
-                startSearching();
-            }
-        } catch (e) {
-            startSearching();
-        }
-    }
-
     function handleFind() {
         if (isSearching) {
             cancelSearch();
@@ -371,7 +335,7 @@
         }
         searchCounter++;
         localStorage.setItem('mySearchCount', searchCounter);
-        if (searchCounter % 5 === 0) {
+        if (searchCounter % 2 === 0) {
             AdsgramInterstitial.show().then(() => {
                 startSearching();
             }).catch((e) => {
@@ -380,6 +344,32 @@
         } else {
             startSearching();
         }
+    }
+
+    // --- Gender Match Logic ---
+    function updateGenderUI() {
+        let m = localStorage.getItem('m_lim') !== null ? localStorage.getItem('m_lim') : 25;
+        let f = localStorage.getItem('f_lim') !== null ? localStorage.getItem('f_lim') : 25;
+        document.getElementById('m-lim').innerText = m;
+        document.getElementById('f-lim').innerText = f;
+        if(m <= 0) document.getElementById('maleBtn').style.opacity = "0.5";
+        if(f <= 0) document.getElementById('femaleBtn').style.opacity = "0.5";
+    }
+
+    function handleGenderMatch(gender) {
+        if (isSearching) return cancelSearch();
+        
+        let key = gender === 'male' ? 'm_lim' : 'f_lim';
+        let current = localStorage.getItem(key) !== null ? parseInt(localStorage.getItem(key)) : 25;
+
+        if(current <= 0) {
+            tg.showAlert(`Your daily limit for ${gender} matches is over!`);
+            return;
+        }
+
+        localStorage.setItem(key, current - 1);
+        updateGenderUI();
+        handleFind(); 
     }
 
     function startSearching() {
@@ -509,7 +499,7 @@
         container.appendChild(div);
     }
 
-   /* show_9341070({
+    show_9341070({
       type: 'inApp',
       inAppSettings: {
         frequency: 2,
@@ -518,7 +508,7 @@
         timeout: 30,
         everyPage: false
       }
-    });*/
+    });
 </script>
 </body>
 </html>

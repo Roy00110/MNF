@@ -272,19 +272,26 @@
     }
 
     // New AdExtra Reward Function
-    function showAdExtraReward() {
-        tg.showConfirm("Watch a short ad to unlock the Global Group link?", (ok) => {
-            if (ok) {
-                // Clicking this will trigger the AdExtra script if it's set as an Interstitial/Pop
-                // After 2 seconds (simulating ad time), it opens the link.
-                tg.showScanQrPopup({ text: "Loading Reward..." });
-                setTimeout(() => {
-                    tg.closeScanQrPopup();
-                    tg.openTelegramLink('https://t.me/friends_chatting_group01');
-                }, 3000);
-            }
-        });
-    }
+    // সংশোধিত রিওয়ার্ড ফাংশন (ক্যামেরা অন হবে না)
+function showAdExtraReward() {
+    tg.showConfirm("Watch a short ad to unlock the Global Group link?", (ok) => {
+        if (ok) {
+            // ১. একটি অ্যালার্ট দিয়ে ইউজারকে জানানো (যাতে সে ইন্টারঅ্যাক্ট করে এবং অ্যাড ট্রিগার হয়)
+            tg.showAlert("Loading your reward... Please wait 5 seconds.");
+            
+            // ২. ব্যাকগ্রাউন্ডে AdExtra ট্রিগার হওয়ার জন্য সামান্য সময় দেওয়া
+            // ইউজার ওকে করার সাথে সাথে আপনার AdExtra স্ক্রিপ্টটি কাজ শুরু করবে
+            
+            setTimeout(() => {
+                // ৩. ৫ সেকেন্ড পর সরাসরি গ্রুপ লিংক ওপেন হবে
+                tg.openTelegramLink('https://t.me/friends_chatting_group01');
+                
+                // ৪. ইউজারকে একটি সাকসেস মেসেজ দেওয়া
+                tg.HapticFeedback.notificationOccurred('success');
+            }, 5000); // এখানে ৫ সেকেন্ড সময় দেওয়া হয়েছে যাতে অ্যাড দেখানোর সুযোগ বাড়ে
+        }
+    });
+}
 
     function claimDaily() {
         show_9341070('pop').then(() => {

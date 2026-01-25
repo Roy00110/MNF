@@ -332,24 +332,46 @@
 
     let searchCounter = localStorage.getItem('mySearchCount') || 0;
 
-    function handleFind() {
-        if (isSearching) {
-            cancelSearch();
+    // handleFind function update
+function handleFind(gender = 'random') {
+    if (isSearching) {
+        cancelSearch();
+        return;
+    }
+    
+    // Check if it's a premium search (male/female)
+    if (gender !== 'random') {
+        const currentLimit = parseInt(document.getElementById('match-count').innerText);
+        // Premium functionality requirement: User must have watched an ad or have power
+        if (currentLimit < 5) { // Dhori premium search er jonno minimum 5 power lagbe
+            tg.showAlert("Premium search er jonno age Ads dekhe Power baran!");
+            document.getElementById('limit-modal').style.display = 'flex';
             return;
-        }
-        searchCounter++;
-        localStorage.setItem('mySearchCount', searchCounter);
-        if (searchCounter % 2 === 0) {
-            AdsgramInterstitial.show().then(() => {
-                startSearching();
-            }).catch((e) => {
-                startSearching();
-            });
-        } else {
-            startSearching();
         }
     }
 
+    searchCounter++;
+    localStorage.setItem('mySearchCount', searchCounter);
+    
+    startSearching(gender);
+}
+
+function startSearching(gender) {
+    const currentLimit = parseInt(document.getElementById('match-count').innerText);
+    if (currentLimit <= 0) {
+        document.getElementById('limit-modal').style.display = 'flex';
+        return;
+    }
+    isSearching = true;
+    const btn = document.getElementById('findBtn');
+    btn.innerText = "Cancel Search";
+    btn.classList.add('btn-cancel'); 
+    document.getElementById('status-text').innerText = "Finding " + (gender === 'random' ? "someone" : gender) + "...";
+    document.getElementById('anim-container').classList.add('searching');
+    
+    // Socket emit with gender
+    socket.emit('find_partner_web', { userId: userId, gender: gender });
+}
     function startSearching() {
         const currentLimit = parseInt(document.getElementById('match-count').innerText);
         if (currentLimit <= 0) {

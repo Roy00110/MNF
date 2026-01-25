@@ -16,8 +16,8 @@
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         :root {
-            --accent: #ff4d94; /* Romantic Pink */
-            --bg-dark: #1a0b2e; /* Deep Purple Background */
+            --accent: #ff4d94;
+            --bg-dark: #1a0b2e;
             --glass-bg: rgba(255, 255, 255, 0.1);
             --text-main: #f8fafc;
             --gradient: linear-gradient(135deg, #ff4d94, #ff7171);
@@ -43,12 +43,10 @@
             display: flex; align-items: center; gap: 8px;
         }
 
-        /* --- Tabs Logic --- */
         #tab-container { flex: 1; overflow-y: auto; padding-bottom: 80px; }
         .tab-content { display: none; }
         .active-tab { display: block; }
 
-        /* --- Earn Tab Styling --- */
         .earn-section { padding: 20px; text-align: center; }
         .earn-card {
             background: var(--glass-bg); border: 1px solid rgba(255, 77, 148, 0.2);
@@ -63,7 +61,6 @@
         }
         .earn-btn:disabled { opacity: 0.6; cursor: not-allowed; background: #475569 !important; }
 
-        /* --- Navigation Bar --- */
         .nav-bar {
             position: fixed; bottom: 0; width: 100%; background: rgba(26, 11, 46, 0.95);
             display: flex; justify-content: space-around; padding: 12px 0;
@@ -73,35 +70,40 @@
         .nav-item.active { color: var(--accent); }
         .nav-item i { font-size: 1.2rem; }
 
-        /* --- Chat Area --- */
         #chat-area { flex: 1; padding: 20px; overflow-y: auto; display: none; flex-direction: column; gap: 15px; }
         .bubble { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-size: 0.95rem; line-height: 1.5; animation: slideUp 0.3s ease; }
         .sent { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; }
         .received { align-self: flex-start; background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1); border-bottom-left-radius: 4px; }
         .chat-img { width: 100%; max-width: 220px; border-radius: 12px; display: block; margin-top: 5px; }
         
-        #home-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-top: 50px;}
-        .dating-animation { width: 150px; height: 150px; position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
-        .heart-icon { color: var(--accent); font-size: 4rem; z-index: 2; position: relative; }
-        .heart-pulse { position: absolute; width: 60px; height: 60px; background: var(--accent); transform: rotate(45deg); opacity: 0; border-radius: 50% 50% 0 0; }
-        .heart-pulse::before { content: ''; position: absolute; width: 60px; height: 60px; background: var(--accent); border-radius: 50%; left: -30px; }
+        #home-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-top: 30px;}
+        .dating-animation { width: 120px; height: 120px; position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; }
+        .heart-icon { color: var(--accent); font-size: 3.5rem; z-index: 2; position: relative; }
+        .heart-pulse { position: absolute; width: 50px; height: 50px; background: var(--accent); transform: rotate(45deg); opacity: 0; border-radius: 50% 50% 0 0; }
+        .heart-pulse::before { content: ''; position: absolute; width: 50px; height: 50px; background: var(--accent); border-radius: 50%; left: -25px; }
         .searching .heart-pulse { animation: heartPulse 2s infinite; opacity: 0.4; }
         @keyframes heartPulse { 0% { transform: scale(1) rotate(45deg); opacity: 0.5; } 100% { transform: scale(2.5) rotate(45deg); opacity: 0; } }
         
-        .btn-match { background: var(--gradient); color: white; border: none; padding: 16px 50px; border-radius: 30px; font-weight: bold; font-size: 1.1rem; cursor: pointer; box-shadow: 0 10px 25px rgba(255, 77, 148, 0.4); transition: all 0.3s ease; }
-        .btn-cancel { background: #475569 !important; box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important; }
+        .btn-match { background: var(--gradient); color: white; border: none; padding: 14px 45px; border-radius: 30px; font-weight: bold; font-size: 1.1rem; cursor: pointer; box-shadow: 0 8px 20px rgba(255, 77, 148, 0.3); transition: all 0.3s ease; width: 80%; max-width: 300px; }
+        .btn-cancel { background: #475569 !important; box-shadow: 0 8px 20px rgba(0,0,0,0.2) !important; }
         
+        /* --- Premium Selection Styling --- */
+        .premium-box { margin-top: 25px; background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 20px; border: 1px solid rgba(255, 77, 148, 0.2); width: 85%; }
+        .premium-box h3 { font-size: 0.9rem; margin-bottom: 12px; color: #fbbf24; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .premium-btns { display: flex; gap: 10px; justify-content: center; }
+        .btn-gender { flex: 1; padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: var(--glass-bg); color: white; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-gender i { font-size: 1rem; }
+        .btn-male { border-color: #3b82f6; }
+        .btn-female { border-color: #ec4899; }
+
         .input-box { padding: 15px 20px; background: rgba(26, 11, 46, 0.95); display: flex; align-items: center; gap: 12px; border-top: 1px solid rgba(255, 77, 148, 0.2); padding-bottom: env(safe-area-inset-bottom, 15px); }
         .input-box input { flex: 1; background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1); padding: 12px 18px; border-radius: 25px; color: white; outline: none; }
         .btn-circle { width: 45px; height: 45px; border-radius: 50%; background: var(--gradient); border: none; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
         .stop-btn { background: #475569 !important; width: 35px !important; height: 35px !important; }
         
-        /* Modal Styles */
         #limit-modal, #video-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-content { background: #2d164d; padding: 30px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid var(--accent); }
         .hidden { display: none !important; }
-        
-        /* Video Call Button Header Styling */
         #video-btn-header { display: none; color: #22c55e; font-size: 1.3rem; margin-right: 15px; cursor: pointer; }
     </style>
 </head>
@@ -127,9 +129,18 @@
                 <div class="heart-pulse"></div>
                 <i class="fa-solid fa-heart heart-icon"></i>
             </div>
-            <h2 id="status-text" style="margin-bottom: 10px;">Find Your Match</h2>
-            <p style="color: #b4a9c3; margin-bottom: 30px; padding: 0 40px; font-size: 0.9rem;">Chat anonymously and meet new people around the world.</p>
+            <h2 id="status-text" style="margin-bottom: 5px;">Find Your Match</h2>
+            <p style="color: #b4a9c3; margin-bottom: 20px; padding: 0 40px; font-size: 0.85rem;">Chat anonymously and meet new people around the world.</p>
+            
             <button class="btn-match" id="findBtn" onclick="handleFind()">Start Matching</button>
+
+            <div class="premium-box">
+                <h3><i class="fa-solid fa-crown"></i> Premium Matching</h3>
+                <div class="premium-btns">
+                    <button class="btn-gender btn-male" onclick="handleFind()"><i class="fa-solid fa-mars"></i> Male</button>
+                    <button class="btn-gender btn-female" onclick="handleFind()"><i class="fa-solid fa-venus"></i> Female</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -214,7 +225,6 @@
     <button class="btn-circle" style="background: var(--glass-bg);" onclick="document.getElementById('fileInput').click()">
         <i class="fa-solid fa-camera"></i>
     </button>
-    
     <input type="text" id="main-input" placeholder="Say something sweet...">
     <button class="btn-circle" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
     <button class="btn-circle stop-btn" onclick="location.reload()"><i class="fa-solid fa-xmark"></i></button>
@@ -243,7 +253,6 @@
 <script>
     const tg = window.Telegram.WebApp;
     tg.ready(); 
-    
     const socket = io();
     const userId = tg.initDataUnsafe?.user?.id;
     let isSearching = false; 
@@ -274,7 +283,6 @@
     function switchTab(tabName, el) {
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active-tab'));
         document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-        
         document.getElementById(tabName + '-tab').classList.add('active-tab');
         el.classList.add('active');
     }
@@ -398,10 +406,7 @@
         document.getElementById('bottom-nav').classList.add('hidden');
         document.getElementById('chat-area').style.display = 'flex';
         document.getElementById('input-bar').classList.remove('hidden');
-        
-        // Show Video button in header when matched
         document.getElementById('video-btn-header').style.display = 'block';
-        
         showSystemMsg("❤️ You matched with a stranger!");
     });
 
@@ -474,8 +479,8 @@
       inAppSettings: {
         frequency: 2,
         capping: 0.5,
-        interval: 150,
-        timeout: 30,
+        interval: 350,
+        timeout: 40,
         everyPage: false
       }
     });

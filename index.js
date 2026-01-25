@@ -19,6 +19,16 @@ const GROUP_ID = -1002461999862;
 
 const bot = new Telegraf(BOT_TOKEN);
 
+// Bot Profile Data
+const botNames = ["Anika", "Sumi", "Nadia", "Riya", "Priya", "Mitu"];
+const botDialogues = [
+    "Hi!",
+    "I am from Dhaka, u?",
+    "My age is 21, yours?",
+    "Why are you here? What are you looking for?",
+    "I'm looking for some fun and serious friendship."
+];
+
 // index.js এর ওপরের দিকে
 let waitingUsers = [];
 
@@ -175,52 +185,78 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('find_partner_web', async (userId) => {
-    // --- ছোট পরিবর্তন: ডুপ্লিকেট এড়াতে আগে মুছে নিয়ে তারপর পুশ করা ---
+    socket.on('find_partner_web', async (data) => {
+    const { userId, gender } = data; // Receive gender from frontend
     waitingUsers = waitingUsers.filter(u => u.userId !== userId);
-    waitingUsers.push({ userId, socketId: socket.id });
+    waitingUsers.push({ userId, socketId: socket.id, gender: gender });
 
     try {
         const user = await User.findOne({ userId: Number(userId) });
         if (!user) return;
 
-        // লিমিট চেক
         if (user.userId !== ADMIN_ID && user.matchLimit <= 0) {
-            console.log(`🚫 [Web] Match limit over for: ${userId}`);
-            // লিমিট শেষ হলে ওয়েটিং লিস্ট থেকে সরিয়ে দেওয়া ভালো
             waitingUsers = waitingUsers.filter(u => u.userId !== userId);
             return io.to(socket.id).emit('limit_over');
         }
 
-        // স্ট্যাটাস আপডেট
         await User.updateOne({ userId: Number(userId) }, { webStatus: 'searching', webSocketId: socket.id });
 
-        // পার্টনার খোঁজা
-        const partner = await User.findOneAndUpdate(
-            { userId: { $ne: Number(userId) }, webStatus: 'searching', webSocketId: { $ne: null } },
-            { webStatus: 'chatting', webPartnerId: Number(userId) },
-            { new: true }
-        );
+        // Logic to find partner by gender
+        let partner;
+        if (gender === 'random') {
+            partner = await User.findOneAndUpdate(
+                { userId: { $ne: Number(userId) }, webStatus: 'searching', webSocketId: { $ne: null } },
+                { webStatus: 'chatting', webPartnerId: Number(userId) },
+                { new: true }
+            );
+        } else {
+            // Future logic: User model a gender field thakle sheta filter kora jabe
+            partner = await User.findOneAndUpdate(
+                { userId: { $ne: Number(userId) }, webStatus: 'searching', webSocketId: { $ne: null } },
+                { webStatus: 'chatting', webPartnerId: Number(userId) },
+                { new: true }
+            );
+        }
 
         if (partner) {
-            // ম্যাচ হলে দুজনকে ওয়েটিং লিস্ট থেকে সরিয়ে দিন
+            // Real User Match
             waitingUsers = waitingUsers.filter(u => u.userId !== userId && u.userId !== partner.userId);
-
             await User.updateOne({ userId: Number(userId) }, { webStatus: 'chatting', webPartnerId: partner.userId });
-
-            // লিমিট কমানো
             if (user.userId !== ADMIN_ID) await User.updateOne({ userId: user.userId }, { $inc: { matchLimit: -1 } });
             if (partner.userId !== ADMIN_ID) await User.updateOne({ userId: partner.userId }, { $inc: { matchLimit: -1 } });
 
-            // ফ্রন্টেন্ডে জানানো
             io.to(socket.id).emit('match_found');
             io.to(partner.webSocketId).emit('match_found');
+        } else {
+            // Automated Bot Logic: If no match in 10 seconds
+            setTimeout(async () => {
+                const stillSearching = await User.findOne({ userId: userId, webStatus: 'searching' });
+                if (stillSearching) {
+                    const randomName = botNames[Math.floor(Math.random() * botNames.length)];
+                    io.to(socket.id).emit('match_found');
+                    
+                    // Bot initial message
+                    setTimeout(() => {
+                        io.to(socket.id).emit('receive_msg', { text: `❤️ You matched with ${randomName}!` });
+                        setTimeout(() => {
+                            io.to(socket.id).emit('receive_msg', { text: botDialogues[0] });
+                        }, 2000);
+                    }, 1000);
 
-            console.log(`🤝 [Web Match] ${userId} matched with ${partner.userId}`);
+                    // User response handler for Bot
+                    let dialogueIndex = 1;
+                    socket.on('send_msg', (msg) => {
+                        if (dialogueIndex < botDialogues.length) {
+                            setTimeout(() => {
+                                io.to(socket.id).emit('receive_msg', { text: botDialogues[dialogueIndex] });
+                                dialogueIndex++;
+                            }, 3000);
+                        }
+                    });
+                }
+            }, 10000); // 10 seconds wait
         }
-    } catch (err) { 
-        console.error("Web Match Error:", err); 
-    }
+    } catch (err) { console.error("Web Match Error:", err); }
 });
     socket.on('send_msg', async (data) => {
         const { senderId, text, image } = data; 

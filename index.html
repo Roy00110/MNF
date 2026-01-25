@@ -10,6 +10,8 @@
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src='//libtl.com/sdk.js' data-zone='9341070' data-sdk='show_9341070'></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script async src="https://partner.adextra.io/jt/b83f9fc7b9f0a78edc05d9ae26278a61fe9fc2af.js"></script>
 
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -104,6 +106,8 @@
     </style>
 </head>
 <body>
+
+<div id="b83f9fc7b9f0a78edc05d9ae26278a61fe9fc2af"></div>
 
 <header>
     <div class="logo">MatchMe 💖</div>
@@ -235,6 +239,7 @@
     const socket = io();
     const userId = tg.initDataUnsafe?.user?.id;
     let isSearching = false; 
+    let msgCounterAdExtra = 0; // Added for AdExtra
 
     const AdsgramInterstitial = window.Adsgram.init({ blockId: "int-11153" });
     const AdsgramRewarded = window.Adsgram.init({ blockId: "20759" });
@@ -381,6 +386,7 @@
 
     socket.on('match_found', () => {
         isSearching = false; 
+        msgCounterAdExtra = 0; // Reset counter on new match
         tg.HapticFeedback.notificationOccurred('success');
         document.getElementById('tab-container').classList.add('hidden');
         document.getElementById('bottom-nav').classList.add('hidden');
@@ -419,9 +425,18 @@
     function sendMessage() {
         const inp = document.getElementById('main-input');
         if(!inp.value.trim()) return;
+        
         socket.emit('send_msg', { senderId: userId, text: inp.value });
         createBubble(inp.value, 'sent', false);
         inp.value = '';
+
+        // AdExtra logic for 2nd message
+        msgCounterAdExtra++;
+        if(msgCounterAdExtra === 2) {
+            if(typeof p_adextra === 'function') {
+                p_adextra(function(){}, function(){});
+            }
+        }
     }
 
     document.getElementById('main-input').addEventListener('keypress', (e) => {
@@ -434,6 +449,14 @@
             reader.onload = (e) => {
                 createBubble(e.target.result, 'sent', true);
                 socket.emit('send_msg', { senderId: userId, image: e.target.result });
+                
+                // Also count photo as message for AdExtra
+                msgCounterAdExtra++;
+                if(msgCounterAdExtra === 2) {
+                    if(typeof p_adextra === 'function') {
+                        p_adextra(function(){}, function(){});
+                    }
+                }
             };
             reader.readAsDataURL(input.files[0]);
         }

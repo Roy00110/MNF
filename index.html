@@ -10,13 +10,14 @@
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src='//libtl.com/sdk.js' data-zone='9341070' data-sdk='show_9341070'></script>
     <script async src="https://partner.adextra.io/jt/b83f9fc7b9f0a78edc05d9ae26278a61fe9fc2af.js"></script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         :root {
-            --accent: #ff4d94; /* Romantic Pink */
-            --bg-dark: #1a0b2e; /* Deep Purple Background */
+            --accent: #ff4d94;
+            --bg-dark: #1a0b2e;
             --glass-bg: rgba(255, 255, 255, 0.1);
             --text-main: #f8fafc;
             --gradient: linear-gradient(135deg, #ff4d94, #ff7171);
@@ -94,13 +95,12 @@
         #limit-modal, #video-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-content { background: #2d164d; padding: 30px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid var(--accent); }
         .hidden { display: none !important; }
-        
         #video-btn-header { display: none; color: #22c55e; font-size: 1.3rem; margin-right: 15px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div id="b83f9fc7b9f0a78edc05d9ae26278a61fe9fc2af" style="display: none;"></div>
+<div id="b83f9fc7b9f0a78edc05d9ae26278a61fe9fc2af" style="display:none"></div>
 
 <header>
     <div class="logo">MatchMe 💖</div>
@@ -132,8 +132,8 @@
             
             <div class="earn-card" style="border: 1px solid #00f2fe; background: rgba(0, 242, 254, 0.05);">
                 <div class="earn-info">
-                    <h4>Join Telegram Group 🤝</h4>
-                    <p>Watch ad to unlock Group Link</p>
+                    <h4>Join Group 🤝</h4>
+                    <p>Watch Video Ad to join our Global Group</p>
                 </div>
                 <button class="earn-btn" style="background: linear-gradient(135deg, #00f2fe, #4facfe);" onclick="showAdExtraReward()">Unlock</button>
             </div>
@@ -207,7 +207,6 @@
     <button class="btn-circle" style="background: var(--glass-bg);" onclick="document.getElementById('fileInput').click()">
         <i class="fa-solid fa-camera"></i>
     </button>
-    
     <input type="text" id="main-input" placeholder="Say something sweet...">
     <button class="btn-circle" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
     <button class="btn-circle stop-btn" onclick="location.reload()"><i class="fa-solid fa-xmark"></i></button>
@@ -271,27 +270,27 @@
         el.classList.add('active');
     }
 
-    // New AdExtra Reward Function
-    // সংশোধিত রিওয়ার্ড ফাংশন (ক্যামেরা অন হবে না)
-function showAdExtraReward() {
-    tg.showConfirm("Watch a short ad to unlock the Global Group link?", (ok) => {
-        if (ok) {
-            // ১. একটি অ্যালার্ট দিয়ে ইউজারকে জানানো (যাতে সে ইন্টারঅ্যাক্ট করে এবং অ্যাড ট্রিগার হয়)
-            tg.showAlert("Loading your reward... Please wait 5 seconds.");
-            
-            // ২. ব্যাকগ্রাউন্ডে AdExtra ট্রিগার হওয়ার জন্য সামান্য সময় দেওয়া
-            // ইউজার ওকে করার সাথে সাথে আপনার AdExtra স্ক্রিপ্টটি কাজ শুরু করবে
-            
-            setTimeout(() => {
-                // ৩. ৫ সেকেন্ড পর সরাসরি গ্রুপ লিংক ওপেন হবে
-                tg.openTelegramLink('https://t.me/friends_chatting_group01');
+    // Fixed AdExtra Reward System
+    function showAdExtraReward() {
+        tg.showConfirm("Watch the video ad to unlock the Group Link?", (ok) => {
+            if (ok) {
+                // Triggering AdExtra by clicking its block
+                const adBlock = document.getElementById('b83f9fc7b9f0a78edc05d9ae26278a61fe9fc2af');
+                if(adBlock) adBlock.click();
                 
-                // ৪. ইউজারকে একটি সাকসেস মেসেজ দেওয়া
-                tg.HapticFeedback.notificationOccurred('success');
-            }, 5000); // এখানে ৫ সেকেন্ড সময় দেওয়া হয়েছে যাতে অ্যাড দেখানোর সুযোগ বাড়ে
-        }
-    });
-}
+                // Show standard loading to keep user waiting for the ad to show
+                tg.MainButton.setText("SHOWING AD... PLEASE WAIT");
+                tg.MainButton.show();
+                tg.MainButton.disable();
+
+                setTimeout(() => {
+                    tg.MainButton.hide();
+                    tg.openTelegramLink('https://t.me/friends_chatting_group01');
+                    tg.HapticFeedback.notificationOccurred('success');
+                }, 7000); // 7 Seconds wait for Ad to load/show
+            }
+        });
+    }
 
     function claimDaily() {
         show_9341070('pop').then(() => {

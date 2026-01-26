@@ -9,6 +9,7 @@
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <script src='//libtl.com/sdk.js' data-zone='9341070' data-sdk='show_9341070'></script>
+    <script async src="https://partner.adextra.io/jt/b83f9fc7b9f0a78edc05d9ae26278a61fe9fc2af.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
@@ -110,6 +111,8 @@
     </style>
 </head>
 <body>
+
+<div id="b83f9fc7b9f0a78edc05d9ae26278a61fe9fc2af"></div>
 
 <header>
     <div class="logo">MatchMe 💖</div>
@@ -340,6 +343,8 @@
     }
 
     let searchCounter = localStorage.getItem('mySearchCount') || 0;
+    // বিজ্ঞাপন রোটেশন ট্র্যাকিং করার জন্য একটি ভেরিয়েবল
+    let adToggle = localStorage.getItem('ad_rotation_toggle') || 1; 
 
     function handleFind() {
         if (isSearching) {
@@ -348,12 +353,34 @@
         }
         searchCounter++;
         localStorage.setItem('mySearchCount', searchCounter);
+        
         if (searchCounter % 2 === 0) {
-            AdsgramInterstitial.show().then(() => {
-                startSearching();
-            }).catch((e) => {
-                startSearching();
-            });
+            // বিজ্ঞাপন দেখানোর সময় হয়েছে
+            if (adToggle == 1) {
+                // ১ম বার Adsgram দেখাবে
+                AdsgramInterstitial.show().then(() => {
+                    adToggle = 2; // পরবর্তী বারের জন্য AdExtra সেট করা হলো
+                    localStorage.setItem('ad_rotation_toggle', 2);
+                    startSearching();
+                }).catch((e) => {
+                    startSearching();
+                });
+            } else {
+                // ২য় বার AdExtra দেখাবে
+                if (typeof p_adextra === 'function') {
+                    p_adextra(() => {
+                        // onSuccess
+                        adToggle = 1; // পরবর্তী বারের জন্য Adsgram সেট করা হলো
+                        localStorage.setItem('ad_rotation_toggle', 1);
+                        startSearching();
+                    }, () => {
+                        // onError
+                        startSearching();
+                    });
+                } else {
+                    startSearching();
+                }
+            }
         } else {
             startSearching();
         }
@@ -512,7 +539,7 @@
         container.appendChild(div);
     }
 
-    show_9341070({
+   /* show_9341070({
       type: 'inApp',
       inAppSettings: {
         frequency: 2,
@@ -521,7 +548,7 @@
         timeout: 30,
         everyPage: false
       }
-    });
+    }); */
 </script>
 </body>
 </html>

@@ -138,11 +138,11 @@
                 <div class="gender-box" id="gender-section">
                     <button class="gender-btn" id="maleBtn" onclick="handleGenderMatch('male')">
                         <i class="fa-solid fa-mars" style="color: #60a5fa;"></i>
-                        Male (<span id="m-lim">25</span>)
+                        Male (<span id="m-lim">50</span>)
                     </button>
                     <button class="gender-btn" id="femaleBtn" onclick="handleGenderMatch('female')">
                         <i class="fa-solid fa-venus" style="color: #f472b6;"></i>
-                        Female (<span id="f-lim">25</span>)
+                        Female (<span id="f-lim">50</span>)
                     </button>
                 </div>
             </div>
@@ -269,8 +269,8 @@
         
         // --- Daily Refresh Logic for Gender Buttons ---
         if (localStorage.getItem('last_gender_reset') !== today) {
-            localStorage.setItem('m_lim', 25);
-            localStorage.setItem('f_lim', 25);
+            localStorage.setItem('m_lim', 50);
+            localStorage.setItem('f_lim', 50);
             localStorage.setItem('last_gender_reset', today);
         }
 

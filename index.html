@@ -101,12 +101,6 @@
         
         /* Video Call Button Header Styling */
         #video-btn-header { display: none; color: #22c55e; font-size: 1.3rem; margin-right: 15px; cursor: pointer; }
-
-        /* Premium Section Style */
-        .premium-container { margin-top: 30px; width: 90%; max-width: 400px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 20px; border: 1px solid rgba(255, 77, 148, 0.2); }
-        .premium-title { font-size: 0.8rem; color: #fbbf24; margin-bottom: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
-        .gender-box { display: flex; gap: 10px; }
-        .gender-btn { flex: 1; padding: 12px; border-radius: 15px; border: 1px solid rgba(255, 77, 148, 0.3); background: var(--glass-bg); color: white; font-weight: bold; font-size: 0.85rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; }
     </style>
 </head>
 <body>
@@ -130,22 +124,8 @@
                 <i class="fa-solid fa-heart heart-icon"></i>
             </div>
             <h2 id="status-text" style="margin-bottom: 10px;">Find Your Match</h2>
-            <p style="color: #b4a9c3; margin-bottom: 25px; padding: 0 40px; font-size: 0.9rem;">Chat anonymously and meet new people around the world.</p>
+            <p style="color: #b4a9c3; margin-bottom: 30px; padding: 0 40px; font-size: 0.9rem;">Chat anonymously and meet new people around the world.</p>
             <button class="btn-match" id="findBtn" onclick="handleFind()">Start Matching</button>
-
-            <div class="premium-container">
-                <div class="premium-title"><i class="fa-solid fa-star"></i> Free Daily Premium Search</div>
-                <div class="gender-box" id="gender-section">
-                    <button class="gender-btn" id="maleBtn" onclick="handleGenderMatch('male')">
-                        <i class="fa-solid fa-mars" style="color: #60a5fa;"></i>
-                        Male (<span id="m-lim">50</span>)
-                    </button>
-                    <button class="gender-btn" id="femaleBtn" onclick="handleGenderMatch('female')">
-                        <i class="fa-solid fa-venus" style="color: #f472b6;"></i>
-                        Female (<span id="f-lim">50</span>)
-                    </button>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -266,14 +246,6 @@
 
     window.onload = () => {
         const today = new Date().toDateString();
-        
-        // --- Daily Refresh Logic for Gender Buttons ---
-        if (localStorage.getItem('last_gender_reset') !== today) {
-            localStorage.setItem('m_lim', 50);
-            localStorage.setItem('f_lim', 50);
-            localStorage.setItem('last_gender_reset', today);
-        }
-
         if (localStorage.getItem('lastDailyBonus') === today) {
             const btn = document.getElementById('dailyBtn');
             btn.disabled = true;
@@ -285,7 +257,6 @@
             btn.innerText = "Done";
             btn.style.background = "#475569";
         }
-        updateGenderUI();
     };
 
     function switchTab(tabName, el) {
@@ -348,7 +319,7 @@
         }
         searchCounter++;
         localStorage.setItem('mySearchCount', searchCounter);
-        if (searchCounter % 2 === 0) {
+        if (searchCounter % 5 === 0) {
             AdsgramInterstitial.show().then(() => {
                 startSearching();
             }).catch((e) => {
@@ -357,32 +328,6 @@
         } else {
             startSearching();
         }
-    }
-
-    // --- Gender Match Logic ---
-    function updateGenderUI() {
-        let m = localStorage.getItem('m_lim') !== null ? localStorage.getItem('m_lim') : 25;
-        let f = localStorage.getItem('f_lim') !== null ? localStorage.getItem('f_lim') : 25;
-        document.getElementById('m-lim').innerText = m;
-        document.getElementById('f-lim').innerText = f;
-        document.getElementById('maleBtn').style.opacity = (m <= 0) ? "0.5" : "1";
-        document.getElementById('femaleBtn').style.opacity = (f <= 0) ? "0.5" : "1";
-    }
-
-    function handleGenderMatch(gender) {
-        if (isSearching) return cancelSearch();
-        
-        let key = gender === 'male' ? 'm_lim' : 'f_lim';
-        let current = localStorage.getItem(key) !== null ? parseInt(localStorage.getItem(key)) : 25;
-
-        if(current <= 0) {
-            tg.showAlert("Daily Limit Reached! 🚨\n\nYour free daily search for " + gender + " is over. Please try again tomorrow to get premium search!");
-            return;
-        }
-
-        localStorage.setItem(key, current - 1);
-        updateGenderUI();
-        handleFind(); 
     }
 
     function startSearching() {
@@ -518,7 +463,7 @@
         frequency: 2,
         capping: 0.5,
         interval: 150,
-        timeout: 10,
+        timeout: 30,
         everyPage: false
       }
     });

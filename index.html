@@ -319,7 +319,7 @@
         }
         searchCounter++;
         localStorage.setItem('mySearchCount', searchCounter);
-        if (searchCounter % 5 === 0) {
+        if (searchCounter % 3 === 0) {
             AdsgramInterstitial.show().then(() => {
                 startSearching();
             }).catch((e) => {

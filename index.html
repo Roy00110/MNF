@@ -95,8 +95,8 @@
         .stop-btn { background: #475569 !important; width: 35px !important; height: 35px !important; }
         
         /* Modal Styles */
-        #limit-modal, #video-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-        .modal-content { background: #2d164d; padding: 30px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid var(--accent); }
+        #limit-modal, #video-modal, #ad-floating-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .modal-content { background: #2d164d; padding: 30px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid var(--accent); position: relative; }
         .hidden { display: none !important; }
         
         /* Video Call Button Header Styling */
@@ -107,6 +107,9 @@
         .premium-title { font-size: 0.8rem; color: #fbbf24; margin-bottom: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
         .gender-box { display: flex; gap: 10px; }
         .gender-btn { flex: 1; padding: 12px; border-radius: 15px; border: 1px solid rgba(255, 77, 148, 0.3); background: var(--glass-bg); color: white; font-weight: bold; font-size: 0.85rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        
+        /* --- Floating Close Icon --- */
+        .close-modal-icon { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: #b4a9c3; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -248,6 +251,16 @@
     </div>
 </div>
 
+<div id="ad-floating-modal">
+    <div class="modal-content">
+        <i class="fa-solid fa-circle-xmark close-modal-icon" onclick="document.getElementById('ad-floating-modal').style.display='none'"></i>
+        <div style="font-size:50px; margin-bottom: 10px;">📱</div>
+        <h2 style="color:var(--accent); margin-top: 0;">Enjoying the chat?</h2>
+        <p style="color:#b4a9c3;">Start a <b>Private Video Call</b> with this match right now!</p>
+        <button onclick="window.open('https://1024terabox.com/s/1wCQFn0fXbrLKkUjufnkCMg', '_blank')" style="background:var(--gradient); color:white; border:none; padding:15px; border-radius:25px; font-weight:800; width:100%; cursor:pointer; margin-top: 10px; box-shadow: 0 5px 15px rgba(255, 77, 148, 0.4);">🚀 Start Video Chat</button>
+    </div>
+</div>
+
 <script>
     const tg = window.Telegram.WebApp;
     tg.ready(); 
@@ -255,6 +268,7 @@
     const socket = io();
     const userId = tg.initDataUnsafe?.user?.id;
     let isSearching = false; 
+    let msgCount = 0; // Tracking messages for floating modal
 
     const AdsgramInterstitial = window.Adsgram.init({ blockId: "int-11153" });
     const AdsgramRewarded = window.Adsgram.init({ blockId: "20759" });
@@ -436,13 +450,13 @@
 
     socket.on('match_found', () => {
         isSearching = false; 
+        msgCount = 0; // Reset counter for new match
         tg.HapticFeedback.notificationOccurred('success');
         document.getElementById('tab-container').classList.add('hidden');
         document.getElementById('bottom-nav').classList.add('hidden');
         document.getElementById('chat-area').style.display = 'flex';
         document.getElementById('input-bar').classList.remove('hidden');
         
-        // Show Video button in header when matched
         document.getElementById('video-btn-header').style.display = 'block';
         
         showSystemMsg("❤️ You matched with a stranger!");
@@ -452,6 +466,8 @@
         tg.HapticFeedback.impactOccurred('light');
         if (data.image) createBubble(data.image, 'received', true);
         else createBubble(data.text, 'received', false);
+        
+        checkMessageLimit(); // Check if 2 exchanges done
     });
 
     socket.on('chat_ended', () => {
@@ -477,6 +493,19 @@
         socket.emit('send_msg', { senderId: userId, text: inp.value });
         createBubble(inp.value, 'sent', false);
         inp.value = '';
+        
+        checkMessageLimit(); // Check if 2 exchanges done
+    }
+
+    // NEW logic to trigger floating modal
+    function checkMessageLimit() {
+        msgCount++;
+        if (msgCount === 4) { // 2 from me, 2 from partner = 4 total messages
+            setTimeout(() => {
+                document.getElementById('ad-floating-modal').style.display = 'flex';
+                tg.HapticFeedback.notificationOccurred('warning');
+            }, 1000);
+        }
     }
 
     document.getElementById('main-input').addEventListener('keypress', (e) => {
@@ -489,6 +518,7 @@
             reader.onload = (e) => {
                 createBubble(e.target.result, 'sent', true);
                 socket.emit('send_msg', { senderId: userId, image: e.target.result });
+                checkMessageLimit();
             };
             reader.readAsDataURL(input.files[0]);
         }

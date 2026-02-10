@@ -353,16 +353,20 @@
         });
     }
 
-    let searchCounter = localStorage.getItem('mySearchCount') || 0;
+        let searchCounter = localStorage.getItem('mySearchCount') || 0;
 
     function handleFind() {
         if (isSearching) {
             cancelSearch();
             return;
         }
+        
         searchCounter++;
         localStorage.setItem('mySearchCount', searchCounter);
-        if (searchCounter % 2 === 0) {
+
+        // ১তম, ৩তম এবং ৬তম সার্চে বিজ্ঞাপন দেখানোর লজিক
+        // এরপর প্রতি ৩টি সার্চ অন্তর (৯, ১২...) বিজ্ঞাপন আসবে
+        if (searchCounter == 1 || searchCounter == 3 || searchCounter == 6 || (searchCounter > 6 && searchCounter % 3 === 0)) {
             AdsgramInterstitial.show().then(() => {
                 startSearching();
             }).catch((e) => {
@@ -372,6 +376,7 @@
             startSearching();
         }
     }
+
 
     // --- Gender Match Logic ---
     function updateGenderUI() {

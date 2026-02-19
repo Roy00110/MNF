@@ -33,7 +33,7 @@ const User = mongoose.model('User', new mongoose.Schema({
     firstName: String,
     partnerId: { type: Number, default: null },
     status: { type: String, default: 'idle' },
-    matchLimit: { type: Number, default: 2 },
+    matchLimit: { type: Number, default: 10 },
     referrals: { type: Number, default: 0 },
     lastClaimed: { type: Date, default: null },
     webStatus: { type: String, default: 'idle' },

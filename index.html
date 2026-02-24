@@ -47,49 +47,42 @@
         .tab-content { display: none; }
         .active-tab { display: block; }
 
-        /* --- Promotional Video Banner --- */
+        /* --- Compact Promotional Video Banner --- */
         .video-promo-banner {
-            width: 90%;
-            background: rgba(255, 255, 255, 0.08);
-            border: 2px solid #4facfe;
-            border-radius: 20px;
-            padding: 15px;
-            margin: 20px auto;
+            width: 85%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(79, 172, 254, 0.4);
+            border-radius: 15px;
+            padding: 10px;
+            margin: 15px auto;
             text-align: center;
             position: relative;
-            overflow: hidden;
-            animation: borderGlow 2s infinite alternate;
-        }
-        @keyframes borderGlow {
-            from { box-shadow: 0 0 5px rgba(79, 172, 254, 0.3); }
-            to { box-shadow: 0 0 15px rgba(79, 172, 254, 0.8); }
         }
         .promo-tag {
             background: #4facfe;
             color: white;
-            font-size: 0.7rem;
-            padding: 3px 10px;
-            border-radius: 10px;
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 5px;
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: -8px;
+            left: 10px;
             font-weight: bold;
-            text-transform: uppercase;
         }
-        .video-promo-banner h3 { margin: 5px 0; font-size: 1.1rem; color: #00f2fe; }
-        .video-promo-banner p { font-size: 0.8rem; color: #b4a9c3; margin: 5px 0 12px; }
+        .video-promo-banner h3 { margin: 2px 0; font-size: 0.9rem; color: #00f2fe; }
+        .video-promo-banner p { font-size: 0.75rem; color: #b4a9c3; margin: 2px 0 8px; }
         .btn-video-dl {
             background: var(--video-gradient);
             color: white;
             border: none;
-            padding: 10px 25px;
-            border-radius: 25px;
+            padding: 6px 18px;
+            border-radius: 20px;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 5px;
             text-decoration: none;
         }
 
@@ -125,15 +118,15 @@
         .received { align-self: flex-start; background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1); border-bottom-left-radius: 4px; }
         .chat-img { width: 100%; max-width: 220px; border-radius: 12px; display: block; margin-top: 5px; }
         
-        #home-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-top: 20px;}
-        .dating-animation { width: 120px; height: 120px; position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
-        .heart-icon { color: var(--accent); font-size: 3.5rem; z-index: 2; position: relative; }
-        .heart-pulse { position: absolute; width: 60px; height: 60px; background: var(--accent); transform: rotate(45deg); opacity: 0; border-radius: 50% 50% 0 0; }
-        .heart-pulse::before { content: ''; position: absolute; width: 60px; height: 60px; background: var(--accent); border-radius: 50%; left: -30px; }
+        #home-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-top: 5px;}
+        .dating-animation { width: 100px; height: 100px; position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; }
+        .heart-icon { color: var(--accent); font-size: 3rem; z-index: 2; position: relative; }
+        .heart-pulse { position: absolute; width: 50px; height: 50px; background: var(--accent); transform: rotate(45deg); opacity: 0; border-radius: 50% 50% 0 0; }
+        .heart-pulse::before { content: ''; position: absolute; width: 50px; height: 50px; background: var(--accent); border-radius: 50%; left: -25px; }
         .searching .heart-pulse { animation: heartPulse 2s infinite; opacity: 0.4; }
         @keyframes heartPulse { 0% { transform: scale(1) rotate(45deg); opacity: 0.5; } 100% { transform: scale(2.5) rotate(45deg); opacity: 0; } }
         
-        .btn-match { background: var(--gradient); color: white; border: none; padding: 16px 50px; border-radius: 30px; font-weight: bold; font-size: 1.1rem; cursor: pointer; box-shadow: 0 10px 25px rgba(255, 77, 148, 0.4); transition: all 0.3s ease; }
+        .btn-match { background: var(--gradient); color: white; border: none; padding: 14px 45px; border-radius: 30px; font-weight: bold; font-size: 1rem; cursor: pointer; box-shadow: 0 8px 20px rgba(255, 77, 148, 0.4); transition: all 0.3s ease; margin-bottom: 15px;}
         .btn-cancel { background: #475569 !important; box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important; }
         
         .input-box { padding: 15px 20px; background: rgba(26, 11, 46, 0.95); display: flex; align-items: center; gap: 12px; border-top: 1px solid rgba(255, 77, 148, 0.2); padding-bottom: env(safe-area-inset-bottom, 15px); }
@@ -149,11 +142,11 @@
         /* Video Call Button Header Styling */
         #video-btn-header { display: none; color: #22c55e; font-size: 1.3rem; margin-right: 15px; cursor: pointer; }
 
-        /* Premium Section Style */
-        .premium-container { margin-top: 20px; width: 90%; max-width: 400px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 20px; border: 1px solid rgba(255, 77, 148, 0.2); }
-        .premium-title { font-size: 0.8rem; color: #fbbf24; margin-bottom: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
-        .gender-box { display: flex; gap: 10px; }
-        .gender-btn { flex: 1; padding: 12px; border-radius: 15px; border: 1px solid rgba(255, 77, 148, 0.3); background: var(--glass-bg); color: white; font-weight: bold; font-size: 0.85rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        /* Compact Premium Section */
+        .premium-container { width: 85%; max-width: 350px; padding: 10px; background: rgba(255, 255, 255, 0.03); border-radius: 15px; border: 1px solid rgba(255, 77, 148, 0.15); }
+        .premium-title { font-size: 0.7rem; color: #fbbf24; margin-bottom: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .gender-box { display: flex; gap: 8px; }
+        .gender-btn { flex: 1; padding: 8px; border-radius: 12px; border: 1px solid rgba(255, 77, 148, 0.2); background: var(--glass-bg); color: white; font-weight: bold; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
         
         /* --- Floating Close Icon --- */
         .close-modal-icon { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: #b4a9c3; cursor: pointer; }
@@ -176,11 +169,11 @@
     <div id="home-tab" class="tab-content active-tab">
         <div id="home-screen">
             <div class="video-promo-banner">
-                <span class="promo-tag">NEW</span>
-                <h3><i class="fa-solid fa-video"></i> Free Random Video Chat</h3>
-                <p>Random Video Chat with 100k+ real users worldwide!</p>
+                <span class="promo-tag">PROMO</span>
+                <h3><i class="fa-solid fa-video"></i> Random Video Chat</h3>
+                <p>Chat with 100k+ real users worldwide!</p>
                 <button class="btn-video-dl" onclick="window.open('https://1024terabox.com/s/1wCQFn0fXbrLKkUjufnkCMg', '_blank')">
-                    <i class="fa-brands fa-google-play"></i> Download Now
+                    <i class="fa-brands fa-google-play"></i> Install App
                 </button>
             </div>
 
@@ -188,13 +181,13 @@
                 <div class="heart-pulse"></div>
                 <i class="fa-solid fa-heart heart-icon"></i>
             </div>
-            <h2 id="status-text" style="margin-bottom: 5px;">Find Your Match</h2>
-            <p style="color: #b4a9c3; margin-bottom: 20px; padding: 0 40px; font-size: 0.85rem;">Chat anonymously and meet new people around the world.</p>
+            <h2 id="status-text" style="margin-bottom: 5px; font-size: 1.3rem;">Find Your Match</h2>
+            <p style="color: #b4a9c3; margin-bottom: 15px; padding: 0 40px; font-size: 0.8rem;">Chat anonymously and meet new people.</p>
             
             <button class="btn-match" id="findBtn" onclick="handleFind()">Start Matching</button>
 
             <div class="premium-container">
-                <div class="premium-title"><i class="fa-solid fa-star"></i> Free Daily Premium Search</div>
+                <div class="premium-title"><i class="fa-solid fa-star"></i> Daily Premium Search</div>
                 <div class="gender-box" id="gender-section">
                     <button class="gender-btn" id="maleBtn" onclick="handleGenderMatch('male')">
                         <i class="fa-solid fa-mars" style="color: #60a5fa;"></i>

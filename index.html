@@ -457,27 +457,33 @@
     }
 
     function handleFind() {
-        if (isSearching) {
-            cancelSearch();
-            return;
-        }
-
-        let searchCounter = parseInt(localStorage.getItem('mySearchCount')) || 0;
-        searchCounter++;
-        localStorage.setItem('mySearchCount', searchCounter);
-
-        const adMilestones = [2, 5, 8, 13];
-
-        if (adMilestones.includes(searchCounter)) {
-            AdsgramInterstitial.show().then(() => {
-                startSearching();
-            }).catch((e) => {
-                startSearching();
-            });
-        } else {
-            startSearching();
-        }
+    if (isSearching) {
+        cancelSearch();
+        return;
     }
+
+    // 1. Counter update
+    let searchCounter = parseInt(localStorage.getItem('mySearchCount')) || 0;
+    searchCounter++;
+    localStorage.setItem('mySearchCount', searchCounter);
+
+    // 2. Optimized Ad Logic
+    // Prothom 2 barer por theke proti 3-4 search por por ad dekhabe
+    // Jemon: 2, 5, 8, 11, 14, 17... (Unlimited loop)
+    const showAd = (searchCounter === 2 || (searchCounter > 2 && (searchCounter - 2) % 3 === 0));
+
+    if (showAd) {
+        AdsgramInterstitial.show().then(() => {
+            startSearching();
+        }).catch((e) => {
+            console.error("Ad failed or skipped:", e);
+            startSearching(); // Ad fail korle search jate bondho na hoy
+        });
+    } else {
+        startSearching();
+    }
+}
+
 
     function updateGenderUI() {
         let m = localStorage.getItem('m_lim') !== null ? localStorage.getItem('m_lim') : 50;

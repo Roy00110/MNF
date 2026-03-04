@@ -159,6 +159,21 @@
         .gender-btn { flex: 1; padding: 8px; border-radius: 12px; border: 1px solid rgba(255, 77, 148, 0.2); background: var(--glass-bg); color: white; font-weight: bold; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
         
         .close-modal-icon { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: #b4a9c3; cursor: pointer; }
+
+        /* Search UI Overrides */
+        .searching-active header,
+        .searching-active .video-promo-banner,
+        .searching-active #status-text,
+        .searching-active #home-screen > p,
+        .searching-active .premium-container,
+        .searching-active .nav-bar {
+            display: none !important;
+        }
+        .searching-active #home-screen {
+            height: 100vh;
+            justify-content: center;
+            margin-top: 0;
+        }
     </style>
 </head>
 <body>
@@ -269,7 +284,7 @@
 
             <div class="earn-card" style="border: 1px solid #22c55e; background: rgba(34, 197, 94, 0.1);">
                 <div class="earn-info">
-                    <h4 style="color: #22c55e;">Limited Time Offer ⏳</h4>
+                    <h4>Limited Time Offer ⏳</h4>
                     <p>Your account is eligible for a 100% bonus boost. Claim it before it expires!</p>
                 </div>
                 <a href="https://www.effectivegatecpm.com/bwv2bcmvb?key=f85fc33eb900e6464671e4aa5d876171" target="_blank" class="earn-btn" style="text-decoration: none; background: #22c55e;">Claim</a>
@@ -484,20 +499,20 @@
             return;
         }
         isSearching = true;
+        document.body.classList.add('searching-active'); // Hide other elements
         const btn = document.getElementById('findBtn');
         btn.innerText = "Cancel Search";
         btn.classList.add('btn-cancel'); 
-        document.getElementById('status-text').innerText = "Finding someone special...";
         document.getElementById('anim-container').classList.add('searching');
         socket.emit('find_partner_web', userId);
     }
 
     function cancelSearch() {
         isSearching = false;
+        document.body.classList.remove('searching-active'); // Show all elements
         const btn = document.getElementById('findBtn');
         btn.innerText = "Start Matching";
         btn.classList.remove('btn-cancel');
-        document.getElementById('status-text').innerText = "Find Your Match";
         document.getElementById('anim-container').classList.remove('searching');
         socket.emit('cancel_search', userId); 
         tg.HapticFeedback.impactOccurred('light');
@@ -530,6 +545,7 @@
         isSearching = false; 
         msgCount = 0; 
         tg.HapticFeedback.notificationOccurred('success');
+        document.body.classList.remove('searching-active');
         
         // Full screen chat logic
         document.getElementById('main-header').style.display = 'none'; // Hide Header

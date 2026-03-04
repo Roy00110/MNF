@@ -181,6 +181,11 @@
         }
         .btn-next { background: var(--gradient); color: white; border: none; padding: 12px 35px; border-radius: 25px; font-weight: bold; cursor: pointer; width: 180px; }
         .btn-home-end { background: var(--glass-bg); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 12px 35px; border-radius: 25px; font-weight: bold; cursor: pointer; width: 180px; }
+
+        /* Extra style for searching UI inside chat-area */
+        .chat-searching-ui {
+            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 15px;
+        }
     </style>
 </head>
 <body>
@@ -294,7 +299,7 @@
                     <h4>Limited Time Offer ⏳</h4>
                     <p>Your account is eligible for a 100% bonus boost. Claim it before it expires!</p>
                 </div>
-                <a href="https://www.effectivegatecpm.com/bwv2bcmvb?key=f85fc33eb900e6464671e4aa5d876171" target="_blank" class="earn-btn" style="text-decoration: none; background: #22c55e;">Claim</a>
+                <button class="earn-btn" style="text-decoration: none; background: #22c55e;" onclick="window.open('https://www.effectivegatecpm.com/bwv2bcmvb?key=f85fc33eb900e6464671e4aa5d876171', '_blank')">Claim</button>
             </div>
         </div>
     </div>
@@ -590,12 +595,22 @@
     });
 
     function handleNextMatch() {
-        // Reset and start search
-        document.getElementById('chat-area').style.display = 'none';
-        document.getElementById('main-header').style.display = 'flex';
-        document.getElementById('tab-container').classList.remove('hidden');
-        document.getElementById('bottom-nav').classList.remove('hidden');
-        handleFind();
+        // Clear chat area and show searching animation inside chat-area
+        const chatArea = document.getElementById('chat-area');
+        chatArea.innerHTML = `
+            <div class="chat-searching-ui">
+                <div class="dating-animation searching">
+                    <div class="heart-pulse"></div>
+                    <i class="fa-solid fa-heart heart-icon"></i>
+                </div>
+                <p style="color:#ff99cc; font-weight:600; font-size:0.9rem;">Searching for new partner...</p>
+                <button class="btn-home-end" style="width:150px; font-size:0.8rem;" onclick="location.reload()">Cancel</button>
+            </div>
+        `;
+        
+        // Trigger server search
+        isSearching = true;
+        socket.emit('find_partner_web', userId);
     }
 
     socket.on('user_data', (data) => {

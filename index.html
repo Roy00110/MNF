@@ -111,12 +111,35 @@
         .nav-item.active { color: var(--accent); }
         .nav-item i { font-size: 1.2rem; }
 
-        /* --- Chat Area --- */
+        /* --- Full Screen Chat UI --- */
+        #chat-interface {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark); z-index: 500; display: none; flex-direction: column;
+        }
+        .chat-header {
+            padding: 15px 20px; background: rgba(26, 11, 46, 0.95);
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255, 77, 148, 0.2);
+        }
+
         #chat-area { flex: 1; padding: 20px; overflow-y: auto; display: none; flex-direction: column; gap: 15px; }
         .bubble { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-size: 0.95rem; line-height: 1.5; animation: slideUp 0.3s ease; }
         .sent { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; }
         .received { align-self: flex-start; background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1); border-bottom-left-radius: 4px; }
         .chat-img { width: 100%; max-width: 220px; border-radius: 12px; display: block; margin-top: 5px; }
+
+        /* Typing Indicator Style */
+        #typing-indicator { 
+            padding: 5px 20px; font-size: 0.8rem; color: #ff99cc; 
+            font-style: italic; display: none; align-self: flex-start;
+        }
+
+        /* End Chat Overlay */
+        #end-overlay {
+            position: absolute; inset: 0; background: rgba(26, 11, 46, 0.98);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 600; text-align: center; padding: 20px;
+        }
         
         #home-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-top: 5px;}
         .dating-animation { width: 100px; height: 100px; position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; }
@@ -154,7 +177,7 @@
 </head>
 <body>
 
-<header>
+<header id="main-header">
     <div class="logo">MatchMe 💖</div>
     <div style="display: flex; align-items: center;">
         <i class="fa-solid fa-video" id="video-btn-header" onclick="document.getElementById('video-modal').style.display='flex'"></i>
@@ -265,7 +288,36 @@
     </div>
 </div>
 
-<div id="chat-area"></div>
+<div id="chat-interface">
+    <div class="chat-header">
+        <i class="fa-solid fa-circle-xmark" style="color:#ff4d4d; font-size:1.5rem;" onclick="location.reload()"></i>
+        <div class="logo" style="font-size: 1.1rem;">Stranger Chat</div>
+        <i class="fa-solid fa-video" style="color:#22c55e; font-size:1.3rem;" onclick="document.getElementById('video-modal').style.display='flex'"></i>
+    </div>
+    
+    <div id="chat-area" style="display: flex;"></div>
+    <div id="typing-indicator">Partner is typing...</div>
+
+    <div class="input-box hidden" id="input-bar">
+        <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="sendPhoto(this)">
+        <button class="btn-circle" style="background: var(--glass-bg);" onclick="document.getElementById('fileInput').click()">
+            <i class="fa-solid fa-camera"></i>
+        </button>
+        
+        <input type="text" id="main-input" placeholder="Say something sweet..." oninput="emitTyping()">
+        <button class="btn-circle" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+        <button class="btn-circle stop-btn" onclick="location.reload()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div id="end-overlay">
+        <h2 style="color:var(--accent); margin:0;">💔 Chat Ended</h2>
+        <p style="color:#b4a9c3; margin-bottom:20px;">Your partner has left the chat.</p>
+        <div style="display:flex; gap:10px;">
+            <button class="btn-match" onclick="location.reload()" style="background:#475569; padding: 10px 25px;">Home</button>
+            <button class="btn-match" onclick="startSearching()" style="padding: 10px 25px;">Find Next</button>
+        </div>
+    </div>
+</div>
 
 <div class="nav-bar" id="bottom-nav">
     <div class="nav-item active" onclick="switchTab('home', this)">
@@ -276,17 +328,6 @@
         <i class="fa-solid fa-bolt"></i>
         <span>Earn Power</span>
     </div>
-</div>
-
-<div class="input-box hidden" id="input-bar">
-    <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="sendPhoto(this)">
-    <button class="btn-circle" style="background: var(--glass-bg);" onclick="document.getElementById('fileInput').click()">
-        <i class="fa-solid fa-camera"></i>
-    </button>
-    
-    <input type="text" id="main-input" placeholder="Say something sweet...">
-    <button class="btn-circle" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
-    <button class="btn-circle stop-btn" onclick="location.reload()"><i class="fa-solid fa-xmark"></i></button>
 </div>
 
 <div id="limit-modal">
@@ -327,6 +368,7 @@
     const userId = tg.initDataUnsafe?.user?.id;
     let isSearching = false; 
     let msgCount = 0; 
+    let typingTimeout;
 
     const AdsgramInterstitial = window.Adsgram.init({ blockId: "int-23449" });
     const AdsgramRewarded = window.Adsgram.init({ blockId: "20759" });
@@ -473,6 +515,11 @@
             document.getElementById('limit-modal').style.display = 'flex';
             return;
         }
+        
+        // Reset UI for "Find Next"
+        document.getElementById('end-overlay').style.display = 'none';
+        document.getElementById('chat-area').innerHTML = '';
+        
         isSearching = true;
         const btn = document.getElementById('findBtn');
         btn.innerText = "Cancel Search";
@@ -522,23 +569,31 @@
         tg.HapticFeedback.notificationOccurred('success');
         document.getElementById('tab-container').classList.add('hidden');
         document.getElementById('bottom-nav').classList.add('hidden');
-        document.getElementById('chat-area').style.display = 'flex';
+        document.getElementById('main-header').classList.add('hidden'); // hide original header
+        
+        document.getElementById('chat-interface').style.display = 'flex'; // show full chat
         document.getElementById('input-bar').classList.remove('hidden');
-        document.getElementById('video-btn-header').style.display = 'block';
+        document.getElementById('video-btn-header').style.display = 'none'; // hide in main header
+        
         showSystemMsg("❤️ You matched with a stranger!");
     });
 
     socket.on('receive_msg', (data) => {
-        tg.HapticFeedback.impactOccurred('light');
-        if (data.image) createBubble(data.image, 'received', true);
-        else createBubble(data.text, 'received', false);
-        checkMessageLimit(); 
+        if (data.typing) {
+            document.getElementById('typing-indicator').style.display = 'block';
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => { document.getElementById('typing-indicator').style.display = 'none'; }, 2000);
+        } else {
+            document.getElementById('typing-indicator').style.display = 'none';
+            tg.HapticFeedback.impactOccurred('light');
+            if (data.image) createBubble(data.image, 'received', true);
+            else if (data.text) createBubble(data.text, 'received', false);
+            checkMessageLimit(); 
+        }
     });
 
     socket.on('chat_ended', () => {
-        showSystemMsg("💔 Partner left the chat.");
-        document.getElementById('video-btn-header').style.display = 'none';
-        setTimeout(() => location.reload(), 2000);
+        document.getElementById('end-overlay').style.display = 'flex';
     });
 
     socket.on('user_data', (data) => {
@@ -559,6 +614,10 @@
         createBubble(inp.value, 'sent', false);
         inp.value = '';
         checkMessageLimit(); 
+    }
+
+    function emitTyping() {
+        socket.emit('send_msg', { senderId: userId, typing: true });
     }
 
     function checkMessageLimit() {

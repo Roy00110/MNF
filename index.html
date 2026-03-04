@@ -113,9 +113,9 @@
 
         /* --- Full Screen Chat Area --- */
         #chat-area { 
-            position: fixed; top: 70px; bottom: 80px; left: 0; right: 0;
-            padding: 20px; overflow-y: auto; display: none; flex-direction: column; gap: 15px; 
-            background: var(--bg-dark); z-index: 50;
+            position: fixed; top: 0; bottom: 80px; left: 0; right: 0;
+            padding: 70px 20px 20px 20px; overflow-y: auto; display: none; flex-direction: column; gap: 15px; 
+            background: var(--bg-dark); z-index: 150;
         }
         .bubble { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-size: 0.95rem; line-height: 1.5; animation: slideUp 0.3s ease; }
         .sent { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; }
@@ -142,10 +142,15 @@
         .modal-content { background: #2d164d; padding: 30px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid var(--accent); position: relative; }
         .hidden { display: none !important; }
         
-        /* Video Call & X Button Header Styling */
-        .header-actions { display: flex; align-items: center; gap: 15px; }
-        #video-btn-header { display: none; color: #22c55e; font-size: 1.3rem; cursor: pointer; }
-        #close-chat-header { display: none; color: #ef4444; font-size: 1.3rem; cursor: pointer; }
+        /* Floating Chat Actions */
+        #chat-floating-header {
+            position: fixed; top: 15px; left: 0; right: 0;
+            padding: 0 20px; display: none; justify-content: space-between;
+            align-items: center; z-index: 250; pointer-events: none;
+        }
+        #chat-floating-header i { pointer-events: auto; font-size: 1.5rem; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); }
+        #video-btn-float { color: #22c55e; cursor: pointer; }
+        #close-chat-float { color: #ef4444; cursor: pointer; }
 
         /* Compact Premium Section */
         .premium-container { width: 85%; max-width: 350px; padding: 10px; background: rgba(255, 255, 255, 0.03); border-radius: 15px; border: 1px solid rgba(255, 77, 148, 0.15); }
@@ -158,17 +163,20 @@
 </head>
 <body>
 
-<header>
+<header id="main-header">
     <div class="logo">MatchMe 💖</div>
     <div class="header-actions">
-        <i class="fa-solid fa-video" id="video-btn-header" onclick="document.getElementById('video-modal').style.display='flex'"></i>
-        <i class="fa-solid fa-circle-xmark" id="close-chat-header" onclick="location.reload()"></i>
         <div class="limit-card">
             <i class="fa-solid fa-bolt" style="color: #fbbf24;"></i>
             <span id="match-count">0</span>
         </div>
     </div>
 </header>
+
+<div id="chat-floating-header">
+    <i class="fa-solid fa-video" id="video-btn-float" onclick="document.getElementById('video-modal').style.display='flex'"></i>
+    <i class="fa-solid fa-circle-xmark" id="close-chat-float" onclick="location.reload()"></i>
+</div>
 
 <div id="tab-container">
     <div id="home-tab" class="tab-content active-tab">
@@ -522,12 +530,16 @@
         isSearching = false; 
         msgCount = 0; 
         tg.HapticFeedback.notificationOccurred('success');
+        
+        // Full screen chat logic
+        document.getElementById('main-header').style.display = 'none'; // Hide Header
         document.getElementById('tab-container').classList.add('hidden');
         document.getElementById('bottom-nav').classList.add('hidden');
+        
         document.getElementById('chat-area').style.display = 'flex';
+        document.getElementById('chat-floating-header').style.display = 'flex'; // Show floating buttons
         document.getElementById('input-bar').classList.remove('hidden');
-        document.getElementById('video-btn-header').style.display = 'block';
-        document.getElementById('close-chat-header').style.display = 'block';
+        
         showSystemMsg("❤️ You matched with a stranger!");
     });
 
@@ -540,8 +552,7 @@
 
     socket.on('chat_ended', () => {
         showSystemMsg("💔 Partner left the chat.");
-        document.getElementById('video-btn-header').style.display = 'none';
-        document.getElementById('close-chat-header').style.display = 'none';
+        document.getElementById('chat-floating-header').style.display = 'none';
         setTimeout(() => location.reload(), 2000);
     });
 

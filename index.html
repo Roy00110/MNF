@@ -456,7 +456,21 @@
         });
     }
 
-    function handleFind() {
+    function handleFind() {// Clear chat area and show searching animation inside chat-area
+        const chatArea = document.getElementById('chat-area');
+        chatArea.innerHTML = `
+            <div class="chat-searching-ui">
+                <div class="dating-animation searching">
+                    <div class="heart-pulse"></div>
+                    <i class="fa-solid fa-heart heart-icon"></i>
+                </div>
+                <p style="color:#ff99cc; font-weight:600; font-size:0.9rem;">Searching for partner...</p>
+                <button class="btn-home-end" style="width:150px; font-size:0.8rem;" onclick="location.reload()">Cancel</button>
+            </div>
+        `;
+        
+        // Trigger server search
+        {
     if (isSearching) {
         cancelSearch();
         return;
@@ -483,6 +497,8 @@
         startSearching();
     }
 }
+
+    }
 
 
     function updateGenderUI() {
@@ -593,7 +609,7 @@
         const endContainer = document.createElement('div');
         endContainer.className = 'end-chat-container';
         endContainer.innerHTML = `
-            <button class="btn-next" onclick="handleNextMatch()">Next Partner</button>
+            <button class="btn-next" onclick="handleFind()">Next Partner</button>
             <button class="btn-home-end" onclick="location.reload()">Back to Home</button>
         `;
         document.getElementById('chat-area').appendChild(endContainer);

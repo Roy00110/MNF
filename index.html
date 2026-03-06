@@ -200,13 +200,8 @@
     </div>
 </header>
 
-<div id="chat-floating-header" style="display: flex; justify-content: space-around; align-items: center;">
+<div id="chat-floating-header">
     <i class="fa-solid fa-video" id="video-btn-float" onclick="document.getElementById('video-modal').style.display='flex'"></i>
-    
-    <button id="next-btn-float" onclick="forceNextMatch()" style="background: var(--gradient); border: none; color: white; padding: 5px 15px; border-radius: 15px; font-size: 0.75rem; font-weight: bold; cursor: pointer;">
-        Next <i class="fa-solid fa-forward"></i>
-    </button>
-
     <i class="fa-solid fa-circle-xmark" id="close-chat-float" onclick="location.reload()"></i>
 </div>
 
@@ -706,19 +701,6 @@
         div.innerText = msg;
         container.appendChild(div);
     }
-
-    function forceNextMatch() {
-    // ১. Server-ke notify kora je chat kete deya hoyeche
-    socket.emit('cancel_search', userId); 
-    
-    // ২. Haptic feedback (optional)
-    if (window.Telegram && tg.HapticFeedback) {
-        tg.HapticFeedback.impactOccurred('medium');
-    }
-
-    // ৩. Apnar banano handleNextMatch call kora (jeta animation show korbe)
-    handleNextMatch();
-}
 
     show_9341070({
       type: 'inApp',

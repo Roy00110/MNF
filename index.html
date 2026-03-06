@@ -224,7 +224,7 @@
             <h2 id="status-text" style="margin-bottom: 5px; font-size: 1.3rem;">Find Your Match</h2>
             <p style="color: #b4a9c3; margin-bottom: 15px; padding: 0 40px; font-size: 0.8rem;">Chat anonymously and meet new people.</p>
             
-            <button class="btn-match" id="findBtn" onclick="handleFind()">Start Matching</button>
+            <button class="btn-match" id="findBtn" onclick="handleNextMatch()">Start Matching</button>
 
             <div class="premium-container">
                 <div class="premium-title"><i class="fa-solid fa-star"></i> Daily Premium Search</div>
@@ -456,7 +456,8 @@
         });
     }
 
-    function handleFind() {// Clear chat area and show searching animation inside chat-area
+    function handleFind() {
+        // Clear chat area and show searching animation inside chat-area
         const chatArea = document.getElementById('chat-area');
         chatArea.innerHTML = `
             <div class="chat-searching-ui">
@@ -609,7 +610,7 @@
         const endContainer = document.createElement('div');
         endContainer.className = 'end-chat-container';
         endContainer.innerHTML = `
-            <button class="btn-next" onclick="handleFind()">Next Partner</button>
+            <button class="btn-next" onclick="handleNextMatch()">Next Partner</button>
             <button class="btn-home-end" onclick="location.reload()">Back to Home</button>
         `;
         document.getElementById('chat-area').appendChild(endContainer);

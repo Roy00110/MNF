@@ -510,20 +510,37 @@
         handleFind(); 
     }
 
-    function startSearching() {
-        const currentLimit = parseInt(document.getElementById('match-count').innerText);
-        if (currentLimit <= 0) {
-            document.getElementById('limit-modal').style.display = 'flex';
-            return;
-        }
-        isSearching = true;
-        document.body.classList.add('searching-active'); // Hide other elements
-        const btn = document.getElementById('findBtn');
-        btn.innerText = "Cancel Search";
-        btn.classList.add('btn-cancel'); 
-        document.getElementById('anim-container').classList.add('searching');
-        socket.emit('find_partner_web', userId);
+  function startSearching() {
+    const currentLimit = parseInt(document.getElementById('match-count').innerText);
+    if (currentLimit <= 0) {
+        document.getElementById('limit-modal').style.display = 'flex';
+        return;
     }
+
+    isSearching = true;
+    
+    // ১. Home Screen-er jinishpatro hide kora
+    document.getElementById('home-screen').style.display = 'none';
+    document.getElementById('main-header').style.display = 'none';
+    document.getElementById('bottom-nav').classList.add('hidden');
+
+    // ২. Chat Area active kora ebong searching UI set kora
+    const chatArea = document.getElementById('chat-area');
+    chatArea.style.display = 'flex';
+    chatArea.innerHTML = `
+        <div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100%;">
+            <div class="dating-animation searching">
+                <div class="heart-pulse"></div>
+                <i class="fa-solid fa-heart heart-icon"></i>
+            </div>
+            <p style="color:#ff99cc; font-weight:600; font-size:1.1rem; margin-top: 15px;">Searching for a partner...</p>
+            <button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px; background: rgba(255,255,255,0.1); border: 1px solid #ff99cc; color: #fff; padding: 10px; border-radius: 20px;" onclick="location.reload()">Cancel</button>
+        </div>
+    `;
+
+    // ৩. Server-e signal pathano
+    socket.emit('find_partner_web', userId);
+}
 
     function cancelSearch() {
         isSearching = false;
@@ -600,50 +617,26 @@
         document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
     });
 
-    function handleNextMatch() {
-        // Clear chat area and show searching animation inside chat-area
-        const chatArea = document.getElementById('chat-area');
-        chatArea.innerHTML = `
-            <div class="chat-searching-ui">
-                <div class="dating-animation searching">
-                    <div class="heart-pulse"></div>
-                    <i class="fa-solid fa-heart heart-icon"></i>
-                </div>
-                <p style="color:#ff99cc; font-weight:600; font-size:0.9rem;">Searching for new partner...</p>
-                <button class="btn-home-end" style="width:150px; font-size:0.8rem;" onclick="location.reload()">Cancel</button>
+   function handleNextMatch() {
+    // 1. Chat area clear kore Searching UI add kora
+    const chatArea = document.getElementById('chat-area');
+    chatArea.innerHTML = `
+        <div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+            <div class="dating-animation searching">
+                <div class="heart-pulse"></div>
+                <i class="fa-solid fa-heart heart-icon"></i>
             </div>
-        `;
-        
-        // Trigger server search
-        {
-    if (isSearching) {
-        cancelSearch();
-        return;
-    }
+            <p style="color:#ff99cc; font-weight:600; font-size:0.9rem; margin-top: 15px;">Searching for new partner...</p>
+            <button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px;" onclick="location.reload()">Cancel</button>
+        </div>
+    `;
 
-    // 1. Counter update
-    let searchCounter = parseInt(localStorage.getItem('mySearchCount')) || 0;
-    searchCounter++;
-    localStorage.setItem('mySearchCount', searchCounter);
+    // 2. Chat floating header hide kora (jodi match na pawa porjonto hide rakhte chan)
+    document.getElementById('chat-floating-header').style.display = 'none';
 
-    // 2. Optimized Ad Logic
-    // Prothom 2 barer por theke proti 3-4 search por por ad dekhabe
-    // Jemon: 2, 5, 8, 11, 14, 17... (Unlimited loop)
-    const showAd = (searchCounter === 2 || (searchCounter > 2 && (searchCounter - 2) % 3 === 0));
-
-    if (showAd) {
-        AdsgramInterstitial.show().then(() => {
-            startSearching();
-        }).catch((e) => {
-            console.error("Ad failed or skipped:", e);
-            startSearching(); // Ad fail korle search jate bondho na hoy
-        });
-    } else {
-        startSearching();
-    }
+    // 3. Search logic shuru kora (handleFind reuse kora hoyeche jate Ad logic-o thakbe)
+    handleFind();
 }
-
-    }
 
     socket.on('user_data', (data) => {
         if (data && data.limit !== undefined) {

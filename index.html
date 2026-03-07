@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>MatchMe Premium</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+    <script src='//libtl.com/sdk.js' data-zone='9341070' data-sdk='show_9341070'></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --accent: #ff4d94; /* Romantic Pink */
+            --bg-dark: #1a0b2e; /* Deep Purple Background */
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --gradient: linear-gradient(135deg, #ff4d94, #ff7171);
+            --video-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+        }
+
+        body {
+            margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg-dark); color: var(--text-main);
+            height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        header {
+            padding: 15px 20px; background: rgba(26, 11, 46, 0.8);
+            backdrop-filter: blur(15px); display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255, 77, 148, 0.2); z-index: 100;
+        }
+
+        .logo { font-size: 1.4rem; font-weight: 800; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .limit-card {
+            background: var(--glass-bg); padding: 6px 14px; border-radius: 20px;
+            font-size: 0.85rem; border: 1px solid rgba(255, 77, 148, 0.3);
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        /* --- Tabs Logic --- */
+        #tab-container { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+        .tab-content { display: none; }
+        .active-tab { display: block; }
+
+        /* --- Compact Promotional Video Banner --- */
+        .video-promo-banner {
+            width: 85%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(79, 172, 254, 0.4);
+            border-radius: 15px;
+            padding: 10px;
+            margin: 15px auto;
+            text-align: center;
+            position: relative;
+        }
+        .promo-tag {
+            background: #4facfe;
+            color: white;
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 5px;
+            position: absolute;
+            top: -8px;
+            left: 10px;
+            font-weight: bold;
+        }
+        .video-promo-banner h3 { margin: 2px 0; font-size: 0.9rem; color: #00f2fe; }
+        .video-promo-banner p { font-size: 0.75rem; color: #b4a9c3; margin: 2px 0 8px; }
+        .btn-video-dl {
+            background: var(--video-gradient);
+            color: white;
+            border: none;
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            text-decoration: none;
+        }
+
+        /* --- Earn Tab Styling --- */
+        .earn-section { padding: 20px; text-align: center; }
+        .earn-card {
+            background: var(--glass-bg); border: 1px solid rgba(255, 77, 148, 0.2);
+            border-radius: 15px; padding: 15px; margin-bottom: 15px;
+            display: flex; align-items: center; justify-content: space-between; text-align: left;
+        }
+        .earn-info h4 { margin: 0; color: var(--text-main); font-size: 1rem; }
+        .earn-info p { margin: 3px 0 0; color: #b4a9c3; font-size: 0.8rem; }
+        .earn-btn { 
+            background: var(--gradient); border: none; color: white; padding: 8px 15px; 
+            border-radius: 10px; font-weight: bold; font-size: 0.8rem; cursor: pointer;
+        }
+        .earn-btn:disabled { opacity: 0.6; cursor: not-allowed; background: #475569 !important; }
+
+        /* --- Profile Tab Styling --- */
+        .profile-section {
+            padding: 25px 20px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .profile-card {
+            background: var(--glass-bg);
+            border: 1px solid rgba(255, 77, 148, 0.2);
+            border-radius: 25px;
+            padding: 25px 20px;
+            backdrop-filter: blur(10px);
+        }
+        .profile-field {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .profile-field label {
+            display: block;
+            font-size: 0.75rem;
+            color: #b4a9c3;
+            margin-bottom: 5px;
+            letter-spacing: 0.3px;
+        }
+        .profile-field input, .profile-field select {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255, 77, 148, 0.3);
+            border-radius: 15px;
+            padding: 14px 16px;
+            color: white;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .profile-field input:focus, .profile-field select:focus {
+            border-color: var(--accent);
+        }
+        .profile-field option { background: #1a0b2e; color: white; }
+        .profile-gender-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+        }
+        .profile-gender-option {
+            flex: 1;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255, 77, 148, 0.2);
+            border-radius: 15px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #b4a9c3;
+        }
+        .profile-gender-option.selected {
+            background: var(--gradient);
+            color: white;
+            border-color: transparent;
+        }
+        .profile-gender-option i { margin-right: 6px; }
+        .btn-save-profile {
+            width: 100%;
+            background: var(--gradient);
+            border: none;
+            color: white;
+            padding: 16px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: opacity 0.2s;
+        }
+        .btn-save-profile:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: #475569 !important;
+        }
+
+        /* --- Navigation Bar --- */
+        .nav-bar {
+            position: fixed; bottom: 0; width: 100%; background: rgba(26, 11, 46, 0.95);
+            display: flex; justify-content: space-around; padding: 12px 0;
+            border-top: 1px solid rgba(255, 77, 148, 0.2); z-index: 200;
+        }
+        .nav-item { color: #b4a9c3; font-size: 0.75rem; display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
+        .nav-item.active { color: var(--accent); }
+        .nav-item i { font-size: 1.2rem; }
+
+        /* --- Full Screen Chat Area --- */
+        #chat-area { 
+            position: fixed; top: 0; bottom: 80px; left: 0; right: 0;
+            padding: 70px 20px 20px 20px; overflow-y: auto; display: none; flex-direction: column; gap: 15px; 
+            background: var(--bg-dark); z-index: 150;
+        }
+        .bubble { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-size: 0.95rem; line-height: 1.5; animation: slideUp 0.3s ease; }
+        .sent { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; }
+        .received { align-self: flex-start; background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1); border-bottom-left-radius: 4px; }
+        .chat-img { width: 100%; max-width: 220px; border-radius: 12px; display: block; margin-top: 5px; }
+        
+        #home-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-top: 5px;}
+        .dating-animation { width: 100px; height: 100px; position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; }
+        .heart-icon { color: var(--accent); font-size: 3rem; z-index: 2; position: relative; }
+        .heart-pulse { position: absolute; width: 50px; height: 50px; background: var(--accent); transform: rotate(45deg); opacity: 0; border-radius: 50% 50% 0 0; }
+        .heart-pulse::before { content: ''; position: absolute; width: 50px; height: 50px; background: var(--accent); border-radius: 50%; left: -25px; }
+        .searching .heart-pulse { animation: heartPulse 2s infinite; opacity: 0.4; }
+        @keyframes heartPulse { 0% { transform: scale(1) rotate(45deg); opacity: 0.5; } 100% { transform: scale(2.5) rotate(45deg); opacity: 0; } }
+        
+        .btn-match { background: var(--gradient); color: white; border: none; padding: 14px 45px; border-radius: 30px; font-weight: bold; font-size: 1rem; cursor: pointer; box-shadow: 0 8px 20px rgba(255, 77, 148, 0.4); transition: all 0.3s ease; margin-bottom: 15px;}
+        .btn-cancel { background: #475569 !important; box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important; }
+        
+        .input-box { position: fixed; bottom: 0; left: 0; right: 0; padding: 15px 20px; background: rgba(26, 11, 46, 0.95); display: flex; align-items: center; gap: 12px; border-top: 1px solid rgba(255, 77, 148, 0.2); padding-bottom: env(safe-area-inset-bottom, 15px); z-index: 200; }
+        .input-box input { flex: 1; background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1); padding: 12px 18px; border-radius: 25px; color: white; outline: none; }
+        .btn-circle { width: 45px; height: 45px; border-radius: 50%; background: var(--gradient); border: none; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+        
+        /* Modal Styles */
+        #limit-modal, #video-modal, #ad-floating-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .modal-content { background: #2d164d; padding: 30px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid var(--accent); position: relative; }
+        .hidden { display: none !important; }
+        
+        /* Floating Chat Actions */
+        #chat-floating-header {
+            position: fixed; top: 15px; left: 0; right: 0;
+            padding: 0 20px; display: none; justify-content: space-between;
+            align-items: center; z-index: 250; pointer-events: none;
+        }
+        #chat-floating-header i { pointer-events: auto; font-size: 1.5rem; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); }
+        #video-btn-float { color: #22c55e; cursor: pointer; }
+        #close-chat-float { color: #ef4444; cursor: pointer; }
+
+        /* Compact Premium Section */
+        .premium-container { width: 85%; max-width: 350px; padding: 10px; background: rgba(255, 255, 255, 0.03); border-radius: 15px; border: 1px solid rgba(255, 77, 148, 0.15); }
+        .premium-title { font-size: 0.7rem; color: #fbbf24; margin-bottom: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .gender-box { display: flex; gap: 8px; }
+        .gender-btn { flex: 1; padding: 8px; border-radius: 12px; border: 1px solid rgba(255, 77, 148, 0.2); background: var(--glass-bg); color: white; font-weight: bold; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        
+        .close-modal-icon { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: #b4a9c3; cursor: pointer; }
+
+        /* Search UI Overrides */
+        .searching-active header,
+        .searching-active .video-promo-banner,
+        .searching-active #status-text,
+        .searching-active #home-screen > p,
+        .searching-active .premium-container,
+        .searching-active .nav-bar {
+            display: none !important;
+        }
+        .searching-active #home-screen {
+            height: 100vh;
+            justify-content: center;
+            margin-top: 0;
+        }
+
+        /* Next/Home Buttons UI */
+        .end-chat-container {
+            display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 20px; animation: slideUp 0.4s ease;
+        }
+        .btn-next { background: var(--gradient); color: white; border: none; padding: 12px 35px; border-radius: 25px; font-weight: bold; cursor: pointer; width: 180px; }
+        .btn-home-end { background: var(--glass-bg); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 12px 35px; border-radius: 25px; font-weight: bold; cursor: pointer; width: 180px; }
+
+        /* Extra style for searching UI inside chat-area */
+        .chat-searching-ui {
+            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<header id="main-header">
+    <div class="logo">MatchMe 💖</div>
+    <div class="header-actions">
+        <div class="limit-card">
+            <i class="fa-solid fa-bolt" style="color: #fbbf24;"></i>
+            <span id="match-count">0</span>
+        </div>
+    </div>
+</header>
+
+<div id="chat-floating-header">
+    <i class="fa-solid fa-video" id="video-btn-float" onclick="document.getElementById('video-modal').style.display='flex'"></i>
+    <i class="fa-solid fa-circle-xmark" id="close-chat-float" onclick="location.reload()"></i>
+</div>
+
+<div id="tab-container">
+    <div id="home-tab" class="tab-content active-tab">
+        <div id="home-screen">
+            <div class="video-promo-banner">
+                <span class="promo-tag">FREE</span>
+                <h3><i class="fa-solid fa-video"></i> Random Video Chat </h3>
+                <p>Chat with 10M+ real users worldwide!</p>
+                <button class="btn-video-dl" onclick="window.open('https://1024terabox.com/s/1wCQFn0fXbrLKkUjufnkCMg', '_blank')">
+                    <i class="fa-solid fa-cloud"></i> Download App
+                </button>
+            </div>
+
+            <div class="dating-animation" id="anim-container">
+                <div class="heart-pulse"></div>
+                <i class="fa-solid fa-heart heart-icon"></i>
+            </div>
+            <h2 id="status-text" style="margin-bottom: 5px; font-size: 1.3rem;">Find Your Match</h2>
+            <p style="color: #b4a9c3; margin-bottom: 15px; padding: 0 40px; font-size: 0.8rem;">Chat anonymously and meet new people.</p>
+            
+            <button class="btn-match" id="findBtn" onclick="handleFind()">Start Matching</button>
+
+            <div class="premium-container">
+                <div class="premium-title"><i class="fa-solid fa-star"></i> Daily Premium Search</div>
+                <div class="gender-box" id="gender-section">
+                    <button class="gender-btn" id="maleBtn" onclick="handleGenderMatch('male')">
+                        <i class="fa-solid fa-mars" style="color: #60a5fa;"></i>
+                        Male (<span id="m-lim">50</span>)
+                    </button>
+                    <button class="gender-btn" id="femaleBtn" onclick="handleGenderMatch('female')">
+                        <i class="fa-solid fa-venus" style="color: #f472b6;"></i>
+                        Female (<span id="f-lim">50</span>)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="profile-tab" class="tab-content">
+        <div class="profile-section">
+            <div class="profile-card">
+                <h3 style="text-align:center; margin-bottom:20px;"><i class="fa-solid fa-user-pen"></i> My Profile</h3>
+                
+                <div class="profile-field">
+                    <label><i class="fa-regular fa-user"></i> Your Name</label>
+                    <input type="text" id="profileName" placeholder="e.g., Alex" value="Anonymous">
+                </div>
+
+                <div class="profile-field">
+                    <label><i class="fa-regular fa-calendar"></i> Age</label>
+                    <input type="number" id="profileAge" placeholder="18-99" min="18" max="99" value="25">
+                </div>
+
+                <div class="profile-field">
+                    <label><i class="fa-regular fa-flag"></i> Gender</label>
+                    <div class="profile-gender-group" id="profileGenderGroup">
+                        <div class="profile-gender-option" data-gender="male" onclick="selectGender('male')">
+                            <i class="fa-solid fa-mars"></i> Male
+                        </div>
+                        <div class="profile-gender-option" data-gender="female" onclick="selectGender('female')">
+                            <i class="fa-solid fa-venus"></i> Female
+                        </div>
+                        <div class="profile-gender-option" data-gender="other" onclick="selectGender('other')">
+                            <i class="fa-solid fa-genderless"></i> Other
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-save-profile" id="saveProfileBtn" onclick="saveProfile()" disabled>Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="earn-tab" class="tab-content">
+        <div class="earn-section">
+            <h2 style="margin-bottom: 20px;">Earn Match Power ⚡</h2>
+            
+            <div class="earn-card" style="border: 1px solid var(--accent);">
+                <div class="earn-info">
+                    <h4> Random video Chat 📱</h4>
+                    <p>Enjoy Free Video chat with strangers </p>
+                </div>
+                <button class="earn-btn" onclick="window.open('https://1024terabox.com/s/1wCQFn0fXbrLKkUjufnkCMg', '_blank')">Download</button>
+            </div>
+
+            <div class="earn-card">
+                <div class="earn-info">
+                    <h4>Watch & Earn ⚡</h4>
+                    <p>Get +15 bonus Power ⚡</p>
+                </div>
+                <button class="earn-btn" id="watchBtn" onclick="watchRewardAd()">Watch</button>
+            </div>
+
+            <div class="earn-card">
+                <div class="earn-info">
+                    <h4>Daily Bonus 🎁</h4>
+                    <p>Claim 5 ⚡ every day</p>
+                </div>
+                <button class="earn-btn" id="dailyBtn" onclick="claimDaily()">Claim</button>
+            </div>
+
+            <div class="earn-card">
+                <div class="earn-info">
+                    <h4>Invite Friends 👥</h4>
+                    <p>Share with friends for +20 ⚡</p>
+                </div>
+                <button class="earn-btn" onclick="inviteFriends()">Invite</button>
+            </div>
+
+            <div class="earn-card">
+                <div class="earn-info">
+                    <h4>Join Channel 📢</h4>
+                    <p>Follow us for +10 ⚡</p>
+                </div>
+                <button class="earn-btn" onclick="joinChannel()">Join</button>
+            </div>
+
+            <div class="earn-card" style="border: 1px solid #fbbf24; background: rgba(251, 191, 36, 0.05);">
+                <div class="earn-info">
+                    <h4>Lucky Spin 🎡</h4>
+                    <p>Win 1 to 50 ⚡ daily</p>
+                </div>
+                <button class="earn-btn" id="spinBtn" style="background: #fbbf24; color: #1a0b2e;" onclick="luckySpin()">Spin</button>
+            </div>
+
+            <div class="earn-card" style="border: 1px solid #22c55e; background: rgba(34, 197, 94, 0.1);">
+                <div class="earn-info">
+                    <h4>Limited Time Offer ⏳</h4>
+                    <p>Your account is eligible for a 100% bonus boost. Claim it before it expires!</p>
+                </div>
+                <button class="earn-btn" style="text-decoration: none; background: #22c55e;" onclick="window.open('https://www.effectivegatecpm.com/bwv2bcmvb?key=f85fc33eb900e6464671e4aa5d876171', '_blank')">Claim</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="chat-area"></div>
+
+<div class="nav-bar" id="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('home', this)">
+        <i class="fa-solid fa-fire"></i>
+        <span>Matching</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('profile', this)">
+        <i class="fa-solid fa-user"></i>
+        <span>Profile</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('earn', this)">
+        <i class="fa-solid fa-bolt"></i>
+        <span>Earn Power</span>
+    </div>
+</div>
+
+<div class="input-box hidden" id="input-bar">
+    <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="sendPhoto(this)">
+    <button class="btn-circle" style="background: var(--glass-bg);" onclick="document.getElementById('fileInput').click()">
+        <i class="fa-solid fa-camera"></i>
+    </button>
+    
+    <input type="text" id="main-input" placeholder="Say something sweet...">
+    <button class="btn-circle" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+</div>
+
+<div id="limit-modal">
+    <div class="modal-content">
+        <div style="font-size:50px; margin-bottom: 10px;">⚡</div>
+        <h2 style="color:var(--accent); margin-top: 0;">Power Limit Reached!</h2>
+        <p style="color:#b4a9c3;">Watch a video to get <b>+15 Match Power</b> instantly!</p>
+        <button id="rewardBtnModal" onclick="watchRewardAd()" style="background:var(--gradient); color:white; border:none; padding:15px; border-radius:20px; font-weight:800; width:100%; cursor:pointer; margin-top: 10px;">📺 Watch & Recharge</button>
+        <button onclick="document.getElementById('limit-modal').style.display='none'" style="background:transparent; color:white; border:none; margin-top:15px; opacity:0.6;">Maybe later</button>
+    </div>
+</div>
+
+<div id="video-modal">
+    <div class="modal-content">
+        <div style="font-size:50px; margin-bottom: 10px;">🎥</div>
+        <h2 style="color:var(--accent); margin-top: 0;">Video Call Feature</h2>
+        <p style="color:#b4a9c3;">Download our official app to start <b>video calls</b> with random matches!</p>
+        <button onclick="window.open('https://1024terabox.com/s/1wCQFn0fXbrLKkUjufnkCMg', '_blank')" style="background:var(--gradient); color:white; border:none; padding:15px; border-radius:20px; font-weight:800; width:100%; cursor:pointer; margin-top: 10px;">📥 Download App Now</button>
+        <button onclick="document.getElementById('video-modal').style.display='none'" style="background:transparent; color:white; border:none; margin-top:15px; opacity:0.6;">Close</button>
+    </div>
+</div>
+
+<div id="ad-floating-modal">
+    <div class="modal-content">
+        <i class="fa-solid fa-circle-xmark close-modal-icon" onclick="document.getElementById('ad-floating-modal').style.display='none'"></i>
+        <div style="font-size:50px; margin-bottom: 10px;">📱</div>
+        <h2 style="color:var(--accent); margin-top: 0;">Download Our Video chat app</h2>
+        <p style="color:#b4a9c3;">Start a <b>Free Random Video Chat</b> With 100k+ Girls and boys!</p>
+        <button onclick="window.open('https://1024terabox.com/s/1wCQFn0fXbrLKkUjufnkCMg', '_blank')" style="background:var(--gradient); color:white; border:none; padding:15px; border-radius:25px; font-weight:800; width:100%; cursor:pointer; margin-top: 10px; box-shadow: 0 5px 15px rgba(255, 77, 148, 0.4);">🚀 Start Video Chat</button>
+    </div>
+</div>
+
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.ready(); 
+    
+    const socket = io();
+    const userId = tg.initDataUnsafe?.user?.id;
+    let isSearching = false; 
+    let msgCount = 0; 
+
+    const AdsgramInterstitial = window.Adsgram.init({ blockId: "int-23449" });
+    const AdsgramRewarded = window.Adsgram.init({ blockId: "20759" });
+
+    tg.expand();
+    tg.setHeaderColor('#1a0b2e');
+
+    if (userId) socket.emit('join', userId);
+
+    window.onload = () => {
+        const today = new Date().toDateString();
+        
+        const lastAdReset = localStorage.getItem('lastAdResetTime') || 0;
+        const currentTime = Date.now();
+        if (currentTime - lastAdReset > 24 * 60 * 60 * 1000) {
+            localStorage.setItem('mySearchCount', 0);
+            localStorage.setItem('lastAdResetTime', currentTime);
+        }
+
+        if (localStorage.getItem('last_gender_reset') !== today) {
+            localStorage.setItem('m_lim', 50);
+            localStorage.setItem('f_lim', 50);
+            localStorage.setItem('last_gender_reset', today);
+        }
+
+        if (localStorage.getItem('lastDailyBonus') === today) {
+            const btn = document.getElementById('dailyBtn');
+            btn.disabled = true;
+            btn.innerText = "Done";
+        }
+        if (localStorage.getItem('lastLuckySpin') === today) {
+            const btn = document.getElementById('spinBtn');
+            btn.disabled = true;
+            btn.innerText = "Done";
+            btn.style.background = "#475569";
+        }
+        
+        // Profile load
+        loadProfileFromStorage();
+        attachProfileListeners();
+        
+        updateGenderUI();
+    };
+
+    function switchTab(tabName, el) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active-tab'));
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        
+        document.getElementById(tabName + '-tab').classList.add('active-tab');
+        el.classList.add('active');
+    }
+
+    // ---------- Profile Logic ----------
+    let originalProfile = { name: 'Anonymous', age: '25', gender: 'male' };
+    
+    function loadProfileFromStorage() {
+        const saved = localStorage.getItem('userProfile');
+        if (saved) {
+            try {
+                originalProfile = JSON.parse(saved);
+            } catch (e) {}
+        }
+        document.getElementById('profileName').value = originalProfile.name || 'Anonymous';
+        document.getElementById('profileAge').value = originalProfile.age || '25';
+        
+        // Set gender highlight
+        document.querySelectorAll('.profile-gender-option').forEach(opt => opt.classList.remove('selected'));
+        if (originalProfile.gender) {
+            const selected = document.querySelector(`.profile-gender-option[data-gender="${originalProfile.gender}"]`);
+            if (selected) selected.classList.add('selected');
+        } else {
+            document.querySelector('.profile-gender-option[data-gender="male"]').classList.add('selected');
+            originalProfile.gender = 'male';
+        }
+        // Save button should be disabled initially (no changes)
+        document.getElementById('saveProfileBtn').disabled = true;
+    }
+
+    function attachProfileListeners() {
+        const nameInput = document.getElementById('profileName');
+        const ageInput = document.getElementById('profileAge');
+        
+        nameInput.addEventListener('input', checkProfileChanges);
+        ageInput.addEventListener('input', checkProfileChanges);
+        // gender click handled separately, but we trigger check there
+    }
+
+    function selectGender(gender) {
+        document.querySelectorAll('.profile-gender-option').forEach(opt => opt.classList.remove('selected'));
+        document.querySelector(`.profile-gender-option[data-gender="${gender}"]`).classList.add('selected');
+        checkProfileChanges(); // enable save button if changes exist
+    }
+
+    function getCurrentProfile() {
+        let gender = 'male';
+        const selected = document.querySelector('.profile-gender-option.selected');
+        if (selected) gender = selected.getAttribute('data-gender');
+        
+        return {
+            name: document.getElementById('profileName').value.trim() || 'Anonymous',
+            age: document.getElementById('profileAge').value || '25',
+            gender: gender
+        };
+    }
+
+    function checkProfileChanges() {
+        const current = getCurrentProfile();
+        const saved = originalProfile;
+        
+        const changed = (current.name !== saved.name || 
+                        current.age !== saved.age || 
+                        current.gender !== saved.gender);
+        
+        document.getElementById('saveProfileBtn').disabled = !changed;
+    }
+
+    function saveProfile() {
+        const current = getCurrentProfile();
+        localStorage.setItem('userProfile', JSON.stringify(current));
+        originalProfile = { ...current }; // update original
+        document.getElementById('saveProfileBtn').disabled = true;
+        tg.HapticFeedback.notificationOccurred('success');
+        tg.showAlert("Profile saved successfully!");
+    }
+    // -----------------------------------
+
+    function claimDaily() {
+        show_9341070('pop').then(() => {
+            socket.emit('claim_daily', userId);
+            tg.HapticFeedback.notificationOccurred('success');
+            localStorage.setItem('lastDailyBonus', new Date().toDateString());
+            const btn = document.getElementById('dailyBtn');
+            btn.disabled = true;
+            btn.innerText = "Done";
+            tg.showAlert("You received 5 free matches! 🎉");
+        }).catch(e => {
+            tg.showAlert("Please watch the full ad to claim your bonus!");
+        });
+    }
+
+    function inviteFriends() {
+        const shareLink = `https://t.me/MakefriendsglobalBot?start=${userId}`;
+        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=Hey! Come and chat with me on MatchMe! 💖`);
+    }
+
+    function joinChannel() {
+        tg.openTelegramLink('https://t.me/+666ngR_ca9ZmODk1'); 
+        socket.emit('social_task', userId);
+    }
+
+    function luckySpin() {
+        tg.showConfirm("Do you want to use your daily Lucky Spin?", (ok) => {
+            if (ok) {
+                show_9341070().then(() => {
+                    socket.emit('lucky_spin', userId); 
+                    tg.HapticFeedback.impactOccurred('medium');
+                    localStorage.setItem('lastLuckySpin', new Date().toDateString());
+                    const btn = document.getElementById('spinBtn');
+                    btn.disabled = true;
+                    btn.innerText = "Done";
+                    btn.style.background = "#475569";
+                    btn.style.color = "white";
+                }).catch((err) => {
+                    tg.showAlert("Ad not available or skipped. Please try again to spin!");
+                });
+            }
+        });
+    }
+
+    function handleFind() {
+    if (isSearching) {
+        cancelSearch();
+        return;
+    }
+
+    // 1. Counter update
+    let searchCounter = parseInt(localStorage.getItem('mySearchCount')) || 0;
+    searchCounter++;
+    localStorage.setItem('mySearchCount', searchCounter);
+
+    // 2. Optimized Ad Logic
+    // Prothom 2 barer por theke proti 3-4 search por por ad dekhabe
+    // Jemon: 2, 5, 8, 11, 14, 17... (Unlimited loop)
+    const showAd = (searchCounter === 2 || (searchCounter > 2 && (searchCounter - 2) % 3 === 0));
+
+    if (showAd) {
+        AdsgramInterstitial.show().then(() => {
+            startSearching();
+        }).catch((e) => {
+            console.error("Ad failed or skipped:", e);
+            startSearching(); // Ad fail korle search jate bondho na hoy
+        });
+    } else {
+        startSearching();
+    }
+}
+
+
+    function updateGenderUI() {
+        let m = localStorage.getItem('m_lim') !== null ? localStorage.getItem('m_lim') : 50;
+        let f = localStorage.getItem('f_lim') !== null ? localStorage.getItem('f_lim') : 50;
+        document.getElementById('m-lim').innerText = m;
+        document.getElementById('f-lim').innerText = f;
+        document.getElementById('maleBtn').style.opacity = (m <= 0) ? "0.5" : "1";
+        document.getElementById('femaleBtn').style.opacity = (f <= 0) ? "0.5" : "1";
+    }
+
+    function handleGenderMatch(gender) {
+        if (isSearching) return cancelSearch();
+        
+        let key = gender === 'male' ? 'm_lim' : 'f_lim';
+        let current = localStorage.getItem(key) !== null ? parseInt(localStorage.getItem(key)) : 50;
+
+        if(current <= 0) {
+            tg.showAlert("Daily Limit Reached! 🚨\n\nYour free daily search for " + gender + " is over. Please try again tomorrow to get premium search!");
+            return;
+        }
+
+        localStorage.setItem(key, current - 1);
+        updateGenderUI();
+        handleFind(); 
+    }
+
+  function startSearching() {
+    const currentLimit = parseInt(document.getElementById('match-count').innerText);
+    if (currentLimit <= 0) {
+        document.getElementById('limit-modal').style.display = 'flex';
+        return;
+    }
+
+    isSearching = true;
+    
+    // ১. Home Screen-er jinishpatro hide kora
+    document.getElementById('home-screen').style.display = 'none';
+    document.getElementById('main-header').style.display = 'none';
+    document.getElementById('bottom-nav').classList.add('hidden');
+
+    // ২. Chat Area active kora ebong searching UI set kora
+    const chatArea = document.getElementById('chat-area');
+    chatArea.style.display = 'flex';
+    chatArea.innerHTML = `
+        <div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100%;">
+            <div class="dating-animation searching">
+                <div class="heart-pulse"></div>
+                <i class="fa-solid fa-heart heart-icon"></i>
+            </div>
+            <p style="color:#ff99cc; font-weight:600; font-size:1.1rem; margin-top: 15px;">Searching for a partner...</p>
+            <button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px; background: rgba(255,255,255,0.1); border: 1px solid #ff99cc; color: #fff; padding: 10px; border-radius: 20px;" onclick="location.reload()">Cancel</button>
+        </div>
+    `;
+
+    // ৩. Server-e signal pathano
+    socket.emit('find_partner_web', userId);
+}
+
+    function cancelSearch() {
+        isSearching = false;
+        document.body.classList.remove('searching-active'); // Show all elements
+        const btn = document.getElementById('findBtn');
+        btn.innerText = "Start Matching";
+        btn.classList.remove('btn-cancel');
+        document.getElementById('anim-container').classList.remove('searching');
+        socket.emit('cancel_search', userId); 
+        tg.HapticFeedback.impactOccurred('light');
+    }
+
+    async function watchRewardAd() {
+        const btn = document.getElementById('watchBtn');
+        const modalBtn = document.getElementById('rewardBtnModal');
+        btn.disabled = true;
+        modalBtn.disabled = true;
+        try {
+            const result = await AdsgramRewarded.show();
+            if (result.done) {
+                socket.emit('reward_user', userId);
+                tg.HapticFeedback.notificationOccurred('success');
+                tg.showAlert("15 matches added successfully!");
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                btn.disabled = false;
+                modalBtn.disabled = false;
+            }
+        } catch (error) {
+            alert("Ad failed to load or skipped.");
+            btn.disabled = false;
+            modalBtn.disabled = false;
+        }
+    }
+
+    socket.on('match_found', () => {
+        isSearching = false; 
+        msgCount = 0; 
+        tg.HapticFeedback.notificationOccurred('success');
+        document.body.classList.remove('searching-active');
+        
+        // Full screen chat logic
+        document.getElementById('main-header').style.display = 'none'; // Hide Header
+        document.getElementById('tab-container').classList.add('hidden');
+        document.getElementById('bottom-nav').classList.add('hidden');
+        
+        document.getElementById('chat-area').innerHTML = ''; // Clear area
+        document.getElementById('chat-area').style.display = 'flex';
+        document.getElementById('chat-floating-header').style.display = 'flex'; // Show floating buttons
+        document.getElementById('input-bar').classList.remove('hidden');
+        
+        showSystemMsg("❤️ You matched with a stranger!");
+    });
+
+    socket.on('receive_msg', (data) => {
+        tg.HapticFeedback.impactOccurred('light');
+        if (data.image) createBubble(data.image, 'received', true);
+        else createBubble(data.text, 'received', false);
+        checkMessageLimit(); 
+    });
+
+    socket.on('chat_ended', () => {
+        showSystemMsg("💔 Partner left the chat.");
+        document.getElementById('chat-floating-header').style.display = 'none';
+        document.getElementById('input-bar').classList.add('hidden');
+        
+        const endContainer = document.createElement('div');
+        endContainer.className = 'end-chat-container';
+        endContainer.innerHTML = `
+            <button class="btn-next" onclick="handleNextMatch()">Next Partner</button>
+            <button class="btn-home-end" onclick="location.reload()">Back to Home</button>
+        `;
+        document.getElementById('chat-area').appendChild(endContainer);
+        document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
+    });
+
+   function handleNextMatch() {
+    // 1. Chat area clear kore Searching UI add kora
+    const chatArea = document.getElementById('chat-area');
+    chatArea.innerHTML = `
+        <div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+            <div class="dating-animation searching">
+                <div class="heart-pulse"></div>
+                <i class="fa-solid fa-heart heart-icon"></i>
+            </div>
+            <p style="color:#ff99cc; font-weight:600; font-size:0.9rem; margin-top: 15px;">Searching for new partner...</p>
+            <button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px;" onclick="location.reload()">Cancel</button>
+        </div>
+    `;
+
+    // 2. Chat floating header hide kora (jodi match na pawa porjont
+    document.getElementById('chat-floating-header').style.display = 'none';
+
+    // 3. Search logic shuru kora (handleFind reuse kora hoyeche jate Ad logic-o thakbe)
+    handleFind();
+}
+
+    socket.on('user_data', (data) => {
+        if (data && data.limit !== undefined) {
+            document.getElementById('match-count').innerText = data.limit;
+        }
+    });
+
+    socket.on('limit_over', () => {
+        cancelSearch(); 
+        document.getElementById('limit-modal').style.display = 'flex';
+    });
+
+    function sendMessage() {
+        const inp = document.getElementById('main-input');
+        if(!inp.value.trim()) return;
+        socket.emit('send_msg', { senderId: userId, text: inp.value });
+        createBubble(inp.value, 'sent', false);
+        inp.value = '';
+        checkMessageLimit(); 
+    }
+
+    function checkMessageLimit() {
+        msgCount++;
+        if (msgCount === 4) { 
+            setTimeout(() => {
+                document.getElementById('ad-floating-modal').style.display = 'flex';
+                tg.HapticFeedback.notificationOccurred('warning');
+            }, 1000);
+        }
+    }
+
+    document.getElementById('main-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+
+    function sendPhoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                createBubble(e.target.result, 'sent', true);
+                socket.emit('send_msg', { senderId: userId, image: e.target.result });
+                checkMessageLimit();
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function createBubble(content, side, isImage) {
+        const container = document.getElementById('chat-area');
+        const div = document.createElement('div');
+        div.className = `bubble ${side}`;
+        if(isImage) div.innerHTML = `<img src="${content}" class="chat-img">`;
+        else div.innerText = content;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function showSystemMsg(msg) {
+        const container = document.getElementById('chat-area');
+        const div = document.createElement('div');
+        div.style = "text-align:center; font-size: 0.75rem; color: #ff99cc; margin: 15px 0; font-weight: 500;";
+        div.innerText = msg;
+        container.appendChild(div);
+    }
+
+    show_9341070({
+      type: 'inApp',
+      inAppSettings: {
+        frequency: 2,
+        capping: 0.5,
+        interval: 150,
+        timeout: 15,
+        everyPage: false
+      }
+    });
+</script>
+</body>
+</html>

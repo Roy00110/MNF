@@ -217,7 +217,7 @@
         .btn-circle { width: 45px; height: 45px; border-radius: 50%; background: var(--gradient); border: none; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
         
         /* Modal Styles */
-        #limit-modal, #video-modal, #ad-floating-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        #limit-modal, #video-modal, #ad-floating-modal, #profile-required-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-content { background: #2d164d; padding: 30px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid var(--accent); position: relative; }
         .hidden { display: none !important; }
         
@@ -518,6 +518,22 @@
     </div>
 </div>
 
+<!-- New Profile Required Modal -->
+<div id="profile-required-modal">
+    <div class="modal-content">
+        <div style="font-size:60px; margin-bottom: 15px; color: var(--accent);">👤</div>
+        <h2 style="color:var(--accent); margin-top: 0; font-size: 1.8rem;">Profile Required!</h2>
+        <p style="color:#e0d4f0; font-size: 1.1rem; margin: 20px 0;">Please set up your profile first to start matching with new people.</p>
+        <div style="background: rgba(255, 77, 148, 0.15); border-radius: 20px; padding: 15px; margin: 15px 0;">
+            <p style="margin: 5px 0;"><i class="fa-regular fa-circle-check" style="color: #4ade80;"></i> Add your name</p>
+            <p style="margin: 5px 0;"><i class="fa-regular fa-circle-check" style="color: #4ade80;"></i> Select your age</p>
+            <p style="margin: 5px 0;"><i class="fa-regular fa-circle-check" style="color: #4ade80;"></i> Choose your gender</p>
+        </div>
+        <button onclick="document.getElementById('profile-required-modal').style.display='none'; switchTab('profile', document.querySelectorAll('.nav-item')[1]);" style="background:var(--gradient); color:white; border:none; padding:16px; border-radius:30px; font-weight:800; width:100%; cursor:pointer; margin-top: 15px; font-size: 1.1rem;">📝 Go to Profile</button>
+        <button onclick="document.getElementById('profile-required-modal').style.display='none'" style="background:transparent; color:white; border:1px solid rgba(255,255,255,0.2); margin-top:15px; padding:12px; border-radius:25px; width:100%; opacity:0.8; cursor:pointer;">Close</button>
+    </div>
+</div>
+
 <script>
     const tg = window.Telegram.WebApp;
     tg.ready(); 
@@ -581,6 +597,7 @@
 
     // ---------- Profile Logic with Database Simulation ----------
     let originalProfile = { name: 'Anonymous', age: '25', gender: 'male' };
+    let profileSet = false; // Flag to check if profile is set
     
     function loadProfileFromStorage() {
         // Simulate fetching from database via localStorage
@@ -588,7 +605,15 @@
         if (saved) {
             try {
                 originalProfile = JSON.parse(saved);
+                // Check if profile is meaningful (not default Anonymous)
+                if (originalProfile.name && originalProfile.name !== 'Anonymous' && originalProfile.name.trim() !== '') {
+                    profileSet = true;
+                } else {
+                    profileSet = false;
+                }
             } catch (e) {}
+        } else {
+            profileSet = false;
         }
         document.getElementById('profileName').value = originalProfile.name || 'Anonymous';
         document.getElementById('profileAge').value = originalProfile.age || '25';
@@ -659,6 +684,11 @@
         originalProfile = { ...current };
         document.getElementById('saveProfileBtn').disabled = true;
         
+        // Set profileSet flag to true if name is not default
+        if (current.name && current.name !== 'Anonymous' && current.name.trim() !== '') {
+            profileSet = true;
+        }
+        
         // Do NOT update chat badge with self info
         // updateChatProfileBadge();  // Removed - we show partner only
         
@@ -727,32 +757,39 @@
     }
 
     function handleFind() {
-    if (isSearching) {
-        cancelSearch();
-        return;
-    }
+        // First check if profile is set
+        if (!profileSet) {
+            document.getElementById('profile-required-modal').style.display = 'flex';
+            tg.HapticFeedback.notificationOccurred('warning');
+            return;
+        }
+        
+        if (isSearching) {
+            cancelSearch();
+            return;
+        }
 
-    // 1. Counter update
-    let searchCounter = parseInt(localStorage.getItem('mySearchCount')) || 0;
-    searchCounter++;
-    localStorage.setItem('mySearchCount', searchCounter);
+        // 1. Counter update
+        let searchCounter = parseInt(localStorage.getItem('mySearchCount')) || 0;
+        searchCounter++;
+        localStorage.setItem('mySearchCount', searchCounter);
 
-    // 2. Optimized Ad Logic
-    // Prothom 2 barer por theke proti 3-4 search por por ad dekhabe
-    // Jemon: 2, 5, 8, 11, 14, 17... (Unlimited loop)
-    const showAd = (searchCounter === 2 || (searchCounter > 2 && (searchCounter - 2) % 3 === 0));
+        // 2. Optimized Ad Logic
+        // Prothom 2 barer por theke proti 3-4 search por por ad dekhabe
+        // Jemon: 2, 5, 8, 11, 14, 17... (Unlimited loop)
+        const showAd = (searchCounter === 2 || (searchCounter > 2 && (searchCounter - 2) % 3 === 0));
 
-    if (showAd) {
-        AdsgramInterstitial.show().then(() => {
+        if (showAd) {
+            AdsgramInterstitial.show().then(() => {
+                startSearching();
+            }).catch((e) => {
+                console.error("Ad failed or skipped:", e);
+                startSearching(); // Ad fail korle search jate bondho na hoy
+            });
+        } else {
             startSearching();
-        }).catch((e) => {
-            console.error("Ad failed or skipped:", e);
-            startSearching(); // Ad fail korle search jate bondho na hoy
-        });
-    } else {
-        startSearching();
+        }
     }
-}
 
 
     function updateGenderUI() {
@@ -766,6 +803,13 @@
 
     function handleGenderMatch(gender) {
         if (isSearching) return cancelSearch();
+        
+        // Check profile before gender match too
+        if (!profileSet) {
+            document.getElementById('profile-required-modal').style.display = 'flex';
+            tg.HapticFeedback.notificationOccurred('warning');
+            return;
+        }
         
         let key = gender === 'male' ? 'm_lim' : 'f_lim';
         let current = localStorage.getItem(key) !== null ? parseInt(localStorage.getItem(key)) : 50;

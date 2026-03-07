@@ -217,7 +217,7 @@
         .btn-circle { width: 45px; height: 45px; border-radius: 50%; background: var(--gradient); border: none; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
         
         /* Modal Styles */
-        #limit-modal, #video-modal, #ad-floating-modal, #profile-required-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        #limit-modal, #video-modal, #ad-floating-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-content { background: #2d164d; padding: 30px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid var(--accent); position: relative; }
         .hidden { display: none !important; }
         
@@ -300,6 +300,21 @@
         .chat-searching-ui {
             display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 15px;
         }
+
+        /* Validation error style */
+        .validation-error {
+            color: #ff6b6b;
+            font-size: 0.75rem;
+            margin-top: 5px;
+            text-align: left;
+            display: none;
+        }
+        .validation-error.show {
+            display: block;
+        }
+        input.invalid {
+            border-color: #ff6b6b !important;
+        }
     </style>
 </head>
 <body>
@@ -369,8 +384,9 @@
                 <h3 style="text-align:center; margin-bottom:20px;"><i class="fa-solid fa-user-pen"></i> My Profile</h3>
                 
                 <div class="profile-field">
-                    <label><i class="fa-regular fa-user"></i> Your Name</label>
-                    <input type="text" id="profileName" placeholder="e.g., Alex" value="Anonymous">
+                    <label><i class="fa-regular fa-user"></i> Your Name (max 6 characters, no @ or numbers)</label>
+                    <input type="text" id="profileName" placeholder="e.g., Alex" value="Anonymous" maxlength="6">
+                    <div id="nameError" class="validation-error">Name cannot contain @ symbol or numbers</div>
                 </div>
 
                 <div class="profile-field">
@@ -518,22 +534,6 @@
     </div>
 </div>
 
-<!-- New Profile Required Modal -->
-<div id="profile-required-modal">
-    <div class="modal-content">
-        <div style="font-size:60px; margin-bottom: 15px; color: var(--accent);">👤</div>
-        <h2 style="color:var(--accent); margin-top: 0; font-size: 1.8rem;">Profile Required!</h2>
-        <p style="color:#e0d4f0; font-size: 1.1rem; margin: 20px 0;">Please set up your profile first to start matching with new people.</p>
-        <div style="background: rgba(255, 77, 148, 0.15); border-radius: 20px; padding: 15px; margin: 15px 0;">
-            <p style="margin: 5px 0;"><i class="fa-regular fa-circle-check" style="color: #4ade80;"></i> Add your name</p>
-            <p style="margin: 5px 0;"><i class="fa-regular fa-circle-check" style="color: #4ade80;"></i> Select your age</p>
-            <p style="margin: 5px 0;"><i class="fa-regular fa-circle-check" style="color: #4ade80;"></i> Choose your gender</p>
-        </div>
-        <button onclick="document.getElementById('profile-required-modal').style.display='none'; switchTab('profile', document.querySelectorAll('.nav-item')[1]);" style="background:var(--gradient); color:white; border:none; padding:16px; border-radius:30px; font-weight:800; width:100%; cursor:pointer; margin-top: 15px; font-size: 1.1rem;">📝 Go to Profile</button>
-        <button onclick="document.getElementById('profile-required-modal').style.display='none'" style="background:transparent; color:white; border:1px solid rgba(255,255,255,0.2); margin-top:15px; padding:12px; border-radius:25px; width:100%; opacity:0.8; cursor:pointer;">Close</button>
-    </div>
-</div>
-
 <script>
     const tg = window.Telegram.WebApp;
     tg.ready(); 
@@ -637,8 +637,30 @@
         const nameInput = document.getElementById('profileName');
         const ageInput = document.getElementById('profileAge');
         
-        nameInput.addEventListener('input', checkProfileChanges);
+        nameInput.addEventListener('input', function() {
+            validateNameInput();
+            checkProfileChanges();
+        });
         ageInput.addEventListener('input', checkProfileChanges);
+    }
+
+    function validateNameInput() {
+        const nameInput = document.getElementById('profileName');
+        const nameError = document.getElementById('nameError');
+        const name = nameInput.value;
+        
+        // Check for @ symbol or numbers
+        const hasInvalidChars = /[@0-9]/.test(name);
+        
+        if (hasInvalidChars) {
+            nameInput.classList.add('invalid');
+            nameError.classList.add('show');
+            return false;
+        } else {
+            nameInput.classList.remove('invalid');
+            nameError.classList.remove('show');
+            return true;
+        }
     }
 
     function selectGender(gender) {
@@ -663,15 +685,25 @@
         const current = getCurrentProfile();
         const saved = originalProfile;
         
+        // Also validate name before enabling save button
+        const isValid = validateNameInput();
+        
         const changed = (current.name !== saved.name || 
                         current.age !== saved.age || 
                         current.gender !== saved.gender);
         
-        document.getElementById('saveProfileBtn').disabled = !changed;
+        // Only enable if changed AND name is valid
+        document.getElementById('saveProfileBtn').disabled = !(changed && isValid);
     }
 
     function saveProfile() {
         const current = getCurrentProfile();
+        
+        // Final validation check
+        if (!validateNameInput()) {
+            tg.showAlert("Name cannot contain @ symbol or numbers!");
+            return;
+        }
         
         // Save to localStorage (simulates database save)
         localStorage.setItem('userProfile', JSON.stringify(current));
@@ -693,7 +725,10 @@
         // updateChatProfileBadge();  // Removed - we show partner only
         
         tg.HapticFeedback.notificationOccurred('success');
-        tg.showAlert("Profile saved to database successfully!");
+        tg.showAlert("Profile saved successfully!");
+        
+        // Automatically switch back to home tab after saving
+        switchTab('home', document.querySelectorAll('.nav-item')[0]);
     }
 
     // Function to update chat badge with PARTNER info (called when match found)
@@ -759,7 +794,8 @@
     function handleFind() {
         // First check if profile is set
         if (!profileSet) {
-            document.getElementById('profile-required-modal').style.display = 'flex';
+            // Automatically switch to profile tab without showing popup
+            switchTab('profile', document.querySelectorAll('.nav-item')[1]);
             tg.HapticFeedback.notificationOccurred('warning');
             return;
         }
@@ -806,7 +842,8 @@
         
         // Check profile before gender match too
         if (!profileSet) {
-            document.getElementById('profile-required-modal').style.display = 'flex';
+            // Automatically switch to profile tab without showing popup
+            switchTab('profile', document.querySelectorAll('.nav-item')[1]);
             tg.HapticFeedback.notificationOccurred('warning');
             return;
         }

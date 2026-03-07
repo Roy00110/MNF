@@ -30,9 +30,7 @@ mongoose.connect(MONGO_URI)
 // --- User Model (Updated with missing fields) ---
 const User = mongoose.model('User', new mongoose.Schema({
     userId: { type: Number, unique: true },
-    firstName: String, // Telegram theke pawa default name
-    name: { type: String, default: '' }, // User-er set kora manual name
-    gender: { type: String, default: '' }, // User-er set kora gender
+    firstName: String,
     partnerId: { type: Number, default: null },
     status: { type: String, default: 'idle' },
     matchLimit: { type: Number, default: 10 },
@@ -42,8 +40,9 @@ const User = mongoose.model('User', new mongoose.Schema({
     webPartnerId: { type: Number, default: null },
     webSocketId: { type: String, default: null },
     hasReceivedReferralBonus: { type: Boolean, default: false },
+    // Missing Fields Added
     joinedChannel: { type: Boolean, default: false }, 
-    lastSpin: { type: Date, default: null },           
+    lastSpin: { type: Date, default: null },          
     isVip: { type: Boolean, default: false }
 }));
 
@@ -117,27 +116,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('update_profile', async (data) => {
-    try {
-        if (!data.userId || !data.name || !data.gender) {
-            return console.log("Invalid profile data received.");
-        }
-
-        await User.findOneAndUpdate(
-            { userId: data.userId }, 
-            { 
-                name: data.name, 
-                gender: data.gender 
-            }, 
-            { upsert: true, new: true }
-        );
-        
-        console.log(`Profile updated for user: ${data.userId}`);
-    } catch (err) {
-        console.error("Profile Update Error:", err);
-    }
-});
-    
     // --- Added Daily Claim Logic ---
     socket.on('claim_daily', async (userId) => {
         const user = await User.findOne({ userId: Number(userId) });
@@ -155,10 +133,10 @@ io.on('connection', (socket) => {
     try {
         if (!userId) return;
 
-        // অ্যারে থেকে ইউজারকে সরিয়ে ফেলা
+        // অ্যারে থেকে ইউজারকে সরিয়ে ফেলা
         waitingUsers = waitingUsers.filter(u => u.userId !== userId);
 
-        // ডাটাবেসে স্ট্যাটাস 'idle' করে দেওয়া যাতে অন্য কেউ তাকে খুঁজে না পায়
+        // ডাটাবেসে স্ট্যাটাস 'idle' করে দেওয়া যাতে অন্য কেউ তাকে খুঁজে না পায়
         await User.updateOne(
             { userId: Number(userId) }, 
             { $set: { webStatus: 'idle' } }
@@ -198,7 +176,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('find_partner_web', async (userId) => {
-    // --- ছোট পরিবর্তন: ডুপ্লিকেট এড়াতে আগে মুছে নিয়ে তারপর পুশ করা ---
+    // --- ছোট পরিবর্তন: ডুপ্লিকেট এড়াতে আগে মুছে নিয়ে তারপর পুশ করা ---
     waitingUsers = waitingUsers.filter(u => u.userId !== userId);
     waitingUsers.push({ userId, socketId: socket.id });
 
@@ -209,7 +187,7 @@ io.on('connection', (socket) => {
         // লিমিট চেক
         if (user.userId !== ADMIN_ID && user.matchLimit <= 0) {
             console.log(`🚫 [Web] Match limit over for: ${userId}`);
-            // লিমিট শেষ হলে ওয়েটিং লিস্ট থেকে সরিয়ে দেওয়া ভালো
+            // লিমিট শেষ হলে ওয়েটিং লিস্ট থেকে সরিয়ে দেওয়া ভালো
             waitingUsers = waitingUsers.filter(u => u.userId !== userId);
             return io.to(socket.id).emit('limit_over');
         }
@@ -217,7 +195,7 @@ io.on('connection', (socket) => {
         // স্ট্যাটাস আপডেট
         await User.updateOne({ userId: Number(userId) }, { webStatus: 'searching', webSocketId: socket.id });
 
-        // ৪ নম্বর আপডেট: পার্টনার খোঁজা (Partner-এর ডাটা সহ)
+        // পার্টনার খোঁজা
         const partner = await User.findOneAndUpdate(
             { userId: { $ne: Number(userId) }, webStatus: 'searching', webSocketId: { $ne: null } },
             { webStatus: 'chatting', webPartnerId: Number(userId) },
@@ -225,7 +203,7 @@ io.on('connection', (socket) => {
         );
 
         if (partner) {
-            // ম্যাচ হলে দুজনকে ওয়েটিং লিস্ট থেকে সরিয়ে দিন
+            // ম্যাচ হলে দুজনকে ওয়েটিং লিস্ট থেকে সরিয়ে দিন
             waitingUsers = waitingUsers.filter(u => u.userId !== userId && u.userId !== partner.userId);
 
             await User.updateOne({ userId: Number(userId) }, { webStatus: 'chatting', webPartnerId: partner.userId });
@@ -234,16 +212,9 @@ io.on('connection', (socket) => {
             if (user.userId !== ADMIN_ID) await User.updateOne({ userId: user.userId }, { $inc: { matchLimit: -1 } });
             if (partner.userId !== ADMIN_ID) await User.updateOne({ userId: partner.userId }, { $inc: { matchLimit: -1 } });
 
-            // ৪ নম্বর আপডেট: ফ্রন্তেন্ডে পার্টনারের প্রোফাইল ডাটা পাঠানো
-            io.to(socket.id).emit('match_found', {
-                name: partner.name || "Stranger",
-                gender: partner.gender || "Secret"
-            });
-            
-            io.to(partner.webSocketId).emit('match_found', {
-                name: user.name || "Stranger",
-                gender: user.gender || "Secret"
-            });
+            // ফ্রন্টেন্ডে জানানো
+            io.to(socket.id).emit('match_found');
+            io.to(partner.webSocketId).emit('match_found');
 
             console.log(`🤝 [Web Match] ${userId} matched with ${partner.userId}`);
         }

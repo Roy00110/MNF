@@ -712,6 +712,22 @@
             return;
         }
         
+        // Disable save button temporarily to prevent double clicks
+        const saveBtn = document.getElementById('saveProfileBtn');
+        saveBtn.disabled = true;
+        
+        // Show interstitial ad before saving
+        AdsgramInterstitial.show().then(() => {
+            // Ad completed successfully - now save profile
+            performProfileSave(current);
+        }).catch((e) => {
+            console.error("Ad failed or skipped:", e);
+            // Even if ad fails, still save profile (user can proceed)
+            performProfileSave(current);
+        });
+    }
+    
+    function performProfileSave(current) {
         // Save to localStorage (simulates database save)
         localStorage.setItem('userProfile', JSON.stringify(current));
         
@@ -1082,9 +1098,9 @@
       type: 'inApp',
       inAppSettings: {
         frequency: 2,
-        capping: 0.5,
+        capping: 0.1,
         interval: 150,
-        timeout: 30,
+        timeout: 45,
         everyPage: false
       }
     });

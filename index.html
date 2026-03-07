@@ -585,6 +585,13 @@
         attachProfileListeners();
         
         updateGenderUI();
+        
+        // Automatically go to profile tab if no profile found
+        if (!profileSet) {
+            setTimeout(() => {
+                switchTab('profile', document.querySelectorAll('.nav-item')[1]);
+            }, 500);
+        }
     };
 
     function switchTab(tabName, el) {
@@ -1077,7 +1084,7 @@
         frequency: 2,
         capping: 0.5,
         interval: 150,
-        timeout: 15,
+        timeout: 30,
         everyPage: false
       }
     });

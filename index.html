@@ -186,6 +186,69 @@
         .chat-searching-ui {
             display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 15px;
         }
+
+        /* Profile Tab Styling */
+.profile-section {
+    padding: 20px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.input-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    color: #b4a9c3;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.profile-input {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 77, 148, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    transition: 0.3s;
+}
+
+.profile-input:focus {
+    border-color: var(--accent);
+    background: rgba(255, 77, 148, 0.1);
+}
+
+/* Chat Partner Info Header */
+#partner-info-bar {
+    background: rgba(26, 11, 46, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 10px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: none; /* Initially hidden */
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.partner-avatar {
+    width: 40px;
+    height: 40px;
+    background: var(--gradient);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+        
     </style>
 </head>
 <body>
@@ -201,6 +264,13 @@
 </header>
 
 <div id="chat-floating-header">
+    <div id="partner-info-display" style="display: flex; align-items: center; gap: 10px; margin-right: auto; padding-left: 10px;">
+        <div style="width: 35px; height: 35px; background: var(--gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">👤</div>
+        <div style="text-align: left;">
+            <div id="partner-name" style="font-size: 0.9rem; font-weight: bold; color: white; line-height: 1;">Stranger</div>
+            <div id="partner-gender" style="font-size: 0.65rem; color: #ff99cc; text-transform: capitalize;">...</div>
+        </div>
+    </div>
     <i class="fa-solid fa-video" id="video-btn-float" onclick="document.getElementById('video-modal').style.display='flex'"></i>
     <i class="fa-solid fa-circle-xmark" id="close-chat-float" onclick="location.reload()"></i>
 </div>
@@ -430,6 +500,10 @@
             btn.style.background = "#475569";
         }
         updateGenderUI();
+        
+        // ৩ নম্বর আপডেট (Part 1): Load saved profile fields
+        if(userProfile.name) document.getElementById('user-name-input').value = userProfile.name;
+        if(userProfile.gender) document.getElementById('user-gender-input').value = userProfile.gender;
     };
 
     function switchTab(tabName, el) {
@@ -484,81 +558,67 @@
     }
 
     // Variable to store user info
-let userProfile = {
-    name: localStorage.getItem('user_name') || "",
-    gender: localStorage.getItem('user_gender') || ""
-};
+    let userProfile = {
+        name: localStorage.getItem('user_name') || "",
+        gender: localStorage.getItem('user_gender') || ""
+    };
 
-// Start-up e field gulo fill kora
-window.onload = () => {
-    // ... tomar ager onload code ...
-    if(userProfile.name) document.getElementById('user-name-input').value = userProfile.name;
-    if(userProfile.gender) document.getElementById('user-gender-input').value = userProfile.gender;
-};
+    function saveProfile() {
+        const name = document.getElementById('user-name-input').value.trim();
+        const gender = document.getElementById('user-gender-input').value;
 
-function saveProfile() {
-    const name = document.getElementById('user-name-input').value.trim();
-    const gender = document.getElementById('user-gender-input').value;
+        if (!name || !gender) {
+            tg.showAlert("Please enter both name and gender! ⚠️");
+            return;
+        }
 
-    if (!name || !gender) {
-        tg.showAlert("Please enter both name and gender! ⚠️");
-        return;
+        // LocalStorage update
+        localStorage.setItem('user_name', name);
+        localStorage.setItem('user_gender', gender);
+        userProfile.name = name;
+        userProfile.gender = gender;
+
+        // Server-e update pathano (Database-e save hobe)
+        socket.emit('update_profile', { userId, name, gender });
+
+        // UI Feedback
+        const status = document.getElementById('profile-status');
+        status.style.display = 'block';
+        tg.HapticFeedback.notificationOccurred('success');
+        setTimeout(() => { status.style.display = 'none'; }, 3000);
     }
 
-    // LocalStorage update
-    localStorage.setItem('user_name', name);
-    localStorage.setItem('user_gender', gender);
-    userProfile.name = name;
-    userProfile.gender = gender;
+    function handleFind() {
+        // ৩ নম্বর আপডেট (Part 2): Profile check before matching
+        if (!userProfile.name || !userProfile.gender) {
+            tg.showConfirm("Profile incomplete! 🚨\nPlease complete your profile to start. Check Profile.", (ok) => {
+                if(ok) switchTab('profile', document.querySelectorAll('.nav-item')[2]);
+            });
+            return;
+        }
+        
+        if (isSearching) {
+            cancelSearch();
+            return;
+        }
 
-    // Server-e update pathano (Database-e save hobe)
-    socket.emit('update_profile', { userId, name, gender });
+        let searchCounter = parseInt(localStorage.getItem('mySearchCount')) || 0;
+        searchCounter++;
+        localStorage.setItem('mySearchCount', searchCounter);
 
-    // UI Feedback
-    const status = document.getElementById('profile-status');
-    status.style.display = 'block';
-    tg.HapticFeedback.notificationOccurred('success');
-    setTimeout(() => { status.style.display = 'none'; }, 3000);
-}
+        const showAd = (searchCounter === 2 || (searchCounter > 2 && (searchCounter - 2) % 3 === 0));
 
-// handleFind function-er shuru-te eita add koro
-function handleFind() {
-    if (!userProfile.name || !userProfile.gender) {
-        tg.showConfirm("Profile incomplete! 🚨\nPlease complete your profile to start. Check Profile.", (ok) => {
-            if(ok) switchTab('profile', document.querySelectorAll('.nav-item')[2]);
-        });
-        return;
-    }
-    
-    // ... baki handleFind code ...
-
-    if (isSearching) {
-        cancelSearch();
-        return;
-    }
-
-    // 1. Counter update
-    let searchCounter = parseInt(localStorage.getItem('mySearchCount')) || 0;
-    searchCounter++;
-    localStorage.setItem('mySearchCount', searchCounter);
-
-    // 2. Optimized Ad Logic
-    // Prothom 2 barer por theke proti 3-4 search por por ad dekhabe
-    // Jemon: 2, 5, 8, 11, 14, 17... (Unlimited loop)
-    const showAd = (searchCounter === 2 || (searchCounter > 2 && (searchCounter - 2) % 3 === 0));
-
-    if (showAd) {
-        AdsgramInterstitial.show().then(() => {
+        if (showAd) {
+            AdsgramInterstitial.show().then(() => {
+                startSearching();
+            }).catch((e) => {
+                console.error("Ad failed or skipped:", e);
+                startSearching(); 
+            });
+        } else {
             startSearching();
-        }).catch((e) => {
-            console.error("Ad failed or skipped:", e);
-            startSearching(); // Ad fail korle search jate bondho na hoy
-        });
-    } else {
-        startSearching();
+        }
     }
-}
-
 
     function updateGenderUI() {
         let m = localStorage.getItem('m_lim') !== null ? localStorage.getItem('m_lim') : 50;
@@ -585,41 +645,38 @@ function handleFind() {
         handleFind(); 
     }
 
-  function startSearching() {
-    const currentLimit = parseInt(document.getElementById('match-count').innerText);
-    if (currentLimit <= 0) {
-        document.getElementById('limit-modal').style.display = 'flex';
-        return;
-    }
+    function startSearching() {
+        const currentLimit = parseInt(document.getElementById('match-count').innerText);
+        if (currentLimit <= 0) {
+            document.getElementById('limit-modal').style.display = 'flex';
+            return;
+        }
 
-    isSearching = true;
-    
-    // ১. Home Screen-er jinishpatro hide kora
-    document.getElementById('home-screen').style.display = 'none';
-    document.getElementById('main-header').style.display = 'none';
-    document.getElementById('bottom-nav').classList.add('hidden');
+        isSearching = true;
+        
+        document.getElementById('home-screen').style.display = 'none';
+        document.getElementById('main-header').style.display = 'none';
+        document.getElementById('bottom-nav').classList.add('hidden');
 
-    // ২. Chat Area active kora ebong searching UI set kora
-    const chatArea = document.getElementById('chat-area');
-    chatArea.style.display = 'flex';
-    chatArea.innerHTML = `
-        <div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100%;">
-            <div class="dating-animation searching">
-                <div class="heart-pulse"></div>
-                <i class="fa-solid fa-heart heart-icon"></i>
+        const chatArea = document.getElementById('chat-area');
+        chatArea.style.display = 'flex';
+        chatArea.innerHTML = `
+            <div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100%;">
+                <div class="dating-animation searching">
+                    <div class="heart-pulse"></div>
+                    <i class="fa-solid fa-heart heart-icon"></i>
+                </div>
+                <p style="color:#ff99cc; font-weight:600; font-size:1.1rem; margin-top: 15px;">Searching for a partner...</p>
+                <button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px; background: rgba(255,255,255,0.1); border: 1px solid #ff99cc; color: #fff; padding: 10px; border-radius: 20px;" onclick="location.reload()">Cancel</button>
             </div>
-            <p style="color:#ff99cc; font-weight:600; font-size:1.1rem; margin-top: 15px;">Searching for a partner...</p>
-            <button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px; background: rgba(255,255,255,0.1); border: 1px solid #ff99cc; color: #fff; padding: 10px; border-radius: 20px;" onclick="location.reload()">Cancel</button>
-        </div>
-    `;
+        `;
 
-    // ৩. Server-e signal pathano
-    socket.emit('find_partner_web', userId);
-}
+        socket.emit('find_partner_web', userId);
+    }
 
     function cancelSearch() {
         isSearching = false;
-        document.body.classList.remove('searching-active'); // Show all elements
+        document.body.classList.remove('searching-active'); 
         const btn = document.getElementById('findBtn');
         btn.innerText = "Start Matching";
         btn.classList.remove('btn-cancel');
@@ -651,23 +708,27 @@ function handleFind() {
         }
     }
 
-    socket.on('match_found', () => {
+    // ৩ নম্বর আপডেট (Part 3): Update match_found to show Partner info
+    socket.on('match_found', (partnerData) => {
         isSearching = false; 
         msgCount = 0; 
         tg.HapticFeedback.notificationOccurred('success');
         document.body.classList.remove('searching-active');
         
-        // Full screen chat logic
-        document.getElementById('main-header').style.display = 'none'; // Hide Header
+        document.getElementById('main-header').style.display = 'none'; 
         document.getElementById('tab-container').classList.add('hidden');
         document.getElementById('bottom-nav').classList.add('hidden');
         
-        document.getElementById('chat-area').innerHTML = ''; // Clear area
+        // Partner Info display update
+        document.getElementById('partner-name').innerText = partnerData?.name || "Stranger";
+        document.getElementById('partner-gender').innerText = partnerData?.gender || "Unknown";
+        
+        document.getElementById('chat-area').innerHTML = ''; 
         document.getElementById('chat-area').style.display = 'flex';
-        document.getElementById('chat-floating-header').style.display = 'flex'; // Show floating buttons
+        document.getElementById('chat-floating-header').style.display = 'flex'; 
         document.getElementById('input-bar').classList.remove('hidden');
         
-        showSystemMsg("❤️ You matched with a stranger!");
+        showSystemMsg(`❤️ You matched with ${partnerData?.name || 'a stranger'}!`);
     });
 
     socket.on('receive_msg', (data) => {
@@ -679,6 +740,7 @@ function handleFind() {
 
     socket.on('chat_ended', () => {
         showSystemMsg("💔 Partner left the chat.");
+        // Hide partner info bar
         document.getElementById('chat-floating-header').style.display = 'none';
         document.getElementById('input-bar').classList.add('hidden');
         
@@ -692,26 +754,22 @@ function handleFind() {
         document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
     });
 
-   function handleNextMatch() {
-    // 1. Chat area clear kore Searching UI add kora
-    const chatArea = document.getElementById('chat-area');
-    chatArea.innerHTML = `
-        <div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
-            <div class="dating-animation searching">
-                <div class="heart-pulse"></div>
-                <i class="fa-solid fa-heart heart-icon"></i>
+    function handleNextMatch() {
+        const chatArea = document.getElementById('chat-area');
+        chatArea.innerHTML = `
+            <div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                <div class="dating-animation searching">
+                    <div class="heart-pulse"></div>
+                    <i class="fa-solid fa-heart heart-icon"></i>
+                </div>
+                <p style="color:#ff99cc; font-weight:600; font-size:0.9rem; margin-top: 15px;">Searching for new partner...</p>
+                <button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px;" onclick="location.reload()">Cancel</button>
             </div>
-            <p style="color:#ff99cc; font-weight:600; font-size:0.9rem; margin-top: 15px;">Searching for new partner...</p>
-            <button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px;" onclick="location.reload()">Cancel</button>
-        </div>
-    `;
+        `;
 
-    // 2. Chat floating header hide kora (jodi match na pawa porjonto hide rakhte chan)
-    document.getElementById('chat-floating-header').style.display = 'none';
-
-    // 3. Search logic shuru kora (handleFind reuse kora hoyeche jate Ad logic-o thakbe)
-    handleFind();
-}
+        document.getElementById('chat-floating-header').style.display = 'none';
+        handleFind();
+    }
 
     socket.on('user_data', (data) => {
         if (data && data.limit !== undefined) {

@@ -243,9 +243,18 @@ io.on('connection', (socket) => {
             if (user.userId !== ADMIN_ID) await User.updateOne({ userId: user.userId }, { $inc: { matchLimit: -1 } });
             if (partner.userId !== ADMIN_ID) await User.updateOne({ userId: partner.userId }, { $inc: { matchLimit: -1 } });
 
-            // ফ্রন্টেন্ডে জানানো
-            io.to(socket.id).emit('match_found');
-            io.to(partner.webSocketId).emit('match_found');
+            // ফ্রন্টেন্ডে জানানো - সাথে পার্টনারের প্রোফাইল তথ্য পাঠানো হচ্ছে
+            io.to(socket.id).emit('match_found', { 
+                partnerId: partner.userId,
+                partnerName: partner.profileName || 'Stranger',
+                partnerGender: partner.profileGender || 'male'
+            });
+            
+            io.to(partner.webSocketId).emit('match_found', { 
+                partnerId: user.userId,
+                partnerName: user.profileName || 'Stranger',
+                partnerGender: user.profileGender || 'male'
+            });
 
             console.log(`🤝 [Web Match] ${userId} matched with ${partner.userId}`);
         }

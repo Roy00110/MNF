@@ -187,68 +187,85 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 15px;
         }
 
-        /* Profile Tab Styling */
-.profile-section {
-    padding: 20px;
-    max-width: 400px;
-    margin: 0 auto;
-}
+        /* Profile Tab Styling - CENTERED */
+        #profile-tab {
+            display: none;
+            height: calc(100vh - 80px); /* Space for Nav Bar */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
 
-.input-group {
-    margin-bottom: 20px;
-    text-align: left;
-}
+        .profile-section {
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
 
-.input-group label {
-    display: block;
-    color: #b4a9c3;
-    font-size: 0.85rem;
-    margin-bottom: 8px;
-    font-weight: 500;
-}
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
 
-.profile-input {
-    width: 100%;
-    padding: 14px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 77, 148, 0.3);
-    background: rgba(255, 255, 255, 0.05);
-    color: white;
-    font-size: 1rem;
-    outline: none;
-    transition: 0.3s;
-}
+        .input-group label {
+            display: block;
+            color: #b4a9c3;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
 
-.profile-input:focus {
-    border-color: var(--accent);
-    background: rgba(255, 77, 148, 0.1);
-}
+        .profile-input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 77, 148, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
+        }
 
-/* Chat Partner Info Header */
-#partner-info-bar {
-    background: rgba(26, 11, 46, 0.8);
-    backdrop-filter: blur(10px);
-    padding: 10px 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    display: none; /* Initially hidden */
-    align-items: center;
-    gap: 12px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
+        .profile-input:focus {
+            border-color: var(--accent);
+            background: rgba(255, 77, 148, 0.1);
+        }
 
-.partner-avatar {
-    width: 40px;
-    height: 40px;
-    background: var(--gradient);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-}
-        
+        /* Save Button State */
+        .btn-match:disabled {
+            background: #475569 !important;
+            box-shadow: none !important;
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* Chat Partner Info Header */
+        #partner-info-bar {
+            background: rgba(26, 11, 46, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: none; /* Initially hidden */
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .partner-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
     </style>
 </head>
 <body>
@@ -263,16 +280,18 @@
     </div>
 </header>
 
-<div id="chat-floating-header">
-    <div id="partner-info-display" style="display: flex; align-items: center; gap: 10px; margin-right: auto; padding-left: 10px;">
+<div id="chat-floating-header" style="display: flex; align-items: center; padding: 0 15px; height: 60px; background: rgba(26, 11, 46, 0.9); backdrop-filter: blur(10px); position: fixed; top: 0; width: 100%; z-index: 1000; border-bottom: 1px solid rgba(255, 153, 204, 0.2); display: none;">
+    <div id="partner-info-display" style="display: flex; align-items: center; gap: 10px; flex-grow: 1;">
         <div style="width: 35px; height: 35px; background: var(--gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">👤</div>
         <div style="text-align: left;">
             <div id="partner-name" style="font-size: 0.9rem; font-weight: bold; color: white; line-height: 1;">Stranger</div>
             <div id="partner-gender" style="font-size: 0.65rem; color: #ff99cc; text-transform: capitalize;">...</div>
         </div>
     </div>
-    <i class="fa-solid fa-video" id="video-btn-float" onclick="document.getElementById('video-modal').style.display='flex'"></i>
-    <i class="fa-solid fa-circle-xmark" id="close-chat-float" onclick="location.reload()"></i>
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <i class="fa-solid fa-video" id="video-btn-float" style="font-size: 1.2rem; color: white; cursor: pointer;" onclick="document.getElementById('video-modal').style.display='flex'"></i>
+        <i class="fa-solid fa-circle-xmark" id="close-chat-float" style="font-size: 1.2rem; color: #ff4d4d; cursor: pointer;" onclick="location.reload()"></i>
+    </div>
 </div>
 
 <div id="tab-container">
@@ -501,7 +520,6 @@
         }
         updateGenderUI();
         
-        // ৩ নম্বর আপডেট (Part 1): Load saved profile fields
         if(userProfile.name) document.getElementById('user-name-input').value = userProfile.name;
         if(userProfile.gender) document.getElementById('user-gender-input').value = userProfile.gender;
     };
@@ -557,7 +575,6 @@
         });
     }
 
-    // Variable to store user info
     let userProfile = {
         name: localStorage.getItem('user_name') || "",
         gender: localStorage.getItem('user_gender') || ""
@@ -572,16 +589,13 @@
             return;
         }
 
-        // LocalStorage update
         localStorage.setItem('user_name', name);
         localStorage.setItem('user_gender', gender);
         userProfile.name = name;
         userProfile.gender = gender;
 
-        // Server-e update pathano (Database-e save hobe)
         socket.emit('update_profile', { userId, name, gender });
 
-        // UI Feedback
         const status = document.getElementById('profile-status');
         status.style.display = 'block';
         tg.HapticFeedback.notificationOccurred('success');
@@ -589,7 +603,6 @@
     }
 
     function handleFind() {
-        // ৩ নম্বর আপডেট (Part 2): Profile check before matching
         if (!userProfile.name || !userProfile.gender) {
             tg.showConfirm("Profile incomplete! 🚨\nPlease complete your profile to start. Check Profile.", (ok) => {
                 if(ok) switchTab('profile', document.querySelectorAll('.nav-item')[2]);
@@ -708,7 +721,6 @@
         }
     }
 
-    // ৩ নম্বর আপডেট (Part 3): Update match_found to show Partner info
     socket.on('match_found', (partnerData) => {
         isSearching = false; 
         msgCount = 0; 
@@ -719,7 +731,6 @@
         document.getElementById('tab-container').classList.add('hidden');
         document.getElementById('bottom-nav').classList.add('hidden');
         
-        // Partner Info display update
         document.getElementById('partner-name').innerText = partnerData?.name || "Stranger";
         document.getElementById('partner-gender').innerText = partnerData?.gender || "Unknown";
         
@@ -740,7 +751,6 @@
 
     socket.on('chat_ended', () => {
         showSystemMsg("💔 Partner left the chat.");
-        // Hide partner info bar
         document.getElementById('chat-floating-header').style.display = 'none';
         document.getElementById('input-bar').classList.add('hidden');
         

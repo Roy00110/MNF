@@ -30,7 +30,9 @@ mongoose.connect(MONGO_URI)
 // --- User Model (Updated with missing fields) ---
 const User = mongoose.model('User', new mongoose.Schema({
     userId: { type: Number, unique: true },
-    firstName: String,
+    firstName: String, // Telegram theke pawa default name
+    name: { type: String, default: '' }, // User-er set kora manual name
+    gender: { type: String, default: '' }, // User-er set kora gender
     partnerId: { type: Number, default: null },
     status: { type: String, default: 'idle' },
     matchLimit: { type: Number, default: 10 },
@@ -40,9 +42,8 @@ const User = mongoose.model('User', new mongoose.Schema({
     webPartnerId: { type: Number, default: null },
     webSocketId: { type: String, default: null },
     hasReceivedReferralBonus: { type: Boolean, default: false },
-    // Missing Fields Added
     joinedChannel: { type: Boolean, default: false }, 
-    lastSpin: { type: Date, default: null },          
+    lastSpin: { type: Date, default: null },           
     isVip: { type: Boolean, default: false }
 }));
 
@@ -116,6 +117,27 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on('update_profile', async (data) => {
+    try {
+        if (!data.userId || !data.name || !data.gender) {
+            return console.log("Invalid profile data received.");
+        }
+
+        await User.findOneAndUpdate(
+            { userId: data.userId }, 
+            { 
+                name: data.name, 
+                gender: data.gender 
+            }, 
+            { upsert: true, new: true }
+        );
+        
+        console.log(`Profile updated for user: ${data.userId}`);
+    } catch (err) {
+        console.error("Profile Update Error:", err);
+    }
+});
+    
     // --- Added Daily Claim Logic ---
     socket.on('claim_daily', async (userId) => {
         const user = await User.findOne({ userId: Number(userId) });

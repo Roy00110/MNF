@@ -316,6 +316,33 @@
         <i class="fa-solid fa-bolt"></i>
         <span>Earn Power</span>
     </div>
+    <div class="nav-item" onclick="switchTab('profile', this)">
+        <i class="fa-solid fa-user"></i>
+        <span>My Profile</span>
+    </div>
+</div>
+
+<div id="profile-tab" class="tab-content">
+    <div class="profile-section" style="padding: 20px; text-align: center;">
+        <h2 style="margin-bottom: 20px;">Setup Your Profile 👤</h2>
+        <div class="input-group" style="margin-bottom: 20px; text-align: left;">
+            <label style="color: #b4a9c3; font-size: 0.8rem; margin-left: 10px;">Your Name</label>
+            <input type="text" id="user-name-input" placeholder="Enter your name..." 
+                   style="width: 100%; padding: 15px; border-radius: 15px; border: 1px solid var(--accent); background: rgba(255,255,255,0.05); color: white; margin-top: 5px;">
+        </div>
+        
+        <div class="input-group" style="margin-bottom: 30px; text-align: left;">
+            <label style="color: #b4a9c3; font-size: 0.8rem; margin-left: 10px;">Your Gender</label>
+            <select id="user-gender-input" style="width: 100%; padding: 15px; border-radius: 15px; border: 1px solid var(--accent); background: #1a0b2e; color: white; margin-top: 5px;">
+                <option value="">Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
+        </div>
+
+        <button class="btn-match" onclick="saveProfile()" style="width: 100%;">Save Changes</button>
+        <p id="profile-status" style="margin-top: 15px; font-size: 0.8rem; color: #22c55e; display: none;">Profile Updated! ✅</p>
+    </div>
 </div>
 
 <div class="input-box hidden" id="input-bar">
@@ -456,7 +483,55 @@
         });
     }
 
-    function handleFind() {
+    // Variable to store user info
+let userProfile = {
+    name: localStorage.getItem('user_name') || "",
+    gender: localStorage.getItem('user_gender') || ""
+};
+
+// Start-up e field gulo fill kora
+window.onload = () => {
+    // ... tomar ager onload code ...
+    if(userProfile.name) document.getElementById('user-name-input').value = userProfile.name;
+    if(userProfile.gender) document.getElementById('user-gender-input').value = userProfile.gender;
+};
+
+function saveProfile() {
+    const name = document.getElementById('user-name-input').value.trim();
+    const gender = document.getElementById('user-gender-input').value;
+
+    if (!name || !gender) {
+        tg.showAlert("Please enter both name and gender! ⚠️");
+        return;
+    }
+
+    // LocalStorage update
+    localStorage.setItem('user_name', name);
+    localStorage.setItem('user_gender', gender);
+    userProfile.name = name;
+    userProfile.gender = gender;
+
+    // Server-e update pathano (Database-e save hobe)
+    socket.emit('update_profile', { userId, name, gender });
+
+    // UI Feedback
+    const status = document.getElementById('profile-status');
+    status.style.display = 'block';
+    tg.HapticFeedback.notificationOccurred('success');
+    setTimeout(() => { status.style.display = 'none'; }, 3000);
+}
+
+// handleFind function-er shuru-te eita add koro
+function handleFind() {
+    if (!userProfile.name || !userProfile.gender) {
+        tg.showConfirm("Profile incomplete! 🚨\nPlease complete your profile to start. Check Profile.", (ok) => {
+            if(ok) switchTab('profile', document.querySelectorAll('.nav-item')[2]);
+        });
+        return;
+    }
+    
+    // ... baki handleFind code ...
+
     if (isSearching) {
         cancelSearch();
         return;

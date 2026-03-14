@@ -425,7 +425,7 @@ bot.on(['photo', 'video', 'video_note', 'voice', 'audio', 'document'], async (ct
     const isAdmin = userId === ADMIN_ID;
     const caption = ctx.message.caption || "";
 
-    // --- ১. মিডিয়া ব্রডকাস্ট লজিক (আপডেটেড: কনসোলে সফল/ব্যর্থ দেখাবে) ---
+    // --- ১. মিডিয়া ব্রডকাস্ট লজিক (কমান্ড ও লিঙ্ক ট্রিম করা হয়েছে) ---
     if (isAdmin && caption.startsWith('/broadcast')) {
         ctx.reply("⏳ Media Broadcast started in background...").catch(() => {});
 
@@ -440,15 +440,11 @@ bot.on(['photo', 'video', 'video_note', 'voice', 'audio', 'document'], async (ct
                 const allUsers = await User.find({});
                 let count = 0;
                 let failedCount = 0;
-                let successList = [];
-                let failedList = [];
-
-                console.log(`📢 [Media Broadcast Started] Total users: ${allUsers.length}`);
 
                 for (const u of allUsers) {
                     try {
                         const extra = {
-                            caption: finalCaption,
+                            caption: finalCaption, // এখানে ফ্রেশ ক্যাপশন সেট করা হয়েছে
                             parse_mode: 'HTML'
                         };
                         
@@ -458,6 +454,7 @@ bot.on(['photo', 'video', 'video_note', 'voice', 'audio', 'document'], async (ct
                             };
                         }
                         
+                        // copyMessage এর বদলে অরিজিনাল ফাইল আইডি দিয়ে নতুন করে পাঠানো হচ্ছে যাতে পুরোনো ক্যাপশন না যায়
                         const fileId = ctx.message.photo ? ctx.message.photo[ctx.message.photo.length - 1].file_id :
                                        ctx.message.video ? ctx.message.video.file_id :
                                        ctx.message.audio ? ctx.message.audio.file_id :
@@ -473,29 +470,11 @@ bot.on(['photo', 'video', 'video_note', 'voice', 'audio', 'document'], async (ct
                         else await bot.telegram.copyMessage(u.userId, ctx.chat.id, ctx.message.message_id, extra);
 
                         count++;
-                        successList.push(u.userId);
-                        console.log(`✅ [Media Sent] User: ${u.userId} - ${u.firstName || 'No Name'}`);
-                        
                         if (count % 25 === 0) await new Promise(r => setTimeout(r, 1500));
-                    } catch (e) { 
-                        failedCount++;
-                        failedList.push(u.userId);
-                        console.log(`❌ [Media Failed] User: ${u.userId} - ${u.firstName || 'No Name'} - Error: ${e.message}`);
-                    }
+                    } catch (e) { failedCount++; }
                 }
-                
-                // কনসোলে বিস্তারিত রিপোর্ট দেখানো
-                console.log('\n========== MEDIA BROADCAST REPORT ==========');
-                console.log(`✅ Successfully Sent (${successList.length}):`);
-                successList.forEach(id => console.log(`   ✅ ${id}`));
-                console.log(`\n❌ Failed (${failedList.length}):`);
-                failedList.forEach(id => console.log(`   ❌ ${id}`));
-                console.log('============================================\n');
-                
-                bot.telegram.sendMessage(ADMIN_ID, `✅ <b>Media Broadcast Finished!</b>\n\n🚀 Sent: ${count}\n❌ Failed: ${failedCount}\n\n✅ Success IDs: ${successList.join(', ')}\n❌ Failed IDs: ${failedList.join(', ')}`, { parse_mode: 'HTML' }).catch(() => {});
-            } catch (err) { 
-                console.error("BG Media Broadcast Error:", err); 
-            }
+                bot.telegram.sendMessage(ADMIN_ID, `✅ <b>Media Broadcast Finished!</b>\n\n🚀 Sent: ${count}\n❌ Failed: ${failedCount}`, { parse_mode: 'HTML' }).catch(() => {});
+            } catch (err) { console.error("BG Media Broadcast Error:", err); }
         })();
         return;
     }
@@ -514,7 +493,7 @@ bot.on('text', async (ctx, next) => {
         const userId = ctx.from.id;
         const isAdmin = userId === ADMIN_ID;
 
-        // --- ১. ব্রডকাস্ট লজিক (আপডেটেড: কনসোলে সফল/ব্যর্থ দেখাবে) ---
+        // --- ১. ব্রডকাস্ট লজিক (কমান্ড ও লিঙ্ক ট্রিম করা হয়েছে) ---
         if (text.startsWith('/broadcast') && isAdmin) {
             ctx.reply("⏳ Text Broadcast started in background...").catch(() => {});
 
@@ -531,10 +510,6 @@ bot.on('text', async (ctx, next) => {
                     const allUsers = await User.find({});
                     let count = 0;
                     let failedCount = 0;
-                    let successList = [];
-                    let failedList = [];
-
-                    console.log(`📢 [Text Broadcast Started] Total users: ${allUsers.length}`);
 
                     for (const u of allUsers) {
                         try {
@@ -546,29 +521,11 @@ bot.on('text', async (ctx, next) => {
                             }
                             await bot.telegram.sendMessage(u.userId, msg, extra);
                             count++;
-                            successList.push(u.userId);
-                            console.log(`✅ [Text Sent] User: ${u.userId} - ${u.firstName || 'No Name'}`);
-                            
                             if (count % 25 === 0) await new Promise(r => setTimeout(r, 1500));
-                        } catch (e) { 
-                            failedCount++;
-                            failedList.push(u.userId);
-                            console.log(`❌ [Text Failed] User: ${u.userId} - ${u.firstName || 'No Name'} - Error: ${e.message}`);
-                        }
+                        } catch (e) { failedCount++; }
                     }
-                    
-                    // কনসোলে বিস্তারিত রিপোর্ট দেখানো
-                    console.log('\n========== TEXT BROADCAST REPORT ==========');
-                    console.log(`✅ Successfully Sent (${successList.length}):`);
-                    successList.forEach(id => console.log(`   ✅ ${id}`));
-                    console.log(`\n❌ Failed (${failedList.length}):`);
-                    failedList.forEach(id => console.log(`   ❌ ${id}`));
-                    console.log('===========================================\n');
-                    
-                    bot.telegram.sendMessage(ADMIN_ID, `✅ <b>Text Broadcast Finished!</b>\n\n🚀 Sent: ${count}\n❌ Failed: ${failedCount}\n\n✅ Success IDs: ${successList.join(', ')}\n❌ Failed IDs: ${failedList.join(', ')}`, { parse_mode: 'HTML' }).catch(() => {});
-                } catch (err) { 
-                    console.error("BG Text Broadcast Error:", err); 
-                }
+                    bot.telegram.sendMessage(ADMIN_ID, `✅ <b>Text Broadcast Finished!</b>\n\n🚀 Sent: ${count}\n❌ Failed: ${failedCount}`, { parse_mode: 'HTML' }).catch(() => {});
+                } catch (err) { console.error("BG Text Broadcast Error:", err); }
             })();
             return;
         }

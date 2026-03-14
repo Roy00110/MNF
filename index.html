@@ -14,8 +14,8 @@
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         :root {
-            --accent: #ff4d94; /* Romantic Pink */
-            --bg-dark: #1a0b2e; /* Deep Purple Background */
+            --accent: #ff4d94;
+            --bg-dark: #1a0b2e;
             --glass-bg: rgba(255, 255, 255, 0.1);
             --text-main: #f8fafc;
             --gradient: linear-gradient(135deg, #ff4d94, #ff7171);
@@ -36,13 +36,19 @@
 
         .logo { font-size: 1.4rem; font-weight: 800; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
+        .user-name-badge {
+            background: var(--glass-bg); padding: 6px 14px; border-radius: 20px;
+            font-size: 0.85rem; border: 1px solid rgba(255, 77, 148, 0.3);
+            display: flex; align-items: center; gap: 8px;
+        }
+        
         .limit-card {
             background: var(--glass-bg); padding: 6px 14px; border-radius: 20px;
             font-size: 0.85rem; border: 1px solid rgba(255, 77, 148, 0.3);
             display: flex; align-items: center; gap: 8px;
         }
 
-        /* --- Tabs Logic --- */
+        /* --- Tabs Logic (Only Home and Earn tabs now) --- */
         #tab-container { flex: 1; overflow-y: auto; padding-bottom: 80px; }
         .tab-content { display: none; }
         .active-tab { display: block; }
@@ -101,92 +107,62 @@
         }
         .earn-btn:disabled { opacity: 0.6; cursor: not-allowed; background: #475569 !important; }
 
-        /* --- Profile Tab Styling --- */
-        .profile-section {
-            padding: 25px 20px;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        .profile-card {
-            background: var(--glass-bg);
-            border: 1px solid rgba(255, 77, 148, 0.2);
-            border-radius: 25px;
-            padding: 25px 20px;
-            backdrop-filter: blur(10px);
-        }
-        .profile-field {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        .profile-field label {
-            display: block;
-            font-size: 0.75rem;
-            color: #b4a9c3;
-            margin-bottom: 5px;
-            letter-spacing: 0.3px;
-        }
-        .profile-field input, .profile-field select {
-            width: 100%;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255, 77, 148, 0.3);
+        /* --- Gender Selection Section (Replaces Profile Tab) --- */
+        .gender-section-home {
+            width: 85%;
+            max-width: 350px;
+            background: rgba(255, 255, 255, 0.03);
             border-radius: 15px;
-            padding: 14px 16px;
-            color: white;
-            font-size: 0.95rem;
-            outline: none;
+            padding: 15px;
+            margin: 20px auto;
+            border: 1px solid rgba(255, 77, 148, 0.15);
         }
-        .profile-field input:focus, .profile-field select:focus {
-            border-color: var(--accent);
+        .gender-title {
+            font-size: 0.8rem;
+            color: #fbbf24;
+            margin-bottom: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
         }
-        .profile-field option { background: #1a0b2e; color: white; }
-        .profile-gender-group {
+        .gender-selector {
             display: flex;
-            gap: 15px;
-            margin-top: 5px;
+            gap: 10px;
+            justify-content: center;
         }
-        .profile-gender-option {
+        .gender-option {
             flex: 1;
-            background: rgba(255,255,255,0.03);
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 77, 148, 0.2);
-            border-radius: 15px;
-            padding: 12px;
+            border-radius: 30px;
+            padding: 12px 0;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s;
             color: #b4a9c3;
+            font-weight: 600;
         }
-        .profile-gender-option.selected {
+        .gender-option.selected {
             background: var(--gradient);
             color: white;
             border-color: transparent;
         }
-        .profile-gender-option i { margin-right: 6px; }
-        .btn-save-profile {
-            width: 100%;
-            background: var(--gradient);
-            border: none;
-            color: white;
-            padding: 16px;
-            border-radius: 30px;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-            margin-top: 15px;
-            transition: opacity 0.2s;
-        }
-        .btn-save-profile:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            background: #475569 !important;
+        .gender-option i { margin-right: 6px; }
+        
+        .user-welcome {
+            color: var(--accent);
+            font-size: 0.9rem;
+            margin-top: 5px;
         }
 
-        /* --- Navigation Bar --- */
+        /* --- Navigation Bar (Only 2 items now) --- */
         .nav-bar {
             position: fixed; bottom: 0; width: 100%; background: rgba(26, 11, 46, 0.95);
             display: flex; justify-content: space-around; padding: 12px 0;
             border-top: 1px solid rgba(255, 77, 148, 0.2); z-index: 200;
         }
-        .nav-item { color: #b4a9c3; font-size: 0.75rem; display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
+        .nav-item { color: #b4a9c3; font-size: 0.75rem; display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; width: 50%; }
         .nav-item.active { color: var(--accent); }
         .nav-item i { font-size: 1.2rem; }
 
@@ -221,7 +197,7 @@
         .modal-content { background: #2d164d; padding: 30px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid var(--accent); position: relative; }
         .hidden { display: none !important; }
         
-        /* Floating Chat Actions - Perfectly Positioned */
+        /* Floating Chat Actions */
         #chat-floating-header {
             position: fixed; top: 15px; left: 0; right: 0;
             padding: 0 20px; display: none; justify-content: space-between;
@@ -240,7 +216,7 @@
         #video-btn-float { color: #22c55e; }
         #close-chat-float { color: #ef4444; }
 
-        /* Profile Info in Chat Header - Shows PARTNER info now */
+        /* Profile Info in Chat Header */
         .chat-profile-badge {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -266,7 +242,6 @@
             color: var(--accent);
         }
 
-        /* Compact Premium Section */
         .premium-container { width: 85%; max-width: 350px; padding: 10px; background: rgba(255, 255, 255, 0.03); border-radius: 15px; border: 1px solid rgba(255, 77, 148, 0.15); }
         .premium-title { font-size: 0.7rem; color: #fbbf24; margin-bottom: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
         .gender-box { display: flex; gap: 8px; }
@@ -279,6 +254,7 @@
         .searching-active .video-promo-banner,
         .searching-active #status-text,
         .searching-active #home-screen > p,
+        .searching-active .gender-section-home,
         .searching-active .premium-container,
         .searching-active .nav-bar {
             display: none !important;
@@ -300,20 +276,13 @@
         .chat-searching-ui {
             display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 15px;
         }
-
-        /* Validation error style */
-        .validation-error {
-            color: #ff6b6b;
-            font-size: 0.75rem;
+        
+        /* User greeting */
+        .user-greeting {
+            font-size: 1rem;
+            color: var(--accent);
             margin-top: 5px;
-            text-align: left;
-            display: none;
-        }
-        .validation-error.show {
-            display: block;
-        }
-        input.invalid {
-            border-color: #ff6b6b !important;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -321,7 +290,11 @@
 
 <header id="main-header">
     <div class="logo">MatchMe 💖</div>
-    <div class="header-actions">
+    <div class="header-actions" style="display: flex; gap: 10px;">
+        <div class="user-name-badge" id="user-name-badge">
+            <i class="fa-regular fa-user"></i>
+            <span id="user-name-display">User</span>
+        </div>
         <div class="limit-card">
             <i class="fa-solid fa-bolt" style="color: #fbbf24;"></i>
             <span id="match-count">0</span>
@@ -344,13 +317,31 @@
 <div id="tab-container">
     <div id="home-tab" class="tab-content active-tab">
         <div id="home-screen">
+            <div class="user-greeting" id="user-greeting">Welcome!</div>
+            
             <div class="video-promo-banner">
-               <span class="promo-tag">FREE</span>
+                <span class="promo-tag">FREE</span>
                 <h3><i class="fa-solid fa-video"></i> Random Video Chat </h3>
                 <p>Chat with 10M+ real users worldwide!</p>
                 <button class="btn-video-dl" onclick="window.open('https://1024terabox.com/s/1wCQFn0fXbrLKkUjufnkCMg', '_blank')">
                     <i class="fa-solid fa-cloud"></i> Download App
                 </button>
+            </div>
+
+            <!-- Gender Selection (Replaces Profile Tab) -->
+            <div class="gender-section-home">
+                <div class="gender-title"><i class="fa-solid fa-venus-mars"></i> Select Your Gender</div>
+                <div class="gender-selector">
+                    <div class="gender-option" data-gender="male" onclick="selectGender('male')">
+                        <i class="fa-solid fa-mars"></i> Male
+                    </div>
+                    <div class="gender-option" data-gender="female" onclick="selectGender('female')">
+                        <i class="fa-solid fa-venus"></i> Female
+                    </div>
+                    <div class="gender-option" data-gender="other" onclick="selectGender('other')">
+                        <i class="fa-solid fa-genderless"></i> Other
+                    </div>
+                </div>
             </div>
 
             <div class="dating-animation" id="anim-container">
@@ -378,49 +369,13 @@
         </div>
     </div>
 
-    <div id="profile-tab" class="tab-content">
-        <div class="profile-section">
-            <div class="profile-card">
-                <h3 style="text-align:center; margin-bottom:20px;"><i class="fa-solid fa-user-pen"></i> My Profile</h3>
-                
-                <div class="profile-field">
-                    <label><i class="fa-regular fa-user"></i> Your Name (max 6 characters, no @ or numbers)</label>
-                    <input type="text" id="profileName" placeholder="e.g., Alex" value="Anonymous" maxlength="6">
-                    <div id="nameError" class="validation-error">Name cannot contain @ symbol or numbers</div>
-                </div>
-
-                <div class="profile-field">
-                    <label><i class="fa-regular fa-calendar"></i> Age</label>
-                    <input type="number" id="profileAge" placeholder="18-99" min="18" max="99" value="25">
-                </div>
-
-                <div class="profile-field">
-                    <label><i class="fa-regular fa-flag"></i> Gender</label>
-                    <div class="profile-gender-group" id="profileGenderGroup">
-                        <div class="profile-gender-option" data-gender="male" onclick="selectGender('male')">
-                            <i class="fa-solid fa-mars"></i> Male
-                        </div>
-                        <div class="profile-gender-option" data-gender="female" onclick="selectGender('female')">
-                            <i class="fa-solid fa-venus"></i> Female
-                        </div>
-                        <div class="profile-gender-option" data-gender="other" onclick="selectGender('other')">
-                            <i class="fa-solid fa-genderless"></i> Other
-                        </div>
-                    </div>
-                </div>
-
-                <button class="btn-save-profile" id="saveProfileBtn" onclick="saveProfile()" disabled>Save Changes</button>
-            </div>
-        </div>
-    </div>
-
     <div id="earn-tab" class="tab-content">
         <div class="earn-section">
             <h2 style="margin-bottom: 20px;">Earn Match Power ⚡</h2>
             
             <div class="earn-card" style="border: 1px solid var(--accent);">
                 <div class="earn-info">
-                    <h4> Random video Chat 📱</h4>
+                    <h4>Random Video Chat 📱</h4>
                     <p>Enjoy Free Video chat with strangers </p>
                 </div>
                 <button class="earn-btn" onclick="window.open('https://1024terabox.com/s/1wCQFn0fXbrLKkUjufnkCMg', '_blank')">Download</button>
@@ -484,10 +439,6 @@
         <i class="fa-solid fa-fire"></i>
         <span>Matching</span>
     </div>
-    <div class="nav-item" onclick="switchTab('profile', this)">
-        <i class="fa-solid fa-user"></i>
-        <span>Profile</span>
-    </div>
     <div class="nav-item" onclick="switchTab('earn', this)">
         <i class="fa-solid fa-bolt"></i>
         <span>Earn Power</span>
@@ -540,15 +491,21 @@
     
     const socket = io();
     const userId = tg.initDataUnsafe?.user?.id;
+    const userFirstName = tg.initDataUnsafe?.user?.first_name || 'User';
     let isSearching = false; 
     let msgCount = 0; 
-    let currentPartnerId = null; // Track current partner
+    let currentPartnerId = null;
+    let userGender = 'male'; // Default gender
 
     const AdsgramInterstitial = window.Adsgram.init({ blockId: "int-23449" });
     const AdsgramRewarded = window.Adsgram.init({ blockId: "20759" });
 
     tg.expand();
     tg.setHeaderColor('#1a0b2e');
+
+    // Display Telegram name
+    document.getElementById('user-name-display').innerText = userFirstName;
+    document.getElementById('user-greeting').innerHTML = `Welcome, ${userFirstName}! 👋`;
 
     if (userId) socket.emit('join', userId);
 
@@ -580,18 +537,9 @@
             btn.style.background = "#475569";
         }
         
-        // Profile load from database (localStorage simulates DB)
-        loadProfileFromStorage();
-        attachProfileListeners();
-        
+        // Load gender from storage
+        loadGenderFromStorage();
         updateGenderUI();
-        
-        // Automatically go to profile tab if no profile found
-        if (!profileSet) {
-            setTimeout(() => {
-                switchTab('profile', document.querySelectorAll('.nav-item')[1]);
-            }, 500);
-        }
     };
 
     function switchTab(tabName, el) {
@@ -602,174 +550,38 @@
         el.classList.add('active');
     }
 
-    // ---------- Profile Logic with Database Simulation ----------
-    let originalProfile = { name: 'Anonymous', age: '25', gender: 'male' };
-    let profileSet = false; // Flag to check if profile is set
-    
-    function loadProfileFromStorage() {
-        // Simulate fetching from database via localStorage
-        const saved = localStorage.getItem('userProfile');
-        if (saved) {
-            try {
-                originalProfile = JSON.parse(saved);
-                // Check if profile is meaningful (not default Anonymous)
-                if (originalProfile.name && originalProfile.name !== 'Anonymous' && originalProfile.name.trim() !== '') {
-                    profileSet = true;
-                } else {
-                    profileSet = false;
-                }
-            } catch (e) {}
-        } else {
-            profileSet = false;
+    // Gender functions
+    function loadGenderFromStorage() {
+        const savedGender = localStorage.getItem('userGender');
+        if (savedGender) {
+            userGender = savedGender;
         }
-        document.getElementById('profileName').value = originalProfile.name || 'Anonymous';
-        document.getElementById('profileAge').value = originalProfile.age || '25';
         
-        // Set gender highlight
-        document.querySelectorAll('.profile-gender-option').forEach(opt => opt.classList.remove('selected'));
-        if (originalProfile.gender) {
-            const selected = document.querySelector(`.profile-gender-option[data-gender="${originalProfile.gender}"]`);
-            if (selected) selected.classList.add('selected');
-        } else {
-            document.querySelector('.profile-gender-option[data-gender="male"]').classList.add('selected');
-            originalProfile.gender = 'male';
-        }
-        // Save button disabled initially
-        document.getElementById('saveProfileBtn').disabled = true;
+        // Highlight selected gender
+        document.querySelectorAll('.gender-option').forEach(opt => opt.classList.remove('selected'));
+        const selected = document.querySelector(`.gender-option[data-gender="${userGender}"]`);
+        if (selected) selected.classList.add('selected');
         
-        // Note: We do NOT update chat badge here anymore because it should show PARTNER, not self
-    }
-
-    function attachProfileListeners() {
-        const nameInput = document.getElementById('profileName');
-        const ageInput = document.getElementById('profileAge');
-        
-        nameInput.addEventListener('input', function() {
-            validateNameInput();
-            checkProfileChanges();
-        });
-        ageInput.addEventListener('input', checkProfileChanges);
-    }
-
-    function validateNameInput() {
-        const nameInput = document.getElementById('profileName');
-        const nameError = document.getElementById('nameError');
-        const name = nameInput.value;
-        
-        // Check for @ symbol or numbers
-        const hasInvalidChars = /[@0-9]/.test(name);
-        
-        if (hasInvalidChars) {
-            nameInput.classList.add('invalid');
-            nameError.classList.add('show');
-            return false;
-        } else {
-            nameInput.classList.remove('invalid');
-            nameError.classList.remove('show');
-            return true;
+        // Send to server
+        if (userId) {
+            socket.emit('update_gender', { userId: userId, gender: userGender });
         }
     }
 
     function selectGender(gender) {
-        document.querySelectorAll('.profile-gender-option').forEach(opt => opt.classList.remove('selected'));
-        document.querySelector(`.profile-gender-option[data-gender="${gender}"]`).classList.add('selected');
-        checkProfileChanges();
-    }
-
-    function getCurrentProfile() {
-        let gender = 'male';
-        const selected = document.querySelector('.profile-gender-option.selected');
-        if (selected) gender = selected.getAttribute('data-gender');
+        userGender = gender;
+        localStorage.setItem('userGender', gender);
         
-        return {
-            name: document.getElementById('profileName').value.trim() || 'Anonymous',
-            age: document.getElementById('profileAge').value || '25',
-            gender: gender
-        };
-    }
-
-    function checkProfileChanges() {
-        const current = getCurrentProfile();
-        const saved = originalProfile;
+        document.querySelectorAll('.gender-option').forEach(opt => opt.classList.remove('selected'));
+        document.querySelector(`.gender-option[data-gender="${gender}"]`).classList.add('selected');
         
-        // Also validate name before enabling save button
-        const isValid = validateNameInput();
-        
-        const changed = (current.name !== saved.name || 
-                        current.age !== saved.age || 
-                        current.gender !== saved.gender);
-        
-        // Only enable if changed AND name is valid
-        document.getElementById('saveProfileBtn').disabled = !(changed && isValid);
-    }
-
-    function saveProfile() {
-        const current = getCurrentProfile();
-        
-        // Final validation check
-        if (!validateNameInput()) {
-            tg.showAlert("Name cannot contain @ symbol or numbers!");
-            return;
-        }
-        
-        // Disable save button temporarily to prevent double clicks
-        const saveBtn = document.getElementById('saveProfileBtn');
-        saveBtn.disabled = true;
-        
-        // Show interstitial ad before saving
-        AdsgramInterstitial.show().then(() => {
-            // Ad completed successfully - now save profile
-            performProfileSave(current);
-        }).catch((e) => {
-            console.error("Ad failed or skipped:", e);
-            // Even if ad fails, still save profile (user can proceed)
-            performProfileSave(current);
-        });
-    }
-    
-    function performProfileSave(current) {
-        // Save to localStorage (simulates database save)
-        localStorage.setItem('userProfile', JSON.stringify(current));
-        
-        // Also send to server via socket to store in real DB (simulated)
+        // Send to server
         if (userId) {
-            socket.emit('save_profile', { userId: userId, profile: current });
+            socket.emit('update_gender', { userId: userId, gender: gender });
         }
         
-        originalProfile = { ...current };
-        document.getElementById('saveProfileBtn').disabled = true;
-        
-        // Set profileSet flag to true if name is not default
-        if (current.name && current.name !== 'Anonymous' && current.name.trim() !== '') {
-            profileSet = true;
-        }
-        
-        // Do NOT update chat badge with self info
-        // updateChatProfileBadge();  // Removed - we show partner only
-        
-        tg.HapticFeedback.notificationOccurred('success');
-        tg.showAlert("Profile saved successfully!");
-        
-        // Automatically switch back to home tab after saving
-        switchTab('home', document.querySelectorAll('.nav-item')[0]);
+        tg.HapticFeedback.impactOccurred('light');
     }
-
-    // Function to update chat badge with PARTNER info (called when match found)
-    function updateChatBadgeWithPartner(partnerName, partnerGender) {
-        document.getElementById('chatProfileName').innerText = partnerName || 'Stranger';
-        const genderIcon = document.getElementById('chatGenderIcon');
-        if (partnerGender === 'male') {
-            genderIcon.className = 'fa-solid fa-mars';
-            genderIcon.style.color = '#60a5fa';
-        } else if (partnerGender === 'female') {
-            genderIcon.className = 'fa-solid fa-venus';
-            genderIcon.style.color = '#f472b6';
-        } else {
-            genderIcon.className = 'fa-solid fa-genderless';
-            genderIcon.style.color = '#a3a3a3';
-        }
-    }
-    // -----------------------------------
 
     function claimDaily() {
         show_9341070('pop').then(() => {
@@ -815,14 +627,6 @@
     }
 
     function handleFind() {
-        // First check if profile is set
-        if (!profileSet) {
-            // Automatically switch to profile tab without showing popup
-            switchTab('profile', document.querySelectorAll('.nav-item')[1]);
-            tg.HapticFeedback.notificationOccurred('warning');
-            return;
-        }
-        
         if (isSearching) {
             cancelSearch();
             return;
@@ -834,8 +638,6 @@
         localStorage.setItem('mySearchCount', searchCounter);
 
         // 2. Optimized Ad Logic
-        // Prothom 2 barer por theke proti 3-4 search por por ad dekhabe
-        // Jemon: 2, 5, 8, 11, 14, 17... (Unlimited loop)
         const showAd = (searchCounter === 2 || (searchCounter > 2 && (searchCounter - 2) % 3 === 0));
 
         if (showAd) {
@@ -843,13 +645,12 @@
                 startSearching();
             }).catch((e) => {
                 console.error("Ad failed or skipped:", e);
-                startSearching(); // Ad fail korle search jate bondho na hoy
+                startSearching();
             });
         } else {
             startSearching();
         }
     }
-
 
     function updateGenderUI() {
         let m = localStorage.getItem('m_lim') !== null ? localStorage.getItem('m_lim') : 50;
@@ -862,14 +663,6 @@
 
     function handleGenderMatch(gender) {
         if (isSearching) return cancelSearch();
-        
-        // Check profile before gender match too
-        if (!profileSet) {
-            // Automatically switch to profile tab without showing popup
-            switchTab('profile', document.querySelectorAll('.nav-item')[1]);
-            tg.HapticFeedback.notificationOccurred('warning');
-            return;
-        }
         
         let key = gender === 'male' ? 'm_lim' : 'f_lim';
         let current = localStorage.getItem(key) !== null ? parseInt(localStorage.getItem(key)) : 50;
@@ -884,41 +677,38 @@
         handleFind(); 
     }
 
-  function startSearching() {
-    const currentLimit = parseInt(document.getElementById('match-count').innerText);
-    if (currentLimit <= 0) {
-        document.getElementById('limit-modal').style.display = 'flex';
-        return;
-    }
+    function startSearching() {
+        const currentLimit = parseInt(document.getElementById('match-count').innerText);
+        if (currentLimit <= 0) {
+            document.getElementById('limit-modal').style.display = 'flex';
+            return;
+        }
 
-    isSearching = true;
-    
-    // ১. Home Screen-er jinishpatro hide kora
-    document.getElementById('home-screen').style.display = 'none';
-    document.getElementById('main-header').style.display = 'none';
-    document.getElementById('bottom-nav').classList.add('hidden');
+        isSearching = true;
+        
+        document.getElementById('home-screen').style.display = 'none';
+        document.getElementById('main-header').style.display = 'none';
+        document.getElementById('bottom-nav').classList.add('hidden');
 
-    // ২. Chat Area active kora ebong searching UI set kora
-    const chatArea = document.getElementById('chat-area');
-    chatArea.style.display = 'flex';
-    chatArea.innerHTML = `
-        <div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100%;">
-            <div class="dating-animation searching">
-                <div class="heart-pulse"></div>
-                <i class="fa-solid fa-heart heart-icon"></i>
+        const chatArea = document.getElementById('chat-area');
+        chatArea.style.display = 'flex';
+        chatArea.innerHTML = `
+            <div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100%;">
+                <div class="dating-animation searching">
+                    <div class="heart-pulse"></div>
+                    <i class="fa-solid fa-heart heart-icon"></i>
+                </div>
+                <p style="color:#ff99cc; font-weight:600; font-size:1.1rem; margin-top: 15px;">Searching for a partner...</p>
+                <button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px; background: rgba(255,255,255,0.1); border: 1px solid #ff99cc; color: #fff; padding: 10px; border-radius: 20px;" onclick="location.reload()">Cancel</button>
             </div>
-            <p style="color:#ff99cc; font-weight:600; font-size:1.1rem; margin-top: 15px;">Searching for a partner...</p>
-            <button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px; background: rgba(255,255,255,0.1); border: 1px solid #ff99cc; color: #fff; padding: 10px; border-radius: 20px;" onclick="location.reload()">Cancel</button>
-        </div>
-    `;
+        `;
 
-    // ৩. Server-e signal pathano
-    socket.emit('find_partner_web', userId);
-}
+        socket.emit('find_partner_web', userId);
+    }
 
     function cancelSearch() {
         isSearching = false;
-        document.body.classList.remove('searching-active'); // Show all elements
+        document.body.classList.remove('searching-active');
         const btn = document.getElementById('findBtn');
         btn.innerText = "Start Matching";
         btn.classList.remove('btn-cancel');
@@ -956,25 +746,21 @@
         tg.HapticFeedback.notificationOccurred('success');
         document.body.classList.remove('searching-active');
         
-        // Store partner ID if provided
         if (partnerInfo && partnerInfo.partnerId) {
             currentPartnerId = partnerInfo.partnerId;
         }
         
-        // Full screen chat logic
-        document.getElementById('main-header').style.display = 'none'; // Hide Header
+        document.getElementById('main-header').style.display = 'none';
         document.getElementById('tab-container').classList.add('hidden');
         document.getElementById('bottom-nav').classList.add('hidden');
         
-        document.getElementById('chat-area').innerHTML = ''; // Clear area
+        document.getElementById('chat-area').innerHTML = '';
         document.getElementById('chat-area').style.display = 'flex';
-        document.getElementById('chat-floating-header').style.display = 'flex'; // Show floating buttons
+        document.getElementById('chat-floating-header').style.display = 'flex';
         
-        // Update badge with PARTNER info (from server)
         if (partnerInfo) {
             updateChatBadgeWithPartner(partnerInfo.partnerName, partnerInfo.partnerGender);
         } else {
-            // Fallback if no info
             updateChatBadgeWithPartner('Stranger', 'male');
         }
         
@@ -982,6 +768,21 @@
         
         showSystemMsg("❤️ You matched with a stranger!");
     });
+
+    function updateChatBadgeWithPartner(partnerName, partnerGender) {
+        document.getElementById('chatProfileName').innerText = partnerName || 'Stranger';
+        const genderIcon = document.getElementById('chatGenderIcon');
+        if (partnerGender === 'male') {
+            genderIcon.className = 'fa-solid fa-mars';
+            genderIcon.style.color = '#60a5fa';
+        } else if (partnerGender === 'female') {
+            genderIcon.className = 'fa-solid fa-venus';
+            genderIcon.style.color = '#f472b6';
+        } else {
+            genderIcon.className = 'fa-solid fa-genderless';
+            genderIcon.style.color = '#a3a3a3';
+        }
+    }
 
     socket.on('receive_msg', (data) => {
         tg.HapticFeedback.impactOccurred('light');
@@ -994,7 +795,7 @@
         showSystemMsg("💔 Partner left the chat.");
         document.getElementById('chat-floating-header').style.display = 'none';
         document.getElementById('input-bar').classList.add('hidden');
-        currentPartnerId = null; // Reset partner
+        currentPartnerId = null;
         
         const endContainer = document.createElement('div');
         endContainer.className = 'end-chat-container';
@@ -1006,33 +807,32 @@
         document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
     });
 
-   function handleNextMatch() {
-    // Reset partner
-    currentPartnerId = null;
-    
-    // 1. Chat area clear kore Searching UI add kora
-    const chatArea = document.getElementById('chat-area');
-    chatArea.innerHTML = `
-        <div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
-            <div class="dating-animation searching">
-                <div class="heart-pulse"></div>
-                <i class="fa-solid fa-heart heart-icon"></i>
+    function handleNextMatch() {
+        currentPartnerId = null;
+        
+        const chatArea = document.getElementById('chat-area');
+        chatArea.innerHTML = `
+            <div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                <div class="dating-animation searching">
+                    <div class="heart-pulse"></div>
+                    <i class="fa-solid fa-heart heart-icon"></i>
+                </div>
+                <p style="color:#ff99cc; font-weight:600; font-size:0.9rem; margin-top: 15px;">Searching for new partner...</p>
+                <button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px;" onclick="location.reload()">Cancel</button>
             </div>
-            <p style="color:#ff99cc; font-weight:600; font-size:0.9rem; margin-top: 15px;">Searching for new partner...</p>
-            <button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px;" onclick="location.reload()">Cancel</button>
-        </div>
-    `;
+        `;
 
-    // 2. Chat floating header hide kora (jodi match na pawa porjont)
-    document.getElementById('chat-floating-header').style.display = 'none';
-
-    // 3. Search logic shuru kora (handleFind reuse kora hoyeche jate Ad logic-o thakbe)
-    handleFind();
-}
+        document.getElementById('chat-floating-header').style.display = 'none';
+        handleFind();
+    }
 
     socket.on('user_data', (data) => {
         if (data && data.limit !== undefined) {
             document.getElementById('match-count').innerText = data.limit;
+        }
+        if (data && data.name) {
+            document.getElementById('user-name-display').innerText = data.name;
+            document.getElementById('user-greeting').innerHTML = `Welcome, ${data.name}! 👋`;
         }
     });
 

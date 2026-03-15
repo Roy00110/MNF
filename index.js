@@ -615,6 +615,17 @@ bot.hears(['❌ Stop Chat', '❌ Stop Search'], async (ctx) => {
     ctx.reply('❌ Stopped.', menu);
 });
 
+//watch ads or not from user notification
+bot.command('test_ads', async (ctx) => {
+    const user = await User.findOne({ userId: ctx.from.id });
+    const todayImpressions = await AdsLog.countDocuments({ 
+        userId: ctx.from.id, 
+        date: new Date().toDateString() 
+    });
+    ctx.reply(`You watched ${todayImpressions} ads today.`);
+});
+//end of notification
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`🚀 [Server] System Live on port ${PORT}`);

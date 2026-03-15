@@ -50,17 +50,6 @@ const User = mongoose.model('User', new mongoose.Schema({
     profileGender: { type: String, default: 'male' }
 }));
 
-// --- ✅ NEW: AdsLog Model (AdsGram-এর লগ রাখার জন্য) ---
-const AdsLog = mongoose.model('AdsLog', new mongoose.Schema({
-    userId: { type: Number, required: true },
-    timestamp: { type: Date, default: Date.now },
-    date: { type: String }, // YYYY-MM-DD ফরম্যাটে
-    reward: { type: Number, default: 5 },
-    type: { type: String, default: 'interstitial_ad' },
-    ip: { type: String },
-    userAgent: { type: String }
-}));
-
 // --- Helper Functions ---
 async function isSubscribed(userId) {
     console.log(`🔍 [Check] Verifying subscription for: ${userId}`);
@@ -81,99 +70,26 @@ async function isSubscribed(userId) {
 app.use(express.static(path.join(__dirname)));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
-// --- ✅ UPDATED: AdsGram Reward Endpoint with Detailed Logging ---
 app.get('/adsgram/reward', async (req, res) => {
     const { userId } = req.query;
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    const userAgent = req.headers['user-agent'];
-    
-    console.log('\n=================================');
-    console.log(`🎯 [${new Date().toLocaleString()}] 📢 INTERSTITIAL AD VIEWED`);
-    console.log('=================================');
-    console.log(`👤 User ID: ${userId}`);
-    console.log(`🌐 IP Address: ${ip}`);
-    console.log(`📱 User Agent: ${userAgent}`);
-    console.log(`🕐 Time: ${new Date().toLocaleTimeString()}`);
-    
-    if (!userId) {
-        console.log('❌ Error: Missing userId');
-        console.log('=================================\n');
-        return res.status(400).send('Missing userId');
-    }
-    
+    if (!userId) return res.status(400).send('Missing userId');
     try {
         const user = await User.findOneAndUpdate(
             { userId: Number(userId) },
             { $inc: { matchLimit: 5 } },
             { new: true }
         );
-        
         if (user) {
-            // ✅ লগ সেভ করুন MongoDB-তে
-            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-            await AdsLog.create({
-                userId: Number(userId),
-                date: today,
-                reward: 5,
-                timestamp: new Date(),
-                ip: ip,
-                userAgent: userAgent,
-                type: 'interstitial_ad'
-            });
-            
-            console.log(`✅ SUCCESS! User ${userId} watched interstitial ad`);
-            console.log(`💰 New Balance: ${user.matchLimit} matches`);
-            console.log(`📊 Total ads today: ${await AdsLog.countDocuments({ userId: Number(userId), date: today })}`);
-            console.log('=================================\n');
-            
-            // Socket.io আপডেট (যদি ইউজার অনলাইন থাকে)
-            if (user.webSocketId) {
-                io.to(user.webSocketId).emit('user_data', { limit: user.matchLimit });
-                io.to(user.webSocketId).emit('reward_confirmed', user.matchLimit);
-            }
-            
+            console.log(`💰 [Adsgram S2S] Reward applied to ${userId}. New limit: ${user.matchLimit}`);
             return res.status(200).send('OK');
         } else {
-            console.log(`❌ User ${userId} not found in database`);
-            console.log('=================================\n');
             return res.status(404).send('User not found');
         }
     } catch (err) {
-        console.log(`❌ Server Error: ${err.message}`);
-        console.log('=================================\n');
+        console.error("Adsgram S2S Error:", err);
         res.status(500).send('Server Error');
     }
 });
-
-// --- ✅ NEW: Hourly Stats (Console এ দেখার জন্য) ---
-setInterval(async () => {
-    try {
-        const lastHour = new Date(Date.now() - 60 * 60 * 1000);
-        const totalAds = await AdsLog.countDocuments({
-            timestamp: { $gte: lastHour }
-        });
-        
-        const uniqueUsers = await AdsLog.distinct('userId', {
-            timestamp: { $gte: lastHour }
-        });
-        
-        const today = new Date().toISOString().split('T')[0];
-        const todayTotal = await AdsLog.countDocuments({ date: today });
-        
-        console.log('\n📊 === 📈 HOURLY AD STATS ===');
-        console.log(`🕐 ${new Date().toLocaleString()}`);
-        console.log(`📅 Today's Total: ${todayTotal} ads`);
-        console.log(`⏱️ Last Hour: ${totalAds} ads`);
-        console.log(`👥 Unique Users (last hour): ${uniqueUsers.length}`);
-        if (uniqueUsers.length > 0) {
-            console.log(`📈 Avg per User: ${(totalAds / uniqueUsers.length).toFixed(2)} ads`);
-        }
-        console.log('============================\n');
-        
-    } catch (err) {
-        console.error('📊 Stats Error:', err);
-    }
-}, 60 * 60 * 1000); // প্রতি 60 মিনিটে
 
 io.on('connection', (socket) => {
     console.log(`🌐 [Socket] New Web Connection: ${socket.id}`);
@@ -697,31 +613,6 @@ bot.hears(['❌ Stop Chat', '❌ Stop Search'], async (ctx) => {
     }
     await User.updateOne({ userId: ctx.from.id }, { status: 'idle', partnerId: null });
     ctx.reply('❌ Stopped.', menu);
-});
-
-// ✅ ইউজারকে জানানোর জন্য কমান্ড (আগের মতোই আছে)
-bot.command('test_ads', async (ctx) => {
-    try {
-        // AdsLog মডেল আছে কিনা চেক করুন
-        if (!AdsLog) {
-            return ctx.reply("❌ AdsLog model not found. Please contact admin.");
-        }
-        
-        const today = new Date().toISOString().split('T')[0];
-        const todayImpressions = await AdsLog.countDocuments({ 
-            userId: ctx.from.id, 
-            date: today 
-        });
-        
-        ctx.reply(`📊 You watched ${todayImpressions} ads today.`);
-        
-        // কনসোল-এ লগ করুন
-        console.log(`📱 [test_ads] User ${ctx.from.id} checked: ${todayImpressions} ads today`);
-        
-    } catch (err) {
-        console.error("test_ads Error:", err);
-        ctx.reply("❌ Something went wrong. Please try again.");
-    }
 });
 
 const PORT = process.env.PORT || 3000;

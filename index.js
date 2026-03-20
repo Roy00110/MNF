@@ -27,7 +27,7 @@ mongoose.connect(MONGO_URI)
     .then(() => console.log('✅ [DB] Connected to MongoDB Successfully'))
     .catch(err => console.log('❌ [DB] Error:', err));
 
-// --- User Model (Updated with missing fields) ---
+// --- User Model (Updated with missing fields and lastActive) ---
 const User = mongoose.model('User', new mongoose.Schema({
     userId: { type: Number, unique: true },
     firstName: String,
@@ -40,10 +40,11 @@ const User = mongoose.model('User', new mongoose.Schema({
     webPartnerId: { type: Number, default: null },
     webSocketId: { type: String, default: null },
     hasReceivedReferralBonus: { type: Boolean, default: false },
-    // Missing Fields Added
     joinedChannel: { type: Boolean, default: false }, 
     lastSpin: { type: Date, default: null },          
-    isVip: { type: Boolean, default: false }
+    isVip: { type: Boolean, default: false },
+    lastActive: { type: Date, default: Date.now },  // Added for inactivity tracking
+    lastReminderSent: { type: Date, default: null }  // Track last reminder sent
 }));
 
 // --- Helper Functions ---
@@ -60,6 +61,108 @@ async function isSubscribed(userId) {
         }
     }
     return true;
+}
+
+// --- Function to update user's last active timestamp ---
+async function updateLastActive(userId) {
+    try {
+        await User.updateOne(
+            { userId: Number(userId) },
+            { $set: { lastActive: new Date() } }
+        );
+    } catch (err) {
+        console.error("Error updating last active:", err);
+    }
+}
+
+// --- Function to check inactive users and send reminders every 24 hours ---
+async function checkInactiveUsers() {
+    try {
+        const now = new Date();
+        const twentyFourHoursAgo = new Date(now - 24 * 60 * 60 * 1000);
+        
+        // Find users inactive for 24+ hours who haven't received a reminder in the last 24 hours
+        const inactiveUsers = await User.find({
+            lastActive: { $lt: twentyFourHoursAgo },
+            $or: [
+                { lastReminderSent: null },
+                { lastReminderSent: { $lt: twentyFourHoursAgo } }
+            ]
+        });
+        
+        console.log(`📊 [Inactivity Check] Found ${inactiveUsers.length} inactive users`);
+        
+        for (const user of inactiveUsers) {
+            try {
+                // Skip admin
+                if (user.userId === ADMIN_ID) continue;
+                
+                const hoursInactive = Math.floor((now - user.lastActive) / (60 * 60 * 1000));
+                const daysInactive = Math.floor(hoursInactive / 24);
+                
+                let reminderMsg = '';
+                
+                if (daysInactive === 1) {
+                    reminderMsg = `🔔 <b>Hey ${user.firstName || 'there'}! 👋</b>\n\n` +
+                                 `We noticed you haven't used <b>MatchMe</b> in the last 24 hours.\n\n` +
+                                 `✨ <b>Come back and connect with new people!</b>\n\n` +
+                                 `👉 <b>Your balance:</b> ${user.userId === ADMIN_ID ? 'Unlimited' : user.matchLimit} matches remaining\n\n` +
+                                 `🚀 <b>Start chatting now:</b>`;
+                } else if (daysInactive === 2) {
+                    reminderMsg = `⚠️ <b>${user.firstName || 'There'}! We Miss You! 💔</b>\n\n` +
+                                 `It's been <b>2 days</b> since your last visit to <b>MatchMe</b>.\n\n` +
+                                 `🎁 <b>Special Reminder:</b> You have <b>${user.matchLimit}</b> matches waiting for you!\n\n` +
+                                 `👥 New people are waiting to connect with you!\n\n` +
+                                 `👇 <b>Tap below to start chatting:</b>`;
+                } else if (daysInactive >= 3) {
+                    reminderMsg = `🚨 <b>URGENT: ${user.firstName || 'Friend'}! Don't Miss Out! 🚨</b>\n\n` +
+                                 `It's been <b>${daysInactive} days</b> since you last used <b>MatchMe</b>!\n\n` +
+                                 `🔥 <b>Your Current Stats:</b>\n` +
+                                 `• ${user.matchLimit} matches available\n` +
+                                 `• ${user.referrals || 0} successful referrals\n\n` +
+                                 `💝 <b>Special Offer:</b> Come back today and get <b>BONUS MATCHES</b>!\n\n` +
+                                 `⭐ Don't let your matches go to waste!\n\n` +
+                                 `👇 <b>Start matching NOW:</b>`;
+                } else {
+                    reminderMsg = `🔔 <b>Hey ${user.firstName || 'there'}! 👋</b>\n\n` +
+                                 `We noticed you haven't used <b>MatchMe</b> recently.\n\n` +
+                                 `✨ <b>Come back and connect with new people!</b>\n\n` +
+                                 `👉 <b>Your balance:</b> ${user.userId === ADMIN_ID ? 'Unlimited' : user.matchLimit} matches remaining\n\n` +
+                                 `🚀 <b>Start chatting now:</b>`;
+                }
+                
+                await bot.telegram.sendMessage(user.userId, reminderMsg, {
+                    parse_mode: 'HTML',
+                    ...Markup.inlineKeyboard([
+                        [Markup.button.url('🎯 Start Chat Now', 'https://t.me/MakefriendsglobalBot/Letschat')],
+                        [Markup.button.callback('💰 Claim Daily Bonus', 'claim_bonus')]
+                    ])
+                });
+                
+                // Update reminder sent time
+                await User.updateOne(
+                    { userId: user.userId },
+                    { $set: { lastReminderSent: new Date() } }
+                );
+                
+                console.log(`📨 [Reminder Sent] To user: ${user.userId} | Inactive: ${hoursInactive}h (${daysInactive} days)`);
+                
+                // Add delay to avoid rate limiting
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+            } catch (err) {
+                console.error(`❌ [Reminder Failed] User ${user.userId}:`, err.message);
+                
+                // If user blocked the bot, log it
+                if (err.message.includes('bot was blocked by the user')) {
+                    console.log(`🚫 [Blocked] User ${user.userId} blocked the bot`);
+                }
+            }
+        }
+        
+    } catch (err) {
+        console.error("❌ [Inactivity Check Error]:", err);
+    }
 }
 
 // --- Web Server & Socket.io Logic ---
@@ -92,6 +195,10 @@ io.on('connection', (socket) => {
     
    socket.on('join', async (userId) => {
     if (!userId) return;
+    
+    // Update last active when user joins web app
+    await updateLastActive(userId);
+    
     const user = await User.findOneAndUpdate(
         { userId: Number(userId) }, 
         { webSocketId: socket.id, webStatus: 'idle', webPartnerId: null }, 
@@ -103,9 +210,12 @@ io.on('connection', (socket) => {
 
     socket.on('reward_user', async (userId) => {
         try {
+            // Update last active
+            await updateLastActive(userId);
+            
             const user = await User.findOneAndUpdate(
                 { userId: Number(userId) },
-                { $inc: { matchLimit: 15 } }, // Updated to 15 as per previous logic
+                { $inc: { matchLimit: 15 } },
                 { new: true }
             );
             console.log(`🎁 [Reward Success] User ${userId} watched video. Balance: ${user.matchLimit}`);
@@ -118,6 +228,9 @@ io.on('connection', (socket) => {
 
     // --- Added Daily Claim Logic ---
     socket.on('claim_daily', async (userId) => {
+        // Update last active
+        await updateLastActive(userId);
+        
         const user = await User.findOne({ userId: Number(userId) });
         const today = new Date().toDateString();
         if (user && (!user.lastClaimed || user.lastClaimed.toDateString() !== today)) {
@@ -132,6 +245,9 @@ io.on('connection', (socket) => {
     socket.on('cancel_search', async (userId) => {
     try {
         if (!userId) return;
+        
+        // Update last active
+        await updateLastActive(userId);
 
         // অ্যারে থেকে ইউজারকে সরিয়ে ফেলা
         waitingUsers = waitingUsers.filter(u => u.userId !== userId);
@@ -150,6 +266,9 @@ io.on('connection', (socket) => {
 
     // --- Added Lucky Spin Logic ---
     socket.on('lucky_spin', async (userId) => {
+        // Update last active
+        await updateLastActive(userId);
+        
         const user = await User.findOne({ userId: Number(userId) });
         const today = new Date().toDateString();
         if (user && (!user.lastSpin || user.lastSpin.toDateString() !== today)) {
@@ -165,6 +284,9 @@ io.on('connection', (socket) => {
 
     // --- Added Social Task Logic ---
     socket.on('social_task', async (userId) => {
+        // Update last active
+        await updateLastActive(userId);
+        
         const user = await User.findOne({ userId: Number(userId) });
         if (user && !user.joinedChannel) {
             user.matchLimit += 10;
@@ -176,6 +298,9 @@ io.on('connection', (socket) => {
     });
 
     socket.on('find_partner_web', async (userId) => {
+    // Update last active
+    await updateLastActive(userId);
+    
     // --- ছোট পরিবর্তন: ডুপ্লিকেট এড়াতে আগে মুছে নিয়ে তারপর পুশ করা ---
     waitingUsers = waitingUsers.filter(u => u.userId !== userId);
     waitingUsers.push({ userId, socketId: socket.id });
@@ -224,6 +349,10 @@ io.on('connection', (socket) => {
 });
     socket.on('send_msg', async (data) => {
         const { senderId, text, image } = data; 
+        
+        // Update last active for sender
+        await updateLastActive(senderId);
+        
         const user = await User.findOne({ userId: Number(senderId) });
         if (user && user.webPartnerId) {
             const partner = await User.findOne({ userId: user.webPartnerId });
@@ -236,6 +365,9 @@ io.on('connection', (socket) => {
     socket.on('disconnect', async () => {
         const user = await User.findOne({ webSocketId: socket.id });
         if (user) {
+            // Update last active on disconnect
+            await updateLastActive(user.userId);
+            
             if (user.webPartnerId) {
                 const partner = await User.findOne({ userId: user.webPartnerId });
                 if (partner && partner.webSocketId) io.to(partner.webSocketId).emit('chat_ended');
@@ -251,6 +383,10 @@ bot.start(async (ctx) => {
     try {
         const userId = ctx.from.id;
         const startPayload = ctx.payload;
+        
+        // Update last active on /start
+        await updateLastActive(userId);
+        
         console.log(`🚀 [/start] User: ${userId} | Payload: ${startPayload}`);
 
         if (!(await isSubscribed(userId))) {
@@ -298,6 +434,9 @@ bot.start(async (ctx) => {
 });
 
 bot.action('check_sub', async (ctx) => {
+    // Update last active
+    await updateLastActive(ctx.from.id);
+    
     if (await isSubscribed(ctx.from.id)) {
         await ctx.deleteMessage().catch(()=>{});
         ctx.reply("✅ Verified! Type /start to begin.");
@@ -308,6 +447,9 @@ bot.action('check_sub', async (ctx) => {
 
 bot.action(['verify_1', 'verify_2'], async (ctx) => {
     try {
+        // Update last active
+        await updateLastActive(ctx.from.id);
+        
         await User.updateOne({ userId: ctx.from.id }, { $inc: { matchLimit: 5 } });
         ctx.answerCbQuery("✅ Success! You received 5 matches.", { show_alert: true });
         await ctx.deleteMessage().catch(()=>{});
@@ -315,9 +457,39 @@ bot.action(['verify_1', 'verify_2'], async (ctx) => {
     } catch (err) { console.error("Verify Action Error:", err); }
 });
 
+// Add claim bonus action
+bot.action('claim_bonus', async (ctx) => {
+    try {
+        await updateLastActive(ctx.from.id);
+        
+        const user = await User.findOne({ userId: ctx.from.id });
+        const today = new Date().toDateString();
+        
+        if (user && (!user.lastClaimed || user.lastClaimed.toDateString() !== today)) {
+            user.matchLimit += 5;
+            user.lastClaimed = new Date();
+            await user.save();
+            
+            await ctx.answerCbQuery("✅ You received 5 bonus matches!", { show_alert: true });
+            await ctx.reply(`🎁 <b>Daily Bonus Claimed!</b>\n\nYou received +5 matches.\n\n✨ Your balance: ${user.matchLimit} matches left.`, {
+                parse_mode: 'HTML'
+            });
+        } else {
+            await ctx.answerCbQuery("❌ You already claimed your daily bonus today!", { show_alert: true });
+        }
+    } catch (err) {
+        console.error("Claim Bonus Error:", err);
+        await ctx.answerCbQuery("Error claiming bonus. Please try again.");
+    }
+});
+
 bot.hears('🔍 Find Partner', async (ctx) => {
     try {
         const userId = ctx.from.id;
+        
+        // Update last active
+        await updateLastActive(userId);
+        
         const user = await User.findOne({ userId });
 
         // ১. সাবস্ক্রিপশন চেক (যদি ইউজার চ্যানেল জয়েন না করে থাকে)
@@ -360,6 +532,9 @@ bot.hears('🔍 Find Partner', async (ctx) => {
 });
 
 bot.hears('📱 Random video chat app', async (ctx) => {
+    // Update last active
+    await updateLastActive(ctx.from.id);
+    
     const videoChatMsg = `✨ <b>CONNECT INSTANTLY VIA VIDEO CHAT</b> ✨\n\n` +
         `Ready to meet new people globally? Get started with our premium video chat app. Experience high-quality video calls and seamless connections for free! 🎥🌍\n\n` +
         `📥 <b>OFFICIAL DOWNLOAD LINK:</b>\n` +
@@ -373,6 +548,10 @@ bot.hears('📱 Random video chat app', async (ctx) => {
 
 bot.on(['photo', 'video', 'video_note', 'voice', 'audio', 'document'], async (ctx) => {
     const userId = ctx.from.id;
+    
+    // Update last active
+    await updateLastActive(userId);
+    
     const isAdmin = userId === ADMIN_ID;
     const caption = ctx.message.caption || "";
 
@@ -442,6 +621,10 @@ bot.on('text', async (ctx, next) => {
     try {
         const text = ctx.message.text;
         const userId = ctx.from.id;
+        
+        // Update last active
+        await updateLastActive(userId);
+        
         const isAdmin = userId === ADMIN_ID;
 
         // --- ১. ব্রডকাস্ট লজিক (কমান্ড ও লিঙ্ক ট্রিম করা হয়েছে) ---
@@ -507,8 +690,12 @@ bot.on('text', async (ctx, next) => {
         }
     } catch (err) { console.error("Text Handler Error:", err); }
 });
+
 bot.hears('👫 Refer & Earn', async (ctx) => {
     try {
+        // Update last active
+        await updateLastActive(ctx.from.id);
+        
         const user = await User.findOne({ userId: ctx.from.id });
         
         // --- এই অংশটুকু অ্যাড করা হয়েছে ক্র্যাশ বন্ধ করতে ---
@@ -533,6 +720,9 @@ bot.hears('👫 Refer & Earn', async (ctx) => {
 
 bot.hears('👤 My Status', async (ctx) => {
     try {
+        // Update last active
+        await updateLastActive(ctx.from.id);
+        
         const user = await User.findOne({ userId: ctx.from.id });
 
         // যদি ইউজার ডাটাবেজে না থাকে
@@ -555,7 +745,11 @@ bot.hears('👤 My Status', async (ctx) => {
         ctx.reply("⚠️ An error occurred while fetching your status.");
     }
 });
+
 bot.hears(['❌ Stop Chat', '❌ Stop Search'], async (ctx) => {
+    // Update last active
+    await updateLastActive(ctx.from.id);
+    
     const user = await User.findOne({ userId: ctx.from.id });
     const menu = Markup.keyboard([['🔍 Find Partner'], ['👤 My Status', '👫 Refer & Earn'], ['❌ Stop Chat']]).resize();
     if (user && user.partnerId) {
@@ -591,5 +785,17 @@ server.listen(PORT, () => {
     }
     setInterval(sendAutoPromo, 500000); 
     sendAutoPromo();
+    
+    // --- Start inactivity checker (runs every hour) ---
+    setInterval(async () => {
+        console.log("🔍 [Inactivity Checker] Running check...");
+        await checkInactiveUsers();
+    }, 60 * 60 * 1000); // Check every hour
+    
+    // Run initial check after 5 seconds
+    setTimeout(() => {
+        checkInactiveUsers();
+    }, 5000);
+    
     bot.launch();
 });

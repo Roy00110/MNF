@@ -53,7 +53,8 @@ const userSchema = new mongoose.Schema({
   lastSpin: { type: Date, default: null },
   isVip: { type: Boolean, default: false },
   lastActive: { type: Date, default: Date.now, index: true },
-  lastReminderSent: { type: Date, default: null }
+  lastReminderSent: { type: Date, default: null },
+  blocked: { type: Boolean, default: false } // Blocked user flag
 });
 
 userSchema.index({ webStatus: 1, webSocketId: 1 });
@@ -107,6 +108,80 @@ async function updateLastActive(userId) {
     }
 }
 
+// --- Mark blocked user ---
+async function markBlockedUser(userId, error) {
+    if (error.message && error.message.includes('bot was blocked by the user')) {
+        await User.updateOne(
+            { userId: Number(userId) },
+            { $set: { blocked: true, webStatus: 'idle', status: 'idle', webPartnerId: null, partnerId: null } }
+        );
+        waitingUsers.delete(Number(userId));
+        console.log(`🚫 [Blocked] Marked user ${userId} as blocked`);
+        return true;
+    }
+    return false;
+}
+
+// --- Auto cleanup blocked users ---
+async function cleanupBlockedUsers() {
+    try {
+        console.log("🧹 [Cleanup] Starting blocked user cleanup...");
+        
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        // Find users who are blocked OR inactive for 30+ days
+        const usersToDelete = await User.find({
+            $or: [
+                { blocked: true },
+                { lastActive: { $lt: thirtyDaysAgo } }
+            ]
+        }).lean();
+        
+        console.log(`📊 [Cleanup] Found ${usersToDelete.length} users to delete`);
+        
+        let deletedCount = 0;
+        
+        for (const user of usersToDelete) {
+            try {
+                // Skip admin
+                if (user.userId === ADMIN_ID) continue;
+                
+                // Unpair from partners
+                if (user.webPartnerId) {
+                    await User.updateOne(
+                        { userId: user.webPartnerId },
+                        { $set: { webStatus: 'idle', webPartnerId: null } }
+                    );
+                }
+                if (user.partnerId) {
+                    await User.updateOne(
+                        { userId: user.partnerId },
+                        { $set: { status: 'idle', partnerId: null } }
+                    );
+                }
+                
+                // Remove from waiting list
+                waitingUsers.delete(user.userId);
+                
+                // Delete user
+                await User.deleteOne({ userId: user.userId });
+                deletedCount++;
+                console.log(`🗑️ [Cleanup] Deleted user: ${user.userId} (${user.firstName || 'Unknown'})`);
+                
+                await new Promise(resolve => setTimeout(resolve, 50));
+            } catch (err) {
+                console.error(`❌ [Cleanup] Error deleting ${user.userId}:`, err.message);
+            }
+        }
+        
+        console.log(`✅ [Cleanup] Completed! Deleted ${deletedCount} users`);
+        
+    } catch (err) {
+        console.error("❌ [Cleanup Error]:", err);
+    }
+}
+
 // --- Optimized inactivity checker with pagination ---
 async function checkInactiveUsers() {
     try {
@@ -120,6 +195,7 @@ async function checkInactiveUsers() {
         while (true) {
             const inactiveUsers = await User.find({
                 userId: { $ne: ADMIN_ID },
+                blocked: { $ne: true },
                 lastActive: { $lt: twentyFourHoursAgo },
                 $or: [
                     { lastReminderSent: null },
@@ -185,6 +261,7 @@ async function checkInactiveUsers() {
                     
                 } catch (err) {
                     console.error(`❌ [Reminder Failed] ${user.userId}:`, err.message);
+                    await markBlockedUser(user.userId, err);
                 }
             }
             
@@ -338,7 +415,8 @@ io.on('connection', (socket) => {
                 {
                     userId: { $ne: Number(userId) },
                     webStatus: 'searching',
-                    webSocketId: { $ne: null }
+                    webSocketId: { $ne: null },
+                    blocked: { $ne: true }
                 },
                 { webStatus: 'chatting', webPartnerId: Number(userId) },
                 { new: true }
@@ -415,7 +493,7 @@ io.on('connection', (socket) => {
     });
 });
 
-// --- সমস্ত Telegram Bot Handler (পুরোপুরি রাখা হয়েছে) ---
+// --- সমস্ত Telegram Bot Handler ---
 bot.start(async (ctx) => {
     try {
         const userId = ctx.from.id;
@@ -531,8 +609,8 @@ bot.hears('🔍 Find Partner', async (ctx) => {
             return ctx.reply('❌ <b>Your match limit is over!</b>\n\nClick the link below to visit, then click <b>Verify</b> to get 5 matches:', {
                 parse_mode: 'HTML',
                 ...Markup.inlineKeyboard([
-                    [Markup.button.url('🔗 Open Link 1', 'https://www.profitablecpmratenetwork.com/k8hkwgsm3z?key=2cb2941afdb3af8f1ca4ced95e61e00f'), Markup.button.callback('✅ Verify 1', 'verify_1')],
-                    [Markup.button.url('🔗 Open Link 2', 'https://www.profitablecpmratenetwork.com/k8hkwgsm3z?key=2cb2941afdb3af8f1ca4ced95e61e00f'), Markup.button.callback('✅ Verify 2', 'verify_2')]
+                    [Markup.button.url('🔗 Open Link 1', 'https://www.profitableratecpm.com/k8hkwgsm3z?key=2cb2941afdb3af8f1ca4ced95e61e00f'), Markup.button.callback('✅ Verify 1', 'verify_1')],
+                    [Markup.button.url('🔗 Open Link 2', 'https://www.profitableratecpm.com/k8hkwgsm3z?key=2cb2941afdb3af8f1ca4ced95e61e00f'), Markup.button.callback('✅ Verify 2', 'verify_2')]
                 ])
             });
         }
@@ -585,7 +663,7 @@ bot.on(['photo', 'video', 'video_note', 'voice', 'audio', 'document'], async (ct
                 const finalCaption = parts[0].trim();
                 const link = parts[1] ? parts[1].trim() : null;
 
-                const allUsers = await User.find({});
+                const allUsers = await User.find({ blocked: { $ne: true } });
                 let count = 0;
                 let failedCount = 0;
 
@@ -618,7 +696,10 @@ bot.on(['photo', 'video', 'video_note', 'voice', 'audio', 'document'], async (ct
 
                         count++;
                         if (count % 25 === 0) await new Promise(r => setTimeout(r, 1500));
-                    } catch (e) { failedCount++; }
+                    } catch (e) { 
+                        failedCount++;
+                        await markBlockedUser(u.userId, e);
+                    }
                 }
                 bot.telegram.sendMessage(ADMIN_ID, `✅ <b>Media Broadcast Finished!</b>\n\n🚀 Sent: ${count}\n❌ Failed: ${failedCount}`, { parse_mode: 'HTML' }).catch(() => {});
             } catch (err) { console.error("BG Media Broadcast Error:", err); }
@@ -652,7 +733,7 @@ bot.on('text', async (ctx, next) => {
                     const msg = parts[0].trim();
                     const link = parts[1] ? parts[1].trim() : null;
 
-                    const allUsers = await User.find({});
+                    const allUsers = await User.find({ blocked: { $ne: true } });
                     let count = 0;
                     let failedCount = 0;
 
@@ -667,11 +748,22 @@ bot.on('text', async (ctx, next) => {
                             await bot.telegram.sendMessage(u.userId, msg, extra);
                             count++;
                             if (count % 25 === 0) await new Promise(r => setTimeout(r, 1500));
-                        } catch (e) { failedCount++; }
+                        } catch (e) { 
+                            failedCount++;
+                            await markBlockedUser(u.userId, e);
+                        }
                     }
                     bot.telegram.sendMessage(ADMIN_ID, `✅ <b>Text Broadcast Finished!</b>\n\n🚀 Sent: ${count}\n❌ Failed: ${failedCount}`, { parse_mode: 'HTML' }).catch(() => {});
                 } catch (err) { console.error("BG Text Broadcast Error:", err); }
             })();
+            return;
+        }
+        
+        // Admin command to manually cleanup blocked users
+        if (text === '/cleanup_blocked' && isAdmin) {
+            await ctx.reply("🧹 Starting cleanup of blocked users...");
+            await cleanupBlockedUsers();
+            await ctx.reply("✅ Cleanup completed!");
             return;
         }
 
@@ -792,15 +884,25 @@ server.listen(PORT, () => {
         console.log(`📊 [Memory] RSS: ${Math.round(used.rss / 1024 / 1024)}MB | Heap: ${Math.round(used.heapUsed / 1024 / 1024)}MB/${Math.round(used.heapTotal / 1024 / 1024)}MB`);
     }, 60000);
     
-    // Inactivity checker (every 6 hours instead of 1 hour)
+    // Inactivity checker (every 6 hours)
     setInterval(async () => {
         console.log("🔍 [Inactivity Checker] Running...");
         await checkInactiveUsers();
     }, 6 * 60 * 60 * 1000);
     
+    // Blocked user cleanup (every 24 hours)
+    setInterval(async () => {
+        console.log("🧹 [Cleanup Scheduler] Running blocked user cleanup...");
+        await cleanupBlockedUsers();
+    }, 24 * 60 * 60 * 1000);
+    
     setTimeout(() => {
         checkInactiveUsers();
     }, 5000);
+    
+    setTimeout(() => {
+        cleanupBlockedUsers();
+    }, 60000);
     
     bot.launch();
 });

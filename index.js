@@ -54,7 +54,7 @@ const userSchema = new mongoose.Schema({
   isVip: { type: Boolean, default: false },
   lastActive: { type: Date, default: Date.now, index: true },
   lastReminderSent: { type: Date, default: null },
-  blocked: { type: Boolean, default: false } // Blocked user flag
+  blocked: { type: Boolean, default: false }
 });
 
 userSchema.index({ webStatus: 1, webSocketId: 1 });
@@ -122,32 +122,24 @@ async function markBlockedUser(userId, error) {
     return false;
 }
 
-// --- Auto cleanup blocked users ---
+// --- Auto cleanup ONLY blocked users (NO inactive deletion) ---
 async function cleanupBlockedUsers() {
     try {
         console.log("🧹 [Cleanup] Starting blocked user cleanup...");
         
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        
-        // Find users who are blocked OR inactive for 30+ days
-        const usersToDelete = await User.find({
-            $or: [
-                { blocked: true },
-                { lastActive: { $lt: thirtyDaysAgo } }
-            ]
+        // শুধু ব্লকড ইউজার খুঁজুন (ইন্যাকটিভ নয়)
+        const blockedUsers = await User.find({ 
+            blocked: true,
+            userId: { $ne: ADMIN_ID }  // অ্যাডমিন বাদে
         }).lean();
         
-        console.log(`📊 [Cleanup] Found ${usersToDelete.length} users to delete`);
+        console.log(`📊 [Cleanup] Found ${blockedUsers.length} blocked users to delete`);
         
         let deletedCount = 0;
         
-        for (const user of usersToDelete) {
+        for (const user of blockedUsers) {
             try {
-                // Skip admin
-                if (user.userId === ADMIN_ID) continue;
-                
-                // Unpair from partners
+                // Unpair from partners if any
                 if (user.webPartnerId) {
                     await User.updateOne(
                         { userId: user.webPartnerId },
@@ -164,10 +156,10 @@ async function cleanupBlockedUsers() {
                 // Remove from waiting list
                 waitingUsers.delete(user.userId);
                 
-                // Delete user
+                // Delete blocked user
                 await User.deleteOne({ userId: user.userId });
                 deletedCount++;
-                console.log(`🗑️ [Cleanup] Deleted user: ${user.userId} (${user.firstName || 'Unknown'})`);
+                console.log(`🗑️ [Cleanup] Deleted blocked user: ${user.userId} (${user.firstName || 'Unknown'})`);
                 
                 await new Promise(resolve => setTimeout(resolve, 50));
             } catch (err) {
@@ -175,14 +167,14 @@ async function cleanupBlockedUsers() {
             }
         }
         
-        console.log(`✅ [Cleanup] Completed! Deleted ${deletedCount} users`);
+        console.log(`✅ [Cleanup] Completed! Deleted ${deletedCount} blocked users`);
         
     } catch (err) {
         console.error("❌ [Cleanup Error]:", err);
     }
 }
 
-// --- Optimized inactivity checker with pagination ---
+// --- Inactivity checker (ONLY sends reminders, NO deletion) ---
 async function checkInactiveUsers() {
     try {
         const now = new Date();
@@ -493,7 +485,7 @@ io.on('connection', (socket) => {
     });
 });
 
-// --- সমস্ত Telegram Bot Handler ---
+// --- Telegram Bot Handler ---
 bot.start(async (ctx) => {
     try {
         const userId = ctx.from.id;
@@ -884,13 +876,13 @@ server.listen(PORT, () => {
         console.log(`📊 [Memory] RSS: ${Math.round(used.rss / 1024 / 1024)}MB | Heap: ${Math.round(used.heapUsed / 1024 / 1024)}MB/${Math.round(used.heapTotal / 1024 / 1024)}MB`);
     }, 60000);
     
-    // Inactivity checker (every 6 hours)
+    // Inactivity checker (ONLY sends reminders, NO deletion) - every 6 hours
     setInterval(async () => {
         console.log("🔍 [Inactivity Checker] Running...");
         await checkInactiveUsers();
     }, 6 * 60 * 60 * 1000);
     
-    // Blocked user cleanup (every 24 hours)
+    // Blocked user cleanup ONLY - every 24 hours
     setInterval(async () => {
         console.log("🧹 [Cleanup Scheduler] Running blocked user cleanup...");
         await cleanupBlockedUsers();

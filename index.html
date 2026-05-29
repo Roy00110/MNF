@@ -14,8 +14,8 @@
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         :root {
-            --accent: #ff4d94; /* Romantic Pink */
-            --bg-dark: #1a0b2e; /* Deep Purple Background */
+            --accent: #ff4d94;
+            --bg-dark: #1a0b2e;
             --glass-bg: rgba(255, 255, 255, 0.1);
             --text-main: #f8fafc;
             --gradient: linear-gradient(135deg, #ff4d94, #ff7171);
@@ -42,12 +42,10 @@
             display: flex; align-items: center; gap: 8px;
         }
 
-        /* --- Tabs Logic --- */
         #tab-container { flex: 1; overflow-y: auto; padding-bottom: 80px; }
         .tab-content { display: none; }
         .active-tab { display: block; }
 
-        /* --- Compact Promotional Video Banner --- */
         .video-promo-banner {
             width: 85%;
             background: rgba(255, 255, 255, 0.05);
@@ -86,7 +84,6 @@
             text-decoration: none;
         }
 
-        /* --- Earn Tab Styling --- */
         .earn-section { padding: 20px; text-align: center; }
         .earn-card {
             background: var(--glass-bg); border: 1px solid rgba(255, 77, 148, 0.2);
@@ -101,7 +98,6 @@
         }
         .earn-btn:disabled { opacity: 0.6; cursor: not-allowed; background: #475569 !important; }
 
-        /* --- Profile Tab Styling --- */
         .profile-section {
             padding: 25px 20px;
             max-width: 400px;
@@ -180,7 +176,6 @@
             background: #475569 !important;
         }
 
-        /* --- Navigation Bar --- */
         .nav-bar {
             position: fixed; bottom: 0; width: 100%; background: rgba(26, 11, 46, 0.95);
             display: flex; justify-content: space-around; padding: 12px 0;
@@ -190,7 +185,6 @@
         .nav-item.active { color: var(--accent); }
         .nav-item i { font-size: 1.2rem; }
 
-        /* --- Full Screen Chat Area --- */
         #chat-area { 
             position: fixed; top: 0; bottom: 80px; left: 0; right: 0;
             padding: 100px 20px 20px 20px; overflow-y: auto; display: none; flex-direction: column; gap: 15px; 
@@ -216,12 +210,10 @@
         .input-box input { flex: 1; background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1); padding: 12px 18px; border-radius: 25px; color: white; outline: none; }
         .btn-circle { width: 45px; height: 45px; border-radius: 50%; background: var(--gradient); border: none; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
         
-        /* Modal Styles */
         #limit-modal, #video-modal, #ad-floating-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-content { background: #2d164d; padding: 30px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid var(--accent); position: relative; }
         .hidden { display: none !important; }
         
-        /* Floating Chat Actions - Perfectly Positioned */
         #chat-floating-header {
             position: fixed; top: 15px; left: 0; right: 0;
             padding: 0 20px; display: none; justify-content: space-between;
@@ -240,7 +232,6 @@
         #video-btn-float { color: #22c55e; }
         #close-chat-float { color: #ef4444; }
 
-        /* Profile Info in Chat Header - Shows PARTNER info now */
         .chat-profile-badge {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -266,7 +257,6 @@
             color: var(--accent);
         }
 
-        /* Compact Premium Section */
         .premium-container { width: 85%; max-width: 350px; padding: 10px; background: rgba(255, 255, 255, 0.03); border-radius: 15px; border: 1px solid rgba(255, 77, 148, 0.15); }
         .premium-title { font-size: 0.7rem; color: #fbbf24; margin-bottom: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
         .gender-box { display: flex; gap: 8px; }
@@ -274,7 +264,6 @@
         
         .close-modal-icon { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: #b4a9c3; cursor: pointer; }
 
-        /* Search UI Overrides */
         .searching-active header,
         .searching-active .video-promo-banner,
         .searching-active #status-text,
@@ -289,19 +278,16 @@
             margin-top: 0;
         }
 
-        /* Next/Home Buttons UI */
         .end-chat-container {
             display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 20px; animation: slideUp 0.4s ease;
         }
         .btn-next { background: var(--gradient); color: white; border: none; padding: 12px 35px; border-radius: 25px; font-weight: bold; cursor: pointer; width: 180px; }
         .btn-home-end { background: var(--glass-bg); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 12px 35px; border-radius: 25px; font-weight: bold; cursor: pointer; width: 180px; }
 
-        /* Extra style for searching UI inside chat-area */
         .chat-searching-ui {
             display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 15px;
         }
 
-        /* Validation error style */
         .validation-error {
             color: #ff6b6b;
             font-size: 0.75rem;
@@ -542,8 +528,14 @@
     const userId = tg.initDataUnsafe?.user?.id;
     let isSearching = false; 
     let msgCount = 0; 
-    let currentPartnerId = null; // Track current partner
+    let currentPartnerId = null;
 
+    // --- New Ad Management Variables ---
+    let isAdShowing = false; // Track if any ad is currently showing
+    let lastInterstitialTime = 0; // Track last time interstitial was shown
+    let monetagTimer = null; // Timer for Monetag ads
+    let adsgramTimer = null; // Timer for Adsgram interstitial
+    
     const AdsgramInterstitial = window.Adsgram.init({ blockId: "int-23449" });
     const AdsgramRewarded = window.Adsgram.init({ blockId: "20759" });
 
@@ -552,6 +544,266 @@
 
     if (userId) socket.emit('join', userId);
 
+    // --- Auto Ad Display Function (Every 1 minute) ---
+    function startAutoAdTimers() {
+        // Clear existing timers
+        if (adsgramTimer) clearInterval(adsgramTimer);
+        if (monetagTimer) clearInterval(monetagTimer);
+        
+        // Timer for Adsgram Interstitial (every 60 seconds)
+        adsgramTimer = setInterval(() => {
+            showAdsgramInterstitial();
+        }, 60000);
+        
+        // Timer for Monetag Interstitial (every 65 seconds - offset to avoid conflict)
+        monetagTimer = setInterval(() => {
+            showMonetagInterstitial();
+        }, 32000);
+    }
+    
+    function showAdsgramInterstitial() {
+        // Don't show if another ad is already showing
+        if (isAdShowing) {
+            console.log("Ad already showing, skipping Adsgram");
+            return;
+        }
+        
+        const now = Date.now();
+        // Prevent showing too frequently (minimum 55 seconds gap)
+        if (now - lastInterstitialTime < 55000) {
+            console.log("Too soon for another ad");
+            return;
+        }
+        
+        isAdShowing = true;
+        lastInterstitialTime = now;
+        
+        AdsgramInterstitial.show().then(() => {
+            console.log("Adsgram interstitial completed");
+            setTimeout(() => {
+                isAdShowing = false;
+            }, 1000);
+        }).catch((e) => {
+            console.error("Adsgram interstitial failed:", e);
+            isAdShowing = false;
+        });
+    }
+    
+    function showMonetagInterstitial() {
+        // Don't show if another ad is already showing
+        if (isAdShowing) {
+            console.log("Ad already showing, skipping Monetag");
+            return;
+        }
+        
+        // Check if Monetag function exists and is available
+        if (typeof show_9341070 !== 'undefined') {
+            isAdShowing = true;
+            
+            try {
+                show_9341070('pop').then(() => {
+                    console.log("Monetag interstitial completed");
+                    setTimeout(() => {
+                        isAdShowing = false;
+                    }, 1000);
+                }).catch((e) => {
+                    console.error("Monetag interstitial failed:", e);
+                    isAdShowing = false;
+                });
+            } catch (e) {
+                console.error("Monetag error:", e);
+                isAdShowing = false;
+            }
+        }
+    }
+    
+    // --- Modified startSearching without ad check ---
+    function startSearching() {
+        const currentLimit = parseInt(document.getElementById('match-count').innerText);
+        if (currentLimit <= 0) {
+            document.getElementById('limit-modal').style.display = 'flex';
+            return;
+        }
+
+        isSearching = true;
+        
+        document.getElementById('home-screen').style.display = 'none';
+        document.getElementById('main-header').style.display = 'none';
+        document.getElementById('bottom-nav').classList.add('hidden');
+
+        const chatArea = document.getElementById('chat-area');
+        chatArea.style.display = 'flex';
+        chatArea.innerHTML = `
+            <div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100%;">
+                <div class="dating-animation searching">
+                    <div class="heart-pulse"></div>
+                    <i class="fa-solid fa-heart heart-icon"></i>
+                </div>
+                <p style="color:#ff99cc; font-weight:600; font-size:1.1rem; margin-top: 15px;">Searching for a partner...</p>
+                <button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px; background: rgba(255,255,255,0.1); border: 1px solid #ff99cc; color: #fff; padding: 10px; border-radius: 20px;" onclick="location.reload()">Cancel</button>
+            </div>
+        `;
+
+        socket.emit('find_partner_web', userId);
+    }
+
+    // --- Modified handleFind (removed search counter ad logic) ---
+    function handleFind() {
+        if (!profileSet) {
+            switchTab('profile', document.querySelectorAll('.nav-item')[1]);
+            tg.HapticFeedback.notificationOccurred('warning');
+            return;
+        }
+        
+        if (isSearching) {
+            cancelSearch();
+            return;
+        }
+
+        startSearching();
+    }
+
+    // --- Modified watchRewardAd with ad conflict prevention ---
+    async function watchRewardAd() {
+        // Don't show if another ad is showing
+        if (isAdShowing) {
+            tg.showAlert("Please wait, another ad is currently playing.");
+            return;
+        }
+        
+        const btn = document.getElementById('watchBtn');
+        const modalBtn = document.getElementById('rewardBtnModal');
+        btn.disabled = true;
+        modalBtn.disabled = true;
+        
+        isAdShowing = true;
+        
+        try {
+            const result = await AdsgramRewarded.show();
+            if (result.done) {
+                socket.emit('reward_user', userId);
+                tg.HapticFeedback.notificationOccurred('success');
+                tg.showAlert("15 matches added successfully!");
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                btn.disabled = false;
+                modalBtn.disabled = false;
+            }
+            isAdShowing = false;
+        } catch (error) {
+            console.error("Rewarded ad failed:", error);
+            tg.showAlert("Ad failed to load or skipped.");
+            btn.disabled = false;
+            modalBtn.disabled = false;
+            isAdShowing = false;
+        }
+    }
+
+    // --- Modified claimDaily with ad conflict prevention ---
+    function claimDaily() {
+        if (isAdShowing) {
+            tg.showAlert("Please wait, another ad is currently playing.");
+            return;
+        }
+        
+        isAdShowing = true;
+        
+        show_9341070('pop').then(() => {
+            socket.emit('claim_daily', userId);
+            tg.HapticFeedback.notificationOccurred('success');
+            localStorage.setItem('lastDailyBonus', new Date().toDateString());
+            const btn = document.getElementById('dailyBtn');
+            btn.disabled = true;
+            btn.innerText = "Done";
+            tg.showAlert("You received 5 free matches! 🎉");
+            isAdShowing = false;
+        }).catch(e => {
+            console.error("Claim daily ad failed:", e);
+            tg.showAlert("Please watch the full ad to claim your bonus!");
+            isAdShowing = false;
+        });
+    }
+
+    // --- Modified luckySpin with ad conflict prevention ---
+    function luckySpin() {
+        if (isAdShowing) {
+            tg.showAlert("Please wait, another ad is currently playing.");
+            return;
+        }
+        
+        tg.showConfirm("Do you want to use your daily Lucky Spin?", (ok) => {
+            if (ok) {
+                isAdShowing = true;
+                
+                show_9341070().then(() => {
+                    socket.emit('lucky_spin', userId); 
+                    tg.HapticFeedback.impactOccurred('medium');
+                    localStorage.setItem('lastLuckySpin', new Date().toDateString());
+                    const btn = document.getElementById('spinBtn');
+                    btn.disabled = true;
+                    btn.innerText = "Done";
+                    btn.style.background = "#475569";
+                    btn.style.color = "white";
+                    isAdShowing = false;
+                }).catch((err) => {
+                    console.error("Lucky spin ad failed:", err);
+                    tg.showAlert("Ad not available or skipped. Please try again to spin!");
+                    isAdShowing = false;
+                });
+            }
+        });
+    }
+
+    // --- Modified saveProfile with ad conflict prevention ---
+    function saveProfile() {
+        const current = getCurrentProfile();
+        
+        if (!validateNameInput()) {
+            tg.showAlert("Name cannot contain @ symbol or numbers!");
+            return;
+        }
+        
+        if (isAdShowing) {
+            tg.showAlert("Please wait, another ad is currently playing.");
+            return;
+        }
+        
+        const saveBtn = document.getElementById('saveProfileBtn');
+        saveBtn.disabled = true;
+        
+        isAdShowing = true;
+        
+        AdsgramInterstitial.show().then(() => {
+            performProfileSave(current);
+            isAdShowing = false;
+        }).catch((e) => {
+            console.error("Ad failed or skipped:", e);
+            performProfileSave(current);
+            isAdShowing = false;
+        });
+    }
+
+    function performProfileSave(current) {
+        localStorage.setItem('userProfile', JSON.stringify(current));
+        
+        if (userId) {
+            socket.emit('save_profile', { userId: userId, profile: current });
+        }
+        
+        originalProfile = { ...current };
+        document.getElementById('saveProfileBtn').disabled = true;
+        
+        if (current.name && current.name !== 'Anonymous' && current.name.trim() !== '') {
+            profileSet = true;
+        }
+        
+        tg.HapticFeedback.notificationOccurred('success');
+        tg.showAlert("Profile saved successfully!");
+        
+        switchTab('home', document.querySelectorAll('.nav-item')[0]);
+    }
+
+    // --- Rest of the original functions remain unchanged ---
     window.onload = () => {
         const today = new Date().toDateString();
         
@@ -580,13 +832,13 @@
             btn.style.background = "#475569";
         }
         
-        // Profile load from database (localStorage simulates DB)
         loadProfileFromStorage();
         attachProfileListeners();
-        
         updateGenderUI();
         
-        // Automatically go to profile tab if no profile found
+        // Start auto ad timers
+        startAutoAdTimers();
+        
         if (!profileSet) {
             setTimeout(() => {
                 switchTab('profile', document.querySelectorAll('.nav-item')[1]);
@@ -594,6 +846,7 @@
         }
     };
 
+    // --- All other original functions (unchanged) ---
     function switchTab(tabName, el) {
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active-tab'));
         document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
@@ -602,17 +855,14 @@
         el.classList.add('active');
     }
 
-    // ---------- Profile Logic with Database Simulation ----------
     let originalProfile = { name: 'Anonymous', age: '25', gender: 'male' };
-    let profileSet = false; // Flag to check if profile is set
+    let profileSet = false;
     
     function loadProfileFromStorage() {
-        // Simulate fetching from database via localStorage
         const saved = localStorage.getItem('userProfile');
         if (saved) {
             try {
                 originalProfile = JSON.parse(saved);
-                // Check if profile is meaningful (not default Anonymous)
                 if (originalProfile.name && originalProfile.name !== 'Anonymous' && originalProfile.name.trim() !== '') {
                     profileSet = true;
                 } else {
@@ -625,7 +875,6 @@
         document.getElementById('profileName').value = originalProfile.name || 'Anonymous';
         document.getElementById('profileAge').value = originalProfile.age || '25';
         
-        // Set gender highlight
         document.querySelectorAll('.profile-gender-option').forEach(opt => opt.classList.remove('selected'));
         if (originalProfile.gender) {
             const selected = document.querySelector(`.profile-gender-option[data-gender="${originalProfile.gender}"]`);
@@ -634,10 +883,7 @@
             document.querySelector('.profile-gender-option[data-gender="male"]').classList.add('selected');
             originalProfile.gender = 'male';
         }
-        // Save button disabled initially
         document.getElementById('saveProfileBtn').disabled = true;
-        
-        // Note: We do NOT update chat badge here anymore because it should show PARTNER, not self
     }
 
     function attachProfileListeners() {
@@ -656,7 +902,6 @@
         const nameError = document.getElementById('nameError');
         const name = nameInput.value;
         
-        // Check for @ symbol or numbers
         const hasInvalidChars = /[@0-9]/.test(name);
         
         if (hasInvalidChars) {
@@ -691,70 +936,13 @@
     function checkProfileChanges() {
         const current = getCurrentProfile();
         const saved = originalProfile;
-        
-        // Also validate name before enabling save button
         const isValid = validateNameInput();
-        
         const changed = (current.name !== saved.name || 
                         current.age !== saved.age || 
                         current.gender !== saved.gender);
-        
-        // Only enable if changed AND name is valid
         document.getElementById('saveProfileBtn').disabled = !(changed && isValid);
     }
 
-    function saveProfile() {
-        const current = getCurrentProfile();
-        
-        // Final validation check
-        if (!validateNameInput()) {
-            tg.showAlert("Name cannot contain @ symbol or numbers!");
-            return;
-        }
-        
-        // Disable save button temporarily to prevent double clicks
-        const saveBtn = document.getElementById('saveProfileBtn');
-        saveBtn.disabled = true;
-        
-        // Show interstitial ad before saving
-        AdsgramInterstitial.show().then(() => {
-            // Ad completed successfully - now save profile
-            performProfileSave(current);
-        }).catch((e) => {
-            console.error("Ad failed or skipped:", e);
-            // Even if ad fails, still save profile (user can proceed)
-            performProfileSave(current);
-        });
-    }
-    
-    function performProfileSave(current) {
-        // Save to localStorage (simulates database save)
-        localStorage.setItem('userProfile', JSON.stringify(current));
-        
-        // Also send to server via socket to store in real DB (simulated)
-        if (userId) {
-            socket.emit('save_profile', { userId: userId, profile: current });
-        }
-        
-        originalProfile = { ...current };
-        document.getElementById('saveProfileBtn').disabled = true;
-        
-        // Set profileSet flag to true if name is not default
-        if (current.name && current.name !== 'Anonymous' && current.name.trim() !== '') {
-            profileSet = true;
-        }
-        
-        // Do NOT update chat badge with self info
-        // updateChatProfileBadge();  // Removed - we show partner only
-        
-        tg.HapticFeedback.notificationOccurred('success');
-        tg.showAlert("Profile saved successfully!");
-        
-        // Automatically switch back to home tab after saving
-        switchTab('home', document.querySelectorAll('.nav-item')[0]);
-    }
-
-    // Function to update chat badge with PARTNER info (called when match found)
     function updateChatBadgeWithPartner(partnerName, partnerGender) {
         document.getElementById('chatProfileName').innerText = partnerName || 'Stranger';
         const genderIcon = document.getElementById('chatGenderIcon');
@@ -769,87 +957,6 @@
             genderIcon.style.color = '#a3a3a3';
         }
     }
-    // -----------------------------------
-
-    function claimDaily() {
-        show_9341070('pop').then(() => {
-            socket.emit('claim_daily', userId);
-            tg.HapticFeedback.notificationOccurred('success');
-            localStorage.setItem('lastDailyBonus', new Date().toDateString());
-            const btn = document.getElementById('dailyBtn');
-            btn.disabled = true;
-            btn.innerText = "Done";
-            tg.showAlert("You received 5 free matches! 🎉");
-        }).catch(e => {
-            tg.showAlert("Please watch the full ad to claim your bonus!");
-        });
-    }
-
-    function inviteFriends() {
-        const shareLink = `https://t.me/MakefriendsglobalBot?start=${userId}`;
-        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=Hey! Come and chat with me on MatchMe! 💖`);
-    }
-
-    function joinChannel() {
-        tg.openTelegramLink('https://t.me/+666ngR_ca9ZmODk1'); 
-        socket.emit('social_task', userId);
-    }
-
-    function luckySpin() {
-        tg.showConfirm("Do you want to use your daily Lucky Spin?", (ok) => {
-            if (ok) {
-                show_9341070().then(() => {
-                    socket.emit('lucky_spin', userId); 
-                    tg.HapticFeedback.impactOccurred('medium');
-                    localStorage.setItem('lastLuckySpin', new Date().toDateString());
-                    const btn = document.getElementById('spinBtn');
-                    btn.disabled = true;
-                    btn.innerText = "Done";
-                    btn.style.background = "#475569";
-                    btn.style.color = "white";
-                }).catch((err) => {
-                    tg.showAlert("Ad not available or skipped. Please try again to spin!");
-                });
-            }
-        });
-    }
-
-    function handleFind() {
-        // First check if profile is set
-        if (!profileSet) {
-            // Automatically switch to profile tab without showing popup
-            switchTab('profile', document.querySelectorAll('.nav-item')[1]);
-            tg.HapticFeedback.notificationOccurred('warning');
-            return;
-        }
-        
-        if (isSearching) {
-            cancelSearch();
-            return;
-        }
-
-        // 1. Counter update
-        let searchCounter = parseInt(localStorage.getItem('mySearchCount')) || 0;
-        searchCounter++;
-        localStorage.setItem('mySearchCount', searchCounter);
-
-        // 2. Optimized Ad Logic
-        // Prothom 2 barer por theke proti 3-4 search por por ad dekhabe
-        // Jemon: 2, 5, 8, 11, 14, 17... (Unlimited loop)
-        const showAd = (searchCounter === 2 || (searchCounter > 2 && (searchCounter - 2) % 3 === 0));
-
-        if (showAd) {
-            AdsgramInterstitial.show().then(() => {
-                startSearching();
-            }).catch((e) => {
-                console.error("Ad failed or skipped:", e);
-                startSearching(); // Ad fail korle search jate bondho na hoy
-            });
-        } else {
-            startSearching();
-        }
-    }
-
 
     function updateGenderUI() {
         let m = localStorage.getItem('m_lim') !== null ? localStorage.getItem('m_lim') : 50;
@@ -863,9 +970,7 @@
     function handleGenderMatch(gender) {
         if (isSearching) return cancelSearch();
         
-        // Check profile before gender match too
         if (!profileSet) {
-            // Automatically switch to profile tab without showing popup
             switchTab('profile', document.querySelectorAll('.nav-item')[1]);
             tg.HapticFeedback.notificationOccurred('warning');
             return;
@@ -884,41 +989,9 @@
         handleFind(); 
     }
 
-  function startSearching() {
-    const currentLimit = parseInt(document.getElementById('match-count').innerText);
-    if (currentLimit <= 0) {
-        document.getElementById('limit-modal').style.display = 'flex';
-        return;
-    }
-
-    isSearching = true;
-    
-    // ১. Home Screen-er jinishpatro hide kora
-    document.getElementById('home-screen').style.display = 'none';
-    document.getElementById('main-header').style.display = 'none';
-    document.getElementById('bottom-nav').classList.add('hidden');
-
-    // ২. Chat Area active kora ebong searching UI set kora
-    const chatArea = document.getElementById('chat-area');
-    chatArea.style.display = 'flex';
-    chatArea.innerHTML = `
-        <div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100%;">
-            <div class="dating-animation searching">
-                <div class="heart-pulse"></div>
-                <i class="fa-solid fa-heart heart-icon"></i>
-            </div>
-            <p style="color:#ff99cc; font-weight:600; font-size:1.1rem; margin-top: 15px;">Searching for a partner...</p>
-            <button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px; background: rgba(255,255,255,0.1); border: 1px solid #ff99cc; color: #fff; padding: 10px; border-radius: 20px;" onclick="location.reload()">Cancel</button>
-        </div>
-    `;
-
-    // ৩. Server-e signal pathano
-    socket.emit('find_partner_web', userId);
-}
-
     function cancelSearch() {
         isSearching = false;
-        document.body.classList.remove('searching-active'); // Show all elements
+        document.body.classList.remove('searching-active');
         const btn = document.getElementById('findBtn');
         btn.innerText = "Start Matching";
         btn.classList.remove('btn-cancel');
@@ -927,54 +1000,38 @@
         tg.HapticFeedback.impactOccurred('light');
     }
 
-    async function watchRewardAd() {
-        const btn = document.getElementById('watchBtn');
-        const modalBtn = document.getElementById('rewardBtnModal');
-        btn.disabled = true;
-        modalBtn.disabled = true;
-        try {
-            const result = await AdsgramRewarded.show();
-            if (result.done) {
-                socket.emit('reward_user', userId);
-                tg.HapticFeedback.notificationOccurred('success');
-                tg.showAlert("15 matches added successfully!");
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                btn.disabled = false;
-                modalBtn.disabled = false;
-            }
-        } catch (error) {
-            alert("Ad failed to load or skipped.");
-            btn.disabled = false;
-            modalBtn.disabled = false;
-        }
+    function inviteFriends() {
+        const shareLink = `https://t.me/MakefriendsglobalBot?start=${userId}`;
+        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=Hey! Come and chat with me on MatchMe! 💖`);
     }
 
+    function joinChannel() {
+        tg.openTelegramLink('https://t.me/+666ngR_ca9ZmODk1'); 
+        socket.emit('social_task', userId);
+    }
+
+    // --- Socket Event Listeners (unchanged) ---
     socket.on('match_found', (partnerInfo) => {
         isSearching = false; 
         msgCount = 0; 
         tg.HapticFeedback.notificationOccurred('success');
         document.body.classList.remove('searching-active');
         
-        // Store partner ID if provided
         if (partnerInfo && partnerInfo.partnerId) {
             currentPartnerId = partnerInfo.partnerId;
         }
         
-        // Full screen chat logic
-        document.getElementById('main-header').style.display = 'none'; // Hide Header
+        document.getElementById('main-header').style.display = 'none';
         document.getElementById('tab-container').classList.add('hidden');
         document.getElementById('bottom-nav').classList.add('hidden');
         
-        document.getElementById('chat-area').innerHTML = ''; // Clear area
+        document.getElementById('chat-area').innerHTML = '';
         document.getElementById('chat-area').style.display = 'flex';
-        document.getElementById('chat-floating-header').style.display = 'flex'; // Show floating buttons
+        document.getElementById('chat-floating-header').style.display = 'flex';
         
-        // Update badge with PARTNER info (from server)
         if (partnerInfo) {
             updateChatBadgeWithPartner(partnerInfo.partnerName, partnerInfo.partnerGender);
         } else {
-            // Fallback if no info
             updateChatBadgeWithPartner('Stranger', 'male');
         }
         
@@ -994,7 +1051,7 @@
         showSystemMsg("💔 Partner left the chat.");
         document.getElementById('chat-floating-header').style.display = 'none';
         document.getElementById('input-bar').classList.add('hidden');
-        currentPartnerId = null; // Reset partner
+        currentPartnerId = null;
         
         const endContainer = document.createElement('div');
         endContainer.className = 'end-chat-container';
@@ -1006,29 +1063,24 @@
         document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
     });
 
-   function handleNextMatch() {
-    // Reset partner
-    currentPartnerId = null;
-    
-    // 1. Chat area clear kore Searching UI add kora
-    const chatArea = document.getElementById('chat-area');
-    chatArea.innerHTML = `
-        <div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
-            <div class="dating-animation searching">
-                <div class="heart-pulse"></div>
-                <i class="fa-solid fa-heart heart-icon"></i>
+    function handleNextMatch() {
+        currentPartnerId = null;
+        
+        const chatArea = document.getElementById('chat-area');
+        chatArea.innerHTML = `
+            <div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                <div class="dating-animation searching">
+                    <div class="heart-pulse"></div>
+                    <i class="fa-solid fa-heart heart-icon"></i>
+                </div>
+                <p style="color:#ff99cc; font-weight:600; font-size:0.9rem; margin-top: 15px;">Searching for new partner...</p>
+                <button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px;" onclick="location.reload()">Cancel</button>
             </div>
-            <p style="color:#ff99cc; font-weight:600; font-size:0.9rem; margin-top: 15px;">Searching for new partner...</p>
-            <button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px;" onclick="location.reload()">Cancel</button>
-        </div>
-    `;
+        `;
 
-    // 2. Chat floating header hide kora (jodi match na pawa porjont)
-    document.getElementById('chat-floating-header').style.display = 'none';
-
-    // 3. Search logic shuru kora (handleFind reuse kora hoyeche jate Ad logic-o thakbe)
-    handleFind();
-}
+        document.getElementById('chat-floating-header').style.display = 'none';
+        handleFind();
+    }
 
     socket.on('user_data', (data) => {
         if (data && data.limit !== undefined) {
@@ -1093,17 +1145,6 @@
         div.innerText = msg;
         container.appendChild(div);
     }
-
-    show_9341070({
-      type: 'inApp',
-      inAppSettings: {
-        frequency: 2,
-        capping: 0.1,
-        interval: 15,
-        timeout: 30,
-        everyPage: false
-      }
-    });
 </script>
 </body>
 </html>

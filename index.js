@@ -47,8 +47,79 @@ const User = mongoose.model('User', new mongoose.Schema({
     // ✅ Profile Fields Added (Database te save hobe)
     profileName: { type: String, default: 'Anonymous' },
     profileAge: { type: String, default: '25' },
-    profileGender: { type: String, default: 'male' }
+    profileGender: { type: String, default: 'male' },
+    lastSeen: { type: Date, default: Date.now } // Track last interaction
 }));
+
+// --- Inactive User Cleanup Function ---
+async function cleanupInactiveUsers() {
+    console.log('🧹 [Cleanup] Starting inactive user cleanup...');
+    
+    try {
+        // Get all users from database
+        const allUsers = await User.find({});
+        let removedCount = 0;
+        let errorCount = 0;
+        let keptCount = 0;
+        
+        console.log(`📊 [Cleanup] Total users in database: ${allUsers.length}`);
+        
+        for (const user of allUsers) {
+            try {
+                // Try to send a silent test message to check if user is reachable
+                await bot.telegram.sendChatAction(user.userId, 'typing');
+                keptCount++;
+                // Small delay to avoid rate limiting
+                await new Promise(resolve => setTimeout(resolve, 50));
+                
+            } catch (error) {
+                if (error.response && error.response.error_code) {
+                    const errorCode = error.response.error_code;
+                    const errorDesc = error.response.description || '';
+                    
+                    // These error codes mean user is permanently unreachable
+                    if (errorCode === 403 || // Bot was blocked by user
+                        errorCode === 400 && (errorDesc.includes('chat not found') || 
+                        errorDesc.includes('user not found') ||
+                        errorDesc.includes('bot was blocked') ||
+                        errorDesc.includes('PEER_ID_INVALID'))) {
+                        
+                        // Delete the user from database
+                        await User.deleteOne({ _id: user._id });
+                        removedCount++;
+                        console.log(`🗑️ [Cleanup] Removed inactive user: ${user.userId} (${user.firstName || 'Unknown'}) - Reason: ${errorDesc || errorCode}`);
+                    } else {
+                        // Other errors like rate limiting - just log but keep user
+                        console.log(`⚠️ [Cleanup] Temporary error for user ${user.userId}: ${errorCode} - ${errorDesc}`);
+                        errorCount++;
+                    }
+                }
+                
+                // Small delay to avoid rate limiting
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+        }
+        
+        console.log(`✅ [Cleanup] Cleanup completed! Removed: ${removedCount}, Kept: ${keptCount}, Errors: ${errorCount}, Remaining: ${allUsers.length - removedCount}`);
+        
+        // Notify admin about cleanup
+        if (ADMIN_ID && removedCount > 0) {
+            await bot.telegram.sendMessage(
+                ADMIN_ID,
+                `🧹 <b>User Cleanup Completed</b>\n\n` +
+                `✅ Removed: <b>${removedCount}</b> inactive users\n` +
+                `📊 Remaining: <b>${allUsers.length - removedCount}</b> users\n` +
+                `👥 Active: <b>${keptCount}</b>\n` +
+                `⚠️ Errors: <b>${errorCount}</b>\n\n` +
+                `<i>Users who blocked the bot or deleted their accounts have been removed.</i>`,
+                { parse_mode: 'HTML' }
+            ).catch(() => {});
+        }
+        
+    } catch (err) {
+        console.error('❌ [Cleanup] Error during cleanup:', err);
+    }
+}
 
 // --- Helper Functions ---
 async function isSubscribed(userId) {
@@ -60,6 +131,17 @@ async function isSubscribed(userId) {
             if (['left', 'kicked'].includes(member.status)) return false;
         } catch (e) { 
             console.log(`⚠️ [Sub Error] ${channel}:`, e.message);
+            
+            // If user is not found or bot can't check, consider them not subscribed
+            if (e.response && e.response.error_code === 400 && 
+                (e.response.description.includes('user not found') || 
+                 e.response.description.includes('chat not found'))) {
+                // Optionally mark user for cleanup
+                setTimeout(() => {
+                    User.deleteOne({ userId: userId }).catch(() => {});
+                }, 1000);
+                return false;
+            }
             return false; 
         }
     }
@@ -98,7 +180,7 @@ io.on('connection', (socket) => {
     if (!userId) return;
     const user = await User.findOneAndUpdate(
         { userId: Number(userId) }, 
-        { webSocketId: socket.id, webStatus: 'idle', webPartnerId: null }, 
+        { webSocketId: socket.id, webStatus: 'idle', webPartnerId: null, lastSeen: new Date() }, 
         { upsert: true, new: true }
     );
     console.log(`👤 [Web] User ${userId} joined via socket ${socket.id}`);
@@ -109,7 +191,7 @@ io.on('connection', (socket) => {
         try {
             const user = await User.findOneAndUpdate(
                 { userId: Number(userId) },
-                { $inc: { matchLimit: 15 } }, // Updated to 15 as per previous logic
+                { $inc: { matchLimit: 15 } },
                 { new: true }
             );
             console.log(`🎁 [Reward Success] User ${userId} watched video. Balance: ${user.matchLimit}`);
@@ -321,11 +403,14 @@ bot.start(async (ctx) => {
                 // Default Profile Values
                 profileName: 'Anonymous',
                 profileAge: '25',
-                profileGender: 'male'
+                profileGender: 'male',
+                lastSeen: new Date()
             });
             await user.save();
         } else if (startPayload && !user.hasReceivedReferralBonus) {
-            await User.updateOne({ userId }, { hasReceivedReferralBonus: true });
+            await User.updateOne({ userId }, { hasReceivedReferralBonus: true, lastSeen: new Date() });
+        } else {
+            await User.updateOne({ userId }, { lastSeen: new Date() });
         }
 
         const welcomeMsg = `👋 <b>Welcome to MatchMe 💌</b>\n\n` +
@@ -388,6 +473,9 @@ bot.hears('🔍 Find Partner', async (ctx) => {
                 ])
             });
         }
+
+        // Update last seen
+        await User.updateOne({ userId }, { lastSeen: new Date() });
 
         // ৩. চ্যাট রিডাইরেক্ট (বট চ্যাট না করে মিনি অ্যাপে পাঠাবে)
         const miniAppMsg = `🚀 <b>Ready to Find Your Match?</b>\n\n` +
@@ -493,6 +581,9 @@ bot.on('text', async (ctx, next) => {
         const userId = ctx.from.id;
         const isAdmin = userId === ADMIN_ID;
 
+        // Update last seen
+        await User.updateOne({ userId }, { lastSeen: new Date() });
+
         // --- ১. ব্রডকাস্ট লজিক (কমান্ড ও লিঙ্ক ট্রিম করা হয়েছে) ---
         if (text.startsWith('/broadcast') && isAdmin) {
             ctx.reply("⏳ Text Broadcast started in background...").catch(() => {});
@@ -556,6 +647,7 @@ bot.on('text', async (ctx, next) => {
         }
     } catch (err) { console.error("Text Handler Error:", err); }
 });
+
 bot.hears('👫 Refer & Earn', async (ctx) => {
     try {
         const user = await User.findOne({ userId: ctx.from.id });
@@ -604,6 +696,7 @@ bot.hears('👤 My Status', async (ctx) => {
         ctx.reply("⚠️ An error occurred while fetching your status.");
     }
 });
+
 bot.hears(['❌ Stop Chat', '❌ Stop Search'], async (ctx) => {
     const user = await User.findOne({ userId: ctx.from.id });
     const menu = Markup.keyboard([['🔍 Find Partner'], ['👤 My Status', '👫 Refer & Earn'], ['❌ Stop Chat']]).resize();
@@ -615,9 +708,68 @@ bot.hears(['❌ Stop Chat', '❌ Stop Search'], async (ctx) => {
     ctx.reply('❌ Stopped.', menu);
 });
 
+// --- Admin Commands for Cleanup ---
+bot.command('cleanup', async (ctx) => {
+    // Only allow admin to run this command
+    if (ctx.from.id !== ADMIN_ID) {
+        return ctx.reply('❌ You are not authorized to use this command.');
+    }
+    
+    await ctx.reply('🧹 Starting manual user cleanup... This may take a few minutes.');
+    
+    // Run cleanup in background
+    cleanupInactiveUsers().then(() => {
+        ctx.reply('✅ Cleanup completed! Check your DMs for the full report.').catch(() => {});
+    }).catch((err) => {
+        ctx.reply('❌ Cleanup failed. Check console for errors.').catch(() => {});
+    });
+});
+
+bot.command('stats', async (ctx) => {
+    if (ctx.from.id !== ADMIN_ID) {
+        return ctx.reply('❌ Unauthorized');
+    }
+    
+    try {
+        const totalUsers = await User.countDocuments({});
+        const usersWithPartners = await User.countDocuments({ partnerId: { $ne: null } });
+        const usersChatting = await User.countDocuments({ status: 'chatting' });
+        const webUsers = await User.countDocuments({ webSocketId: { $ne: null } });
+        
+        // Calculate users inactive for more than 30 days
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const inactiveUsers = await User.countDocuments({ lastSeen: { $lt: thirtyDaysAgo } });
+        
+        const msg = `📊 <b>Database Statistics</b>\n\n` +
+                   `👥 Total Users: <b>${totalUsers}</b>\n` +
+                   `💬 Active Chats: <b>${usersChatting}</b>\n` +
+                   `🤝 Users in Match: <b>${usersWithPartners}</b>\n` +
+                   `📱 Web Users: <b>${webUsers}</b>\n` +
+                   `⏰ Inactive (30d+): <b>${inactiveUsers}</b>\n\n` +
+                   `<i>Run /cleanup to remove inactive users</i>`;
+        
+        await ctx.replyWithHTML(msg);
+    } catch (err) {
+        console.error(err);
+        ctx.reply('❌ Error fetching statistics');
+    }
+});
+
+// --- Start Cleanup Schedule ---
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`🚀 [Server] System Live on port ${PORT}`);
+    
+    // Run initial cleanup after 10 seconds
+    setTimeout(() => {
+        cleanupInactiveUsers();
+    }, 10000);
+    
+    // Schedule cleanup every 24 hours
+    const CLEANUP_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
+    setInterval(cleanupInactiveUsers, CLEANUP_INTERVAL);
+    
     let lastAutoMsgId = null;
     async function sendAutoPromo() {
         try {

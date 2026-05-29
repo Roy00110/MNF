@@ -14,8 +14,8 @@
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         :root {
-            --accent: #ff4d94;
-            --bg-dark: #1a0b2e;
+            --accent: #ff4d94; /* Romantic Pink */
+            --bg-dark: #1a0b2e; /* Deep Purple Background */
             --glass-bg: rgba(255, 255, 255, 0.1);
             --text-main: #f8fafc;
             --gradient: linear-gradient(135deg, #ff4d94, #ff7171);
@@ -42,10 +42,12 @@
             display: flex; align-items: center; gap: 8px;
         }
 
+        /* --- Tabs Logic --- */
         #tab-container { flex: 1; overflow-y: auto; padding-bottom: 80px; }
         .tab-content { display: none; }
         .active-tab { display: block; }
 
+        /* --- Compact Promotional Video Banner --- */
         .video-promo-banner {
             width: 85%;
             background: rgba(255, 255, 255, 0.05);
@@ -84,6 +86,7 @@
             text-decoration: none;
         }
 
+        /* --- Earn Tab Styling --- */
         .earn-section { padding: 20px; text-align: center; }
         .earn-card {
             background: var(--glass-bg); border: 1px solid rgba(255, 77, 148, 0.2);
@@ -98,6 +101,7 @@
         }
         .earn-btn:disabled { opacity: 0.6; cursor: not-allowed; background: #475569 !important; }
 
+        /* --- Profile Tab Styling --- */
         .profile-section {
             padding: 25px 20px;
             max-width: 400px;
@@ -176,6 +180,7 @@
             background: #475569 !important;
         }
 
+        /* --- Navigation Bar --- */
         .nav-bar {
             position: fixed; bottom: 0; width: 100%; background: rgba(26, 11, 46, 0.95);
             display: flex; justify-content: space-around; padding: 12px 0;
@@ -185,6 +190,7 @@
         .nav-item.active { color: var(--accent); }
         .nav-item i { font-size: 1.2rem; }
 
+        /* --- Full Screen Chat Area --- */
         #chat-area { 
             position: fixed; top: 0; bottom: 80px; left: 0; right: 0;
             padding: 100px 20px 20px 20px; overflow-y: auto; display: none; flex-direction: column; gap: 15px; 
@@ -210,10 +216,12 @@
         .input-box input { flex: 1; background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1); padding: 12px 18px; border-radius: 25px; color: white; outline: none; }
         .btn-circle { width: 45px; height: 45px; border-radius: 50%; background: var(--gradient); border: none; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
         
+        /* Modal Styles */
         #limit-modal, #video-modal, #ad-floating-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-content { background: #2d164d; padding: 30px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid var(--accent); position: relative; }
         .hidden { display: none !important; }
         
+        /* Floating Chat Actions - Perfectly Positioned */
         #chat-floating-header {
             position: fixed; top: 15px; left: 0; right: 0;
             padding: 0 20px; display: none; justify-content: space-between;
@@ -232,6 +240,7 @@
         #video-btn-float { color: #22c55e; }
         #close-chat-float { color: #ef4444; }
 
+        /* Profile Info in Chat Header - Shows PARTNER info now */
         .chat-profile-badge {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -257,6 +266,7 @@
             color: var(--accent);
         }
 
+        /* Compact Premium Section */
         .premium-container { width: 85%; max-width: 350px; padding: 10px; background: rgba(255, 255, 255, 0.03); border-radius: 15px; border: 1px solid rgba(255, 77, 148, 0.15); }
         .premium-title { font-size: 0.7rem; color: #fbbf24; margin-bottom: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
         .gender-box { display: flex; gap: 8px; }
@@ -264,6 +274,7 @@
         
         .close-modal-icon { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: #b4a9c3; cursor: pointer; }
 
+        /* Search UI Overrides */
         .searching-active header,
         .searching-active .video-promo-banner,
         .searching-active #status-text,
@@ -278,16 +289,19 @@
             margin-top: 0;
         }
 
+        /* Next/Home Buttons UI */
         .end-chat-container {
             display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 20px; animation: slideUp 0.4s ease;
         }
         .btn-next { background: var(--gradient); color: white; border: none; padding: 12px 35px; border-radius: 25px; font-weight: bold; cursor: pointer; width: 180px; }
         .btn-home-end { background: var(--glass-bg); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 12px 35px; border-radius: 25px; font-weight: bold; cursor: pointer; width: 180px; }
 
+        /* Extra style for searching UI inside chat-area */
         .chat-searching-ui {
             display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 15px;
         }
 
+        /* Validation error style */
         .validation-error {
             color: #ff6b6b;
             font-size: 0.75rem;
@@ -530,12 +544,6 @@
     let msgCount = 0; 
     let currentPartnerId = null;
 
-    // --- New Ad Management Variables ---
-    let isAdShowing = false; // Track if any ad is currently showing
-    let lastInterstitialTime = 0; // Track last time interstitial was shown
-    let monetagTimer = null; // Timer for Monetag ads
-    let adsgramTimer = null; // Timer for Adsgram interstitial
-    
     const AdsgramInterstitial = window.Adsgram.init({ blockId: "int-23449" });
     const AdsgramRewarded = window.Adsgram.init({ blockId: "20759" });
 
@@ -544,266 +552,38 @@
 
     if (userId) socket.emit('join', userId);
 
-    // --- Auto Ad Display Function (Every 1 minute) ---
-    function startAutoAdTimers() {
-        // Clear existing timers
-        if (adsgramTimer) clearInterval(adsgramTimer);
-        if (monetagTimer) clearInterval(monetagTimer);
-        
-        // Timer for Adsgram Interstitial (every 60 seconds)
-        adsgramTimer = setInterval(() => {
-            showAdsgramInterstitial();
-        }, 60000);
-        
-        // Timer for Monetag Interstitial (every 65 seconds - offset to avoid conflict)
-        monetagTimer = setInterval(() => {
-            showMonetagInterstitial();
-        }, 32000);
-    }
-    
-    function showAdsgramInterstitial() {
-        // Don't show if another ad is already showing
-        if (isAdShowing) {
-            console.log("Ad already showing, skipping Adsgram");
-            return;
-        }
-        
+    // --- NEW AD LOGIC: Time-based interstitial every 1 minute (max 10 per hour) ---
+    let lastAdShowTime = 0;
+    let adCountCurrentHour = 0;
+    let currentHourStart = Date.now();
+
+    function canShowTimeBasedAd() {
         const now = Date.now();
-        // Prevent showing too frequently (minimum 55 seconds gap)
-        if (now - lastInterstitialTime < 55000) {
-            console.log("Too soon for another ad");
-            return;
+        // Reset hourly counter if an hour passed
+        if (now - currentHourStart >= 3600000) {
+            currentHourStart = now;
+            adCountCurrentHour = 0;
         }
-        
-        isAdShowing = true;
-        lastInterstitialTime = now;
-        
-        AdsgramInterstitial.show().then(() => {
-            console.log("Adsgram interstitial completed");
-            setTimeout(() => {
-                isAdShowing = false;
-            }, 1000);
-        }).catch((e) => {
-            console.error("Adsgram interstitial failed:", e);
-            isAdShowing = false;
-        });
-    }
-    
-    function showMonetagInterstitial() {
-        // Don't show if another ad is already showing
-        if (isAdShowing) {
-            console.log("Ad already showing, skipping Monetag");
-            return;
-        }
-        
-        // Check if Monetag function exists and is available
-        if (typeof show_9341070 !== 'undefined') {
-            isAdShowing = true;
-            
-            try {
-                show_9341070('pop').then(() => {
-                    console.log("Monetag interstitial completed");
-                    setTimeout(() => {
-                        isAdShowing = false;
-                    }, 1000);
-                }).catch((e) => {
-                    console.error("Monetag interstitial failed:", e);
-                    isAdShowing = false;
-                });
-            } catch (e) {
-                console.error("Monetag error:", e);
-                isAdShowing = false;
-            }
-        }
-    }
-    
-    // --- Modified startSearching without ad check ---
-    function startSearching() {
-        const currentLimit = parseInt(document.getElementById('match-count').innerText);
-        if (currentLimit <= 0) {
-            document.getElementById('limit-modal').style.display = 'flex';
-            return;
-        }
-
-        isSearching = true;
-        
-        document.getElementById('home-screen').style.display = 'none';
-        document.getElementById('main-header').style.display = 'none';
-        document.getElementById('bottom-nav').classList.add('hidden');
-
-        const chatArea = document.getElementById('chat-area');
-        chatArea.style.display = 'flex';
-        chatArea.innerHTML = `
-            <div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100%;">
-                <div class="dating-animation searching">
-                    <div class="heart-pulse"></div>
-                    <i class="fa-solid fa-heart heart-icon"></i>
-                </div>
-                <p style="color:#ff99cc; font-weight:600; font-size:1.1rem; margin-top: 15px;">Searching for a partner...</p>
-                <button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px; background: rgba(255,255,255,0.1); border: 1px solid #ff99cc; color: #fff; padding: 10px; border-radius: 20px;" onclick="location.reload()">Cancel</button>
-            </div>
-        `;
-
-        socket.emit('find_partner_web', userId);
+        // Check cooldown: at least 60 seconds since last ad
+        const timeOk = (now - lastAdShowTime) >= 60000;
+        const limitOk = adCountCurrentHour < 10;
+        return timeOk && limitOk;
     }
 
-    // --- Modified handleFind (removed search counter ad logic) ---
-    function handleFind() {
-        if (!profileSet) {
-            switchTab('profile', document.querySelectorAll('.nav-item')[1]);
-            tg.HapticFeedback.notificationOccurred('warning');
-            return;
-        }
-        
-        if (isSearching) {
-            cancelSearch();
-            return;
-        }
-
-        startSearching();
-    }
-
-    // --- Modified watchRewardAd with ad conflict prevention ---
-    async function watchRewardAd() {
-        // Don't show if another ad is showing
-        if (isAdShowing) {
-            tg.showAlert("Please wait, another ad is currently playing.");
-            return;
-        }
-        
-        const btn = document.getElementById('watchBtn');
-        const modalBtn = document.getElementById('rewardBtnModal');
-        btn.disabled = true;
-        modalBtn.disabled = true;
-        
-        isAdShowing = true;
-        
+    async function maybeShowTimeBasedInterstitial() {
+        if (!canShowTimeBasedAd()) return false;
         try {
-            const result = await AdsgramRewarded.show();
-            if (result.done) {
-                socket.emit('reward_user', userId);
-                tg.HapticFeedback.notificationOccurred('success');
-                tg.showAlert("15 matches added successfully!");
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                btn.disabled = false;
-                modalBtn.disabled = false;
-            }
-            isAdShowing = false;
-        } catch (error) {
-            console.error("Rewarded ad failed:", error);
-            tg.showAlert("Ad failed to load or skipped.");
-            btn.disabled = false;
-            modalBtn.disabled = false;
-            isAdShowing = false;
+            await AdsgramInterstitial.show();
+            lastAdShowTime = Date.now();
+            adCountCurrentHour++;
+            return true;
+        } catch (e) {
+            console.warn("Ad failed or blocked:", e);
+            return false;
         }
     }
+    // -----------------------------------------------------------
 
-    // --- Modified claimDaily with ad conflict prevention ---
-    function claimDaily() {
-        if (isAdShowing) {
-            tg.showAlert("Please wait, another ad is currently playing.");
-            return;
-        }
-        
-        isAdShowing = true;
-        
-        show_9341070('pop').then(() => {
-            socket.emit('claim_daily', userId);
-            tg.HapticFeedback.notificationOccurred('success');
-            localStorage.setItem('lastDailyBonus', new Date().toDateString());
-            const btn = document.getElementById('dailyBtn');
-            btn.disabled = true;
-            btn.innerText = "Done";
-            tg.showAlert("You received 5 free matches! 🎉");
-            isAdShowing = false;
-        }).catch(e => {
-            console.error("Claim daily ad failed:", e);
-            tg.showAlert("Please watch the full ad to claim your bonus!");
-            isAdShowing = false;
-        });
-    }
-
-    // --- Modified luckySpin with ad conflict prevention ---
-    function luckySpin() {
-        if (isAdShowing) {
-            tg.showAlert("Please wait, another ad is currently playing.");
-            return;
-        }
-        
-        tg.showConfirm("Do you want to use your daily Lucky Spin?", (ok) => {
-            if (ok) {
-                isAdShowing = true;
-                
-                show_9341070().then(() => {
-                    socket.emit('lucky_spin', userId); 
-                    tg.HapticFeedback.impactOccurred('medium');
-                    localStorage.setItem('lastLuckySpin', new Date().toDateString());
-                    const btn = document.getElementById('spinBtn');
-                    btn.disabled = true;
-                    btn.innerText = "Done";
-                    btn.style.background = "#475569";
-                    btn.style.color = "white";
-                    isAdShowing = false;
-                }).catch((err) => {
-                    console.error("Lucky spin ad failed:", err);
-                    tg.showAlert("Ad not available or skipped. Please try again to spin!");
-                    isAdShowing = false;
-                });
-            }
-        });
-    }
-
-    // --- Modified saveProfile with ad conflict prevention ---
-    function saveProfile() {
-        const current = getCurrentProfile();
-        
-        if (!validateNameInput()) {
-            tg.showAlert("Name cannot contain @ symbol or numbers!");
-            return;
-        }
-        
-        if (isAdShowing) {
-            tg.showAlert("Please wait, another ad is currently playing.");
-            return;
-        }
-        
-        const saveBtn = document.getElementById('saveProfileBtn');
-        saveBtn.disabled = true;
-        
-        isAdShowing = true;
-        
-        AdsgramInterstitial.show().then(() => {
-            performProfileSave(current);
-            isAdShowing = false;
-        }).catch((e) => {
-            console.error("Ad failed or skipped:", e);
-            performProfileSave(current);
-            isAdShowing = false;
-        });
-    }
-
-    function performProfileSave(current) {
-        localStorage.setItem('userProfile', JSON.stringify(current));
-        
-        if (userId) {
-            socket.emit('save_profile', { userId: userId, profile: current });
-        }
-        
-        originalProfile = { ...current };
-        document.getElementById('saveProfileBtn').disabled = true;
-        
-        if (current.name && current.name !== 'Anonymous' && current.name.trim() !== '') {
-            profileSet = true;
-        }
-        
-        tg.HapticFeedback.notificationOccurred('success');
-        tg.showAlert("Profile saved successfully!");
-        
-        switchTab('home', document.querySelectorAll('.nav-item')[0]);
-    }
-
-    // --- Rest of the original functions remain unchanged ---
     window.onload = () => {
         const today = new Date().toDateString();
         
@@ -836,9 +616,6 @@
         attachProfileListeners();
         updateGenderUI();
         
-        // Start auto ad timers
-        startAutoAdTimers();
-        
         if (!profileSet) {
             setTimeout(() => {
                 switchTab('profile', document.querySelectorAll('.nav-item')[1]);
@@ -846,11 +623,9 @@
         }
     };
 
-    // --- All other original functions (unchanged) ---
     function switchTab(tabName, el) {
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active-tab'));
         document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-        
         document.getElementById(tabName + '-tab').classList.add('active-tab');
         el.classList.add('active');
     }
@@ -874,7 +649,6 @@
         }
         document.getElementById('profileName').value = originalProfile.name || 'Anonymous';
         document.getElementById('profileAge').value = originalProfile.age || '25';
-        
         document.querySelectorAll('.profile-gender-option').forEach(opt => opt.classList.remove('selected'));
         if (originalProfile.gender) {
             const selected = document.querySelector(`.profile-gender-option[data-gender="${originalProfile.gender}"]`);
@@ -889,11 +663,7 @@
     function attachProfileListeners() {
         const nameInput = document.getElementById('profileName');
         const ageInput = document.getElementById('profileAge');
-        
-        nameInput.addEventListener('input', function() {
-            validateNameInput();
-            checkProfileChanges();
-        });
+        nameInput.addEventListener('input', function() { validateNameInput(); checkProfileChanges(); });
         ageInput.addEventListener('input', checkProfileChanges);
     }
 
@@ -901,9 +671,7 @@
         const nameInput = document.getElementById('profileName');
         const nameError = document.getElementById('nameError');
         const name = nameInput.value;
-        
         const hasInvalidChars = /[@0-9]/.test(name);
-        
         if (hasInvalidChars) {
             nameInput.classList.add('invalid');
             nameError.classList.add('show');
@@ -925,7 +693,6 @@
         let gender = 'male';
         const selected = document.querySelector('.profile-gender-option.selected');
         if (selected) gender = selected.getAttribute('data-gender');
-        
         return {
             name: document.getElementById('profileName').value.trim() || 'Anonymous',
             age: document.getElementById('profileAge').value || '25',
@@ -937,10 +704,30 @@
         const current = getCurrentProfile();
         const saved = originalProfile;
         const isValid = validateNameInput();
-        const changed = (current.name !== saved.name || 
-                        current.age !== saved.age || 
-                        current.gender !== saved.gender);
+        const changed = (current.name !== saved.name || current.age !== saved.age || current.gender !== saved.gender);
         document.getElementById('saveProfileBtn').disabled = !(changed && isValid);
+    }
+
+    function saveProfile() {
+        const current = getCurrentProfile();
+        if (!validateNameInput()) {
+            tg.showAlert("Name cannot contain @ symbol or numbers!");
+            return;
+        }
+        const saveBtn = document.getElementById('saveProfileBtn');
+        saveBtn.disabled = true;
+        AdsgramInterstitial.show().then(() => { performProfileSave(current); }).catch(() => { performProfileSave(current); });
+    }
+    
+    function performProfileSave(current) {
+        localStorage.setItem('userProfile', JSON.stringify(current));
+        if (userId) socket.emit('save_profile', { userId: userId, profile: current });
+        originalProfile = { ...current };
+        document.getElementById('saveProfileBtn').disabled = true;
+        if (current.name && current.name !== 'Anonymous' && current.name.trim() !== '') profileSet = true;
+        tg.HapticFeedback.notificationOccurred('success');
+        tg.showAlert("Profile saved successfully!");
+        switchTab('home', document.querySelectorAll('.nav-item')[0]);
     }
 
     function updateChatBadgeWithPartner(partnerName, partnerGender) {
@@ -958,6 +745,50 @@
         }
     }
 
+    function claimDaily() {
+        show_9341070('pop').then(() => {
+            socket.emit('claim_daily', userId);
+            localStorage.setItem('lastDailyBonus', new Date().toDateString());
+            const btn = document.getElementById('dailyBtn');
+            btn.disabled = true;
+            btn.innerText = "Done";
+            tg.showAlert("You received 5 free matches! 🎉");
+        }).catch(e => tg.showAlert("Please watch the full ad to claim your bonus!"));
+    }
+
+    function inviteFriends() {
+        const shareLink = `https://t.me/MakefriendsglobalBot?start=${userId}`;
+        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=Hey! Come and chat with me on MatchMe! 💖`);
+    }
+
+    function joinChannel() { tg.openTelegramLink('https://t.me/+666ngR_ca9ZmODk1'); socket.emit('social_task', userId); }
+
+    function luckySpin() {
+        tg.showConfirm("Do you want to use your daily Lucky Spin?", (ok) => {
+            if (ok) {
+                show_9341070().then(() => {
+                    socket.emit('lucky_spin', userId);
+                    localStorage.setItem('lastLuckySpin', new Date().toDateString());
+                    const btn = document.getElementById('spinBtn');
+                    btn.disabled = true; btn.innerText = "Done"; btn.style.background = "#475569";
+                }).catch(() => tg.showAlert("Ad not available or skipped. Please try again!"));
+            }
+        });
+    }
+
+    async function handleFind() {
+        if (!profileSet) {
+            switchTab('profile', document.querySelectorAll('.nav-item')[1]);
+            tg.HapticFeedback.notificationOccurred('warning');
+            return;
+        }
+        if (isSearching) { cancelSearch(); return; }
+        
+        // NEW: Show time-based ad (if eligible) before matching process begins
+        await maybeShowTimeBasedInterstitial();
+        startSearching();
+    }
+
     function updateGenderUI() {
         let m = localStorage.getItem('m_lim') !== null ? localStorage.getItem('m_lim') : 50;
         let f = localStorage.getItem('f_lim') !== null ? localStorage.getItem('f_lim') : 50;
@@ -969,74 +800,86 @@
 
     function handleGenderMatch(gender) {
         if (isSearching) return cancelSearch();
-        
         if (!profileSet) {
             switchTab('profile', document.querySelectorAll('.nav-item')[1]);
             tg.HapticFeedback.notificationOccurred('warning');
             return;
         }
-        
         let key = gender === 'male' ? 'm_lim' : 'f_lim';
         let current = localStorage.getItem(key) !== null ? parseInt(localStorage.getItem(key)) : 50;
-
         if(current <= 0) {
-            tg.showAlert("Daily Limit Reached! 🚨\n\nYour free daily search for " + gender + " is over. Please try again tomorrow to get premium search!");
+            tg.showAlert("Daily Limit Reached! 🚨\n\nYour free daily search for " + gender + " is over.");
             return;
         }
-
         localStorage.setItem(key, current - 1);
         updateGenderUI();
         handleFind(); 
     }
 
+    function startSearching() {
+        const currentLimit = parseInt(document.getElementById('match-count').innerText);
+        if (currentLimit <= 0) {
+            document.getElementById('limit-modal').style.display = 'flex';
+            return;
+        }
+        isSearching = true;
+        document.getElementById('home-screen').style.display = 'none';
+        document.getElementById('main-header').style.display = 'none';
+        document.getElementById('bottom-nav').classList.add('hidden');
+        const chatArea = document.getElementById('chat-area');
+        chatArea.style.display = 'flex';
+        chatArea.innerHTML = `
+            <div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100%;">
+                <div class="dating-animation searching">
+                    <div class="heart-pulse"></div>
+                    <i class="fa-solid fa-heart heart-icon"></i>
+                </div>
+                <p style="color:#ff99cc; font-weight:600; font-size:1.1rem; margin-top: 15px;">Searching for a partner...</p>
+                <button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px; background: rgba(255,255,255,0.1); border: 1px solid #ff99cc; color: #fff; padding: 10px; border-radius: 20px;" onclick="location.reload()">Cancel</button>
+            </div>
+        `;
+        socket.emit('find_partner_web', userId);
+    }
+
     function cancelSearch() {
         isSearching = false;
-        document.body.classList.remove('searching-active');
         const btn = document.getElementById('findBtn');
         btn.innerText = "Start Matching";
         btn.classList.remove('btn-cancel');
-        document.getElementById('anim-container').classList.remove('searching');
         socket.emit('cancel_search', userId); 
-        tg.HapticFeedback.impactOccurred('light');
     }
 
-    function inviteFriends() {
-        const shareLink = `https://t.me/MakefriendsglobalBot?start=${userId}`;
-        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=Hey! Come and chat with me on MatchMe! 💖`);
+    async function watchRewardAd() {
+        const btn = document.getElementById('watchBtn');
+        const modalBtn = document.getElementById('rewardBtnModal');
+        btn.disabled = true; modalBtn.disabled = true;
+        try {
+            const result = await AdsgramRewarded.show();
+            if (result.done) {
+                socket.emit('reward_user', userId);
+                tg.showAlert("15 matches added successfully!");
+                setTimeout(() => location.reload(), 1000);
+            } else { btn.disabled = false; modalBtn.disabled = false; }
+        } catch (error) {
+            alert("Ad failed.");
+            btn.disabled = false; modalBtn.disabled = false;
+        }
     }
 
-    function joinChannel() {
-        tg.openTelegramLink('https://t.me/+666ngR_ca9ZmODk1'); 
-        socket.emit('social_task', userId);
-    }
-
-    // --- Socket Event Listeners (unchanged) ---
     socket.on('match_found', (partnerInfo) => {
         isSearching = false; 
         msgCount = 0; 
         tg.HapticFeedback.notificationOccurred('success');
-        document.body.classList.remove('searching-active');
-        
-        if (partnerInfo && partnerInfo.partnerId) {
-            currentPartnerId = partnerInfo.partnerId;
-        }
-        
+        if (partnerInfo && partnerInfo.partnerId) currentPartnerId = partnerInfo.partnerId;
         document.getElementById('main-header').style.display = 'none';
         document.getElementById('tab-container').classList.add('hidden');
         document.getElementById('bottom-nav').classList.add('hidden');
-        
         document.getElementById('chat-area').innerHTML = '';
         document.getElementById('chat-area').style.display = 'flex';
         document.getElementById('chat-floating-header').style.display = 'flex';
-        
-        if (partnerInfo) {
-            updateChatBadgeWithPartner(partnerInfo.partnerName, partnerInfo.partnerGender);
-        } else {
-            updateChatBadgeWithPartner('Stranger', 'male');
-        }
-        
+        if (partnerInfo) updateChatBadgeWithPartner(partnerInfo.partnerName, partnerInfo.partnerGender);
+        else updateChatBadgeWithPartner('Stranger', 'male');
         document.getElementById('input-bar').classList.remove('hidden');
-        
         showSystemMsg("❤️ You matched with a stranger!");
     });
 
@@ -1052,7 +895,6 @@
         document.getElementById('chat-floating-header').style.display = 'none';
         document.getElementById('input-bar').classList.add('hidden');
         currentPartnerId = null;
-        
         const endContainer = document.createElement('div');
         endContainer.className = 'end-chat-container';
         endContainer.innerHTML = `
@@ -1065,7 +907,6 @@
 
     function handleNextMatch() {
         currentPartnerId = null;
-        
         const chatArea = document.getElementById('chat-area');
         chatArea.innerHTML = `
             <div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
@@ -1077,21 +918,15 @@
                 <button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px;" onclick="location.reload()">Cancel</button>
             </div>
         `;
-
         document.getElementById('chat-floating-header').style.display = 'none';
         handleFind();
     }
 
     socket.on('user_data', (data) => {
-        if (data && data.limit !== undefined) {
-            document.getElementById('match-count').innerText = data.limit;
-        }
+        if (data && data.limit !== undefined) document.getElementById('match-count').innerText = data.limit;
     });
 
-    socket.on('limit_over', () => {
-        cancelSearch(); 
-        document.getElementById('limit-modal').style.display = 'flex';
-    });
+    socket.on('limit_over', () => { cancelSearch(); document.getElementById('limit-modal').style.display = 'flex'; });
 
     function sendMessage() {
         const inp = document.getElementById('main-input');
@@ -1105,16 +940,11 @@
     function checkMessageLimit() {
         msgCount++;
         if (msgCount === 4) { 
-            setTimeout(() => {
-                document.getElementById('ad-floating-modal').style.display = 'flex';
-                tg.HapticFeedback.notificationOccurred('warning');
-            }, 1000);
+            setTimeout(() => { document.getElementById('ad-floating-modal').style.display = 'flex'; }, 1000);
         }
     }
 
-    document.getElementById('main-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendMessage();
-    });
+    document.getElementById('main-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 
     function sendPhoto(input) {
         if (input.files && input.files[0]) {
@@ -1145,6 +975,8 @@
         div.innerText = msg;
         container.appendChild(div);
     }
+
+    show_9341070({ type: 'inApp', inAppSettings: { frequency: 2, capping: 0.1, interval: 15, timeout: 30, everyPage: false } });
 </script>
 </body>
 </html>

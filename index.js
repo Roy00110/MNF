@@ -48,9 +48,7 @@ const User = mongoose.model('User', new mongoose.Schema({
     profileName: { type: String, default: 'Anonymous' },
     profileAge: { type: String, default: '25' },
     profileGender: { type: String, default: 'male' },
-    lastSeen: { type: Date, default: Date.now }, // Track last interaction
-    // ✅ Add to Home Screen Reward Tracking
-    installRewardClaimed: { type: Boolean, default: false }
+    lastSeen: { type: Date, default: Date.now } // Track last interaction
 }));
 
 // --- Inactive User Cleanup Function ---
@@ -150,35 +148,6 @@ async function isSubscribed(userId) {
     return true;
 }
 
-// ✅ NEW: Add Match Limit Function for Install Reward
-async function addMatchLimit(userId, amount) {
-    try {
-        const user = await User.findOne({ userId: Number(userId) });
-        if (!user) {
-            console.log(`❌ [AddLimit] User ${userId} not found`);
-            return false;
-        }
-        
-        const newLimit = user.matchLimit + amount;
-        await User.updateOne({ userId: Number(userId) }, { $inc: { matchLimit: amount } });
-        
-        // Send update to web client if connected
-        if (user.webSocketId) {
-            io.to(user.webSocketId).emit('match_limit_added', {
-                amount: amount,
-                newLimit: newLimit
-            });
-            io.to(user.webSocketId).emit('user_data', { limit: newLimit });
-        }
-        
-        console.log(`💰 [AddLimit] User ${userId} got +${amount} matches. New limit: ${newLimit}`);
-        return true;
-    } catch (err) {
-        console.error("AddMatchLimit Error:", err);
-        return false;
-    }
-}
-
 // --- Web Server & Socket.io Logic ---
 app.use(express.static(path.join(__dirname)));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
@@ -207,16 +176,16 @@ app.get('/adsgram/reward', async (req, res) => {
 io.on('connection', (socket) => {
     console.log(`🌐 [Socket] New Web Connection: ${socket.id}`);
     
-    socket.on('join', async (userId) => {
-        if (!userId) return;
-        const user = await User.findOneAndUpdate(
-            { userId: Number(userId) }, 
-            { webSocketId: socket.id, webStatus: 'idle', webPartnerId: null, lastSeen: new Date() }, 
-            { upsert: true, new: true }
-        );
-        console.log(`👤 [Web] User ${userId} joined via socket ${socket.id}`);
-        socket.emit('user_data', { limit: user.matchLimit || 0 });
-    });
+   socket.on('join', async (userId) => {
+    if (!userId) return;
+    const user = await User.findOneAndUpdate(
+        { userId: Number(userId) }, 
+        { webSocketId: socket.id, webStatus: 'idle', webPartnerId: null, lastSeen: new Date() }, 
+        { upsert: true, new: true }
+    );
+    console.log(`👤 [Web] User ${userId} joined via socket ${socket.id}`);
+    socket.emit('user_data', { limit: user.matchLimit || 0 });
+});
 
     socket.on('reward_user', async (userId) => {
         try {
@@ -247,58 +216,23 @@ io.on('connection', (socket) => {
     });
 
     socket.on('cancel_search', async (userId) => {
-        try {
-            if (!userId) return;
+    try {
+        if (!userId) return;
 
-            // অ্যারে থেকে ইউজারকে সরিয়ে ফেলা
-            waitingUsers = waitingUsers.filter(u => u.userId !== userId);
+        // অ্যারে থেকে ইউজারকে সরিয়ে ফেলা
+        waitingUsers = waitingUsers.filter(u => u.userId !== userId);
 
-            // ডাটাবেসে স্ট্যাটাস 'idle' করে দেওয়া যাতে অন্য কেউ তাকে খুঁজে না পায়
-            await User.updateOne(
-                { userId: Number(userId) }, 
-                { $set: { webStatus: 'idle' } }
-            );
+        // ডাটাবেসে স্ট্যাটাস 'idle' করে দেওয়া যাতে অন্য কেউ তাকে খুঁজে না পায়
+        await User.updateOne(
+            { userId: Number(userId) }, 
+            { $set: { webStatus: 'idle' } }
+        );
 
-            console.log(`🛑 [Search Cancelled] User: ${userId}`);
-        } catch (err) {
-            console.error("Cancel Search Error:", err);
-        }
-    });
-
-    // ✅ NEW: Add to Home Screen Reward Handler
-    socket.on('add_match_limit', async (data) => {
-        try {
-            const { userId, amount } = data;
-            if (!userId || !amount) return;
-            
-            // Check if user already claimed this reward
-            const user = await User.findOne({ userId: Number(userId) });
-            if (user && user.installRewardClaimed) {
-                console.log(`⚠️ [Install Reward] User ${userId} already claimed this bonus`);
-                socket.emit('install_reward_already_claimed', { message: 'You already claimed this bonus!' });
-                return;
-            }
-            
-            // Mark as claimed and add limit
-            await User.updateOne(
-                { userId: Number(userId) },
-                { $inc: { matchLimit: amount }, $set: { installRewardClaimed: true } }
-            );
-            
-            const updatedUser = await User.findOne({ userId: Number(userId) });
-            
-            console.log(`📱 [Install Reward] User ${userId} claimed +${amount} matches! New limit: ${updatedUser.matchLimit}`);
-            
-            socket.emit('match_limit_added', {
-                amount: amount,
-                newLimit: updatedUser.matchLimit
-            });
-            socket.emit('user_data', { limit: updatedUser.matchLimit });
-            
-        } catch (err) {
-            console.error("Add Match Limit Error:", err);
-        }
-    });
+        console.log(`🛑 [Search Cancelled] User: ${userId}`);
+    } catch (err) {
+        console.error("Cancel Search Error:", err);
+    }
+});
 
     // --- Added Lucky Spin Logic ---
     socket.on('lucky_spin', async (userId) => {
@@ -355,62 +289,61 @@ io.on('connection', (socket) => {
     });
 
     socket.on('find_partner_web', async (userId) => {
-        // --- ছোট পরিবর্তন: ডুপ্লিকেট এড়াতে আগে মুছে তারপর পুশ করা ---
-        waitingUsers = waitingUsers.filter(u => u.userId !== userId);
-        waitingUsers.push({ userId, socketId: socket.id });
+    // --- ছোট পরিবর্তন: ডুপ্লিকেট এড়াতে আগে মুছে নিয়ে তারপর পুশ করা ---
+    waitingUsers = waitingUsers.filter(u => u.userId !== userId);
+    waitingUsers.push({ userId, socketId: socket.id });
 
-        try {
-            const user = await User.findOne({ userId: Number(userId) });
-            if (!user) return;
+    try {
+        const user = await User.findOne({ userId: Number(userId) });
+        if (!user) return;
 
-            // লিমিট চেক
-            if (user.userId !== ADMIN_ID && user.matchLimit <= 0) {
-                console.log(`🚫 [Web] Match limit over for: ${userId}`);
-                // লিমিট শেষ হলে ওয়েটিং লিস্ট থেকে সরিয়ে দেওয়া ভালো
-                waitingUsers = waitingUsers.filter(u => u.userId !== userId);
-                return io.to(socket.id).emit('limit_over');
-            }
-
-            // স্ট্যাটাস আপডেট
-            await User.updateOne({ userId: Number(userId) }, { webStatus: 'searching', webSocketId: socket.id });
-
-            // পার্টনার খোঁজা
-            const partner = await User.findOneAndUpdate(
-                { userId: { $ne: Number(userId) }, webStatus: 'searching', webSocketId: { $ne: null } },
-                { webStatus: 'chatting', webPartnerId: Number(userId) },
-                { new: true }
-            );
-
-            if (partner) {
-                // ম্যাচ হলে দুজনকে ওয়েটিং লিস্ট থেকে সরিয়ে দিন
-                waitingUsers = waitingUsers.filter(u => u.userId !== userId && u.userId !== partner.userId);
-
-                await User.updateOne({ userId: Number(userId) }, { webStatus: 'chatting', webPartnerId: partner.userId });
-
-                // লিমিট কমানো
-                if (user.userId !== ADMIN_ID) await User.updateOne({ userId: user.userId }, { $inc: { matchLimit: -1 } });
-                if (partner.userId !== ADMIN_ID) await User.updateOne({ userId: partner.userId }, { $inc: { matchLimit: -1 } });
-
-                // ফ্রন্টেন্ডে জানানো - সাথে পার্টনারের প্রোফাইল তথ্য পাঠানো হচ্ছে
-                io.to(socket.id).emit('match_found', { 
-                    partnerId: partner.userId,
-                    partnerName: partner.profileName || 'Stranger',
-                    partnerGender: partner.profileGender || 'male'
-                });
-                
-                io.to(partner.webSocketId).emit('match_found', { 
-                    partnerId: user.userId,
-                    partnerName: user.profileName || 'Stranger',
-                    partnerGender: user.profileGender || 'male'
-                });
-
-                console.log(`🤝 [Web Match] ${userId} matched with ${partner.userId}`);
-            }
-        } catch (err) { 
-            console.error("Web Match Error:", err); 
+        // লিমিট চেক
+        if (user.userId !== ADMIN_ID && user.matchLimit <= 0) {
+            console.log(`🚫 [Web] Match limit over for: ${userId}`);
+            // লিমিট শেষ হলে ওয়েটিং লিস্ট থেকে সরিয়ে দেওয়া ভালো
+            waitingUsers = waitingUsers.filter(u => u.userId !== userId);
+            return io.to(socket.id).emit('limit_over');
         }
-    });
-    
+
+        // স্ট্যাটাস আপডেট
+        await User.updateOne({ userId: Number(userId) }, { webStatus: 'searching', webSocketId: socket.id });
+
+        // পার্টনার খোঁজা
+        const partner = await User.findOneAndUpdate(
+            { userId: { $ne: Number(userId) }, webStatus: 'searching', webSocketId: { $ne: null } },
+            { webStatus: 'chatting', webPartnerId: Number(userId) },
+            { new: true }
+        );
+
+        if (partner) {
+            // ম্যাচ হলে দুজনকে ওয়েটিং লিস্ট থেকে সরিয়ে দিন
+            waitingUsers = waitingUsers.filter(u => u.userId !== userId && u.userId !== partner.userId);
+
+            await User.updateOne({ userId: Number(userId) }, { webStatus: 'chatting', webPartnerId: partner.userId });
+
+            // লিমিট কমানো
+            if (user.userId !== ADMIN_ID) await User.updateOne({ userId: user.userId }, { $inc: { matchLimit: -1 } });
+            if (partner.userId !== ADMIN_ID) await User.updateOne({ userId: partner.userId }, { $inc: { matchLimit: -1 } });
+
+            // ফ্রন্টেন্ডে জানানো - সাথে পার্টনারের প্রোফাইল তথ্য পাঠানো হচ্ছে
+            io.to(socket.id).emit('match_found', { 
+                partnerId: partner.userId,
+                partnerName: partner.profileName || 'Stranger',
+                partnerGender: partner.profileGender || 'male'
+            });
+            
+            io.to(partner.webSocketId).emit('match_found', { 
+                partnerId: user.userId,
+                partnerName: user.profileName || 'Stranger',
+                partnerGender: user.profileGender || 'male'
+            });
+
+            console.log(`🤝 [Web Match] ${userId} matched with ${partner.userId}`);
+        }
+    } catch (err) { 
+        console.error("Web Match Error:", err); 
+    }
+});
     socket.on('send_msg', async (data) => {
         const { senderId, text, image } = data; 
         const user = await User.findOne({ userId: Number(senderId) });
@@ -471,8 +404,7 @@ bot.start(async (ctx) => {
                 profileName: 'Anonymous',
                 profileAge: '25',
                 profileGender: 'male',
-                lastSeen: new Date(),
-                installRewardClaimed: false
+                lastSeen: new Date()
             });
             await user.save();
         } else if (startPayload && !user.hasReceivedReferralBonus) {

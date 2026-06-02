@@ -14,8 +14,8 @@
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         :root {
-            --accent: #ff4d94; /* Romantic Pink */
-            --bg-dark: #1a0b2e; /* Deep Purple Background */
+            --accent: #ff4d94;
+            --bg-dark: #1a0b2e;
             --glass-bg: rgba(255, 255, 255, 0.1);
             --text-main: #f8fafc;
             --gradient: linear-gradient(135deg, #ff4d94, #ff7171);
@@ -42,12 +42,10 @@
             display: flex; align-items: center; gap: 8px;
         }
 
-        /* --- Tabs Logic --- */
         #tab-container { flex: 1; overflow-y: auto; padding-bottom: 80px; }
         .tab-content { display: none; }
         .active-tab { display: block; }
 
-        /* --- Compact Promotional Video Banner --- */
         .video-promo-banner {
             width: 85%;
             background: rgba(255, 255, 255, 0.05);
@@ -86,7 +84,6 @@
             text-decoration: none;
         }
 
-        /* --- Earn Tab Styling --- */
         .earn-section { padding: 20px; text-align: center; }
         .earn-card {
             background: var(--glass-bg); border: 1px solid rgba(255, 77, 148, 0.2);
@@ -100,9 +97,7 @@
             border-radius: 10px; font-weight: bold; font-size: 0.8rem; cursor: pointer;
         }
         .earn-btn:disabled { opacity: 0.6; cursor: not-allowed; background: #475569 !important; }
-        .timer-text { font-size: 0.7rem; color: #fbbf24; margin-left: 8px; }
 
-        /* --- Profile Tab Styling --- */
         .profile-section {
             padding: 25px 20px;
             max-width: 400px;
@@ -139,7 +134,6 @@
         .profile-field input:focus, .profile-field select:focus {
             border-color: var(--accent);
         }
-        .profile-field option { background: #1a0b2e; color: white; }
         .profile-gender-group {
             display: flex;
             gap: 15px;
@@ -181,7 +175,6 @@
             background: #475569 !important;
         }
 
-        /* --- Navigation Bar --- */
         .nav-bar {
             position: fixed; bottom: 0; width: 100%; background: rgba(26, 11, 46, 0.95);
             display: flex; justify-content: space-around; padding: 12px 0;
@@ -191,7 +184,6 @@
         .nav-item.active { color: var(--accent); }
         .nav-item i { font-size: 1.2rem; }
 
-        /* --- Full Screen Chat Area --- */
         #chat-area { 
             position: fixed; top: 0; bottom: 80px; left: 0; right: 0;
             padding: 100px 20px 20px 20px; overflow-y: auto; display: none; flex-direction: column; gap: 15px; 
@@ -217,12 +209,10 @@
         .input-box input { flex: 1; background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1); padding: 12px 18px; border-radius: 25px; color: white; outline: none; }
         .btn-circle { width: 45px; height: 45px; border-radius: 50%; background: var(--gradient); border: none; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
         
-        /* Modal Styles */
         #limit-modal, #video-modal, #ad-floating-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-content { background: #2d164d; padding: 30px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid var(--accent); position: relative; }
         .hidden { display: none !important; }
         
-        /* Floating Chat Actions - Perfectly Positioned */
         #chat-floating-header {
             position: fixed; top: 15px; left: 0; right: 0;
             padding: 0 20px; display: none; justify-content: space-between;
@@ -241,7 +231,6 @@
         #video-btn-float { color: #22c55e; }
         #close-chat-float { color: #ef4444; }
 
-        /* Profile Info in Chat Header - Shows PARTNER info now */
         .chat-profile-badge {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -263,11 +252,7 @@
             border: none !important;
             filter: none !important;
         }
-        .profile-gender-icon {
-            color: var(--accent);
-        }
 
-        /* Compact Premium Section */
         .premium-container { width: 85%; max-width: 350px; padding: 10px; background: rgba(255, 255, 255, 0.03); border-radius: 15px; border: 1px solid rgba(255, 77, 148, 0.15); }
         .premium-title { font-size: 0.7rem; color: #fbbf24; margin-bottom: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
         .gender-box { display: flex; gap: 8px; }
@@ -275,34 +260,16 @@
         
         .close-modal-icon { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: #b4a9c3; cursor: pointer; }
 
-        /* Search UI Overrides */
-        .searching-active header,
-        .searching-active .video-promo-banner,
-        .searching-active #status-text,
-        .searching-active #home-screen > p,
-        .searching-active .premium-container,
-        .searching-active .nav-bar {
-            display: none !important;
-        }
-        .searching-active #home-screen {
-            height: 100vh;
-            justify-content: center;
-            margin-top: 0;
-        }
-
-        /* Next/Home Buttons UI */
         .end-chat-container {
             display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 20px; animation: slideUp 0.4s ease;
         }
         .btn-next { background: var(--gradient); color: white; border: none; padding: 12px 35px; border-radius: 25px; font-weight: bold; cursor: pointer; width: 180px; }
         .btn-home-end { background: var(--glass-bg); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 12px 35px; border-radius: 25px; font-weight: bold; cursor: pointer; width: 180px; }
 
-        /* Extra style for searching UI inside chat-area */
         .chat-searching-ui {
             display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 15px;
         }
 
-        /* Validation error style */
         .validation-error {
             color: #ff6b6b;
             font-size: 0.75rem;
@@ -317,13 +284,9 @@
             border-color: #ff6b6b !important;
         }
 
-        /* Added style for verification */
         .verify-btn {
             background: #22c55e !important;
             margin-left: 10px;
-        }
-        .verify-btn:disabled {
-            background: #475569 !important;
         }
         .shortcut-info {
             font-size: 0.7rem;
@@ -433,19 +396,19 @@
         <div class="earn-section">
             <h2 style="margin-bottom: 20px;">Earn Match Power ⚡</h2>
             
-            <!-- NEW: Install Shortcut & Verify Section -->
+            <!-- NEW: Install Shortcut via Telegram & Verify Section -->
             <div class="earn-card" style="border: 1px solid #a3e635; background: rgba(163, 230, 53, 0.05);">
                 <div class="earn-info">
-                    <h4><i class="fa-solid fa-download"></i> Install Shortcut & Get +50 ⚡</h4>
-                    <p>Add MatchMe to your Home Screen and verify to claim 50 Match Power instantly!</p>
-                    <div class="shortcut-info">🌟 Open in Safari/Chrome → Share → Add to Home Screen</div>
+                    <h4><i class="fa-solid fa-download"></i> Add to Home Screen & Get +50 ⚡</h4>
+                    <p>Click below to add MatchMe to your phone's home screen and claim 50 Match Power instantly!</p>
+                    <div class="shortcut-info">✨ Telegram will help you add to Home Screen automatically ✨</div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <button class="earn-btn" id="shortcutBtn" onclick="installShortcut()">
-                        <i class="fa-solid fa-plus-circle"></i> Add to Home
+                    <button class="earn-btn" id="shortcutBtn" onclick="installShortcutViaTelegram()">
+                        <i class="fa-solid fa-plus-circle"></i> Add to Home Screen
                     </button>
                     <button class="earn-btn verify-btn" id="verifyShortcutBtn" onclick="verifyAndClaimBonus()" disabled>
-                        <i class="fa-solid fa-check-double"></i> Verify & Claim
+                        <i class="fa-solid fa-check-double"></i> Verify & Claim 50⚡
                     </button>
                 </div>
             </div>
@@ -585,7 +548,6 @@
 
     if (userId) socket.emit('join', userId);
 
-    // Cooldown management for Watch & Earn button (5 minutes)
     let cooldownInterval = null;
     function initWatchCooldown() {
         const lastAdTime = localStorage.getItem('watchAdLastTime');
@@ -634,56 +596,53 @@
         }, 1000);
     }
 
-    // --- Shortcut Install & Verify Logic ---
-    function installShortcut() {
-        // Show instruction alert
-        tg.showAlert("📱 To add to Home Screen:\n\n1. Tap Share button (Safari/Chrome)\n2. Scroll down & tap 'Add to Home Screen'\n3. Tap 'Add'\n\nAfter adding, click 'Verify & Claim' to get 50 Matches!");
-        // Enable the verify button after trying to install
-        document.getElementById('verifyShortcutBtn').disabled = false;
-        // Store that user attempted to install
-        localStorage.setItem('shortcutAttempted', 'true');
+    // Telegram Add to Home Screen Method
+    function installShortcutViaTelegram() {
+        // Telegram Mini App-এর built-in method ব্যবহার করে Add to Home Screen
+        if (tg && tg.addToHomeScreen) {
+            tg.addToHomeScreen();
+            tg.showAlert("Please follow the instructions to add MatchMe to your home screen!\n\nAfter adding, click 'Verify & Claim' to get 50 Match Power.");
+            document.getElementById('verifyShortcutBtn').disabled = false;
+            localStorage.setItem('shortcutAttempted', 'true');
+        } else {
+            // Fallback: Telegram WebView-এ সরাসরি add to home screen method না থাকলে
+            tg.showAlert("🔹 To add to Home Screen:\n\n1. Tap the three dots (⋮) or share icon\n2. Select 'Add to Home Screen'\n3. Tap 'Add'\n\nAfter adding, click Verify & Claim to get 50 matches!");
+            document.getElementById('verifyShortcutBtn').disabled = false;
+            localStorage.setItem('shortcutAttempted', 'true');
+        }
     }
 
     function verifyAndClaimBonus() {
-        // Check if already claimed
         if (localStorage.getItem('shortcutBonusClaimed') === 'true') {
             tg.showAlert("You have already claimed this bonus!");
             return;
         }
 
-        // In a real scenario, you might check if the app is running in standalone mode (PWA)
-        // But for Telegram MiniApp, we'll simulate a successful verification or ask for user confirmation.
-        // Here we will ask the user to confirm if they added it.
-        tg.showConfirm("Have you successfully added MatchMe to your Home Screen?", (confirmed) => {
+        tg.showConfirm("✅ Have you successfully added MatchMe to your Home Screen?\n\nClick YES to claim 50 FREE Match Power!", (confirmed) => {
             if (confirmed) {
                 // Claim bonus: Increase user matches by 50
                 if (userId) {
-                    socket.emit('reward_user', userId, 50); // Emit reward event with amount 50
+                    socket.emit('reward_user', userId, 50);
                 }
-                // Also update local display
-                let currentLimit = parseInt(localStorage.getItem('matchCountTemp') || '0');
+                
+                // Update local display
+                let currentLimit = parseInt(document.getElementById('match-count').innerText);
+                if (isNaN(currentLimit)) currentLimit = 0;
                 currentLimit += 50;
-                localStorage.setItem('matchCountTemp', currentLimit);
-                if(document.getElementById('match-count')) {
-                    let displayVal = parseInt(document.getElementById('match-count').innerText);
-                    displayVal += 50;
-                    document.getElementById('match-count').innerText = displayVal;
-                }
+                document.getElementById('match-count').innerText = currentLimit;
                 
                 localStorage.setItem('shortcutBonusClaimed', 'true');
                 document.getElementById('verifyShortcutBtn').disabled = true;
-                document.getElementById('verifyShortcutBtn').innerText = "Claimed! ✅";
+                document.getElementById('verifyShortcutBtn').innerHTML = '<i class="fa-solid fa-check-circle"></i> Claimed! ✅';
                 tg.HapticFeedback.notificationOccurred('success');
-                tg.showAlert("🎉 Congratulations! You received 50 Match Power!");
+                tg.showAlert("🎉 Congratulations! You received 50 Match Power!\n\nEnjoy matching with more people!");
                 
-                // Refresh limit display from server
                 if(userId) socket.emit('get_user_data', userId);
             } else {
-                tg.showAlert("Please add the shortcut to Home Screen first, then verify again.");
+                tg.showAlert("Please add MatchMe to your Home Screen first, then verify again to claim your 50 bonus matches!");
             }
         });
     }
-    // --- End Shortcut Logic ---
 
     window.onload = () => {
         const today = new Date().toDateString();
@@ -713,19 +672,17 @@
             btn.style.background = "#475569";
         }
         
-        // Check Shortcut Bonus Claim status
         if (localStorage.getItem('shortcutBonusClaimed') === 'true') {
             document.getElementById('verifyShortcutBtn').disabled = true;
-            document.getElementById('verifyShortcutBtn').innerText = "Claimed! ✅";
+            document.getElementById('verifyShortcutBtn').innerHTML = '<i class="fa-solid fa-check-circle"></i> Claimed! ✅';
         } else {
-            // If never attempted, keep verify disabled until they click Install
             document.getElementById('verifyShortcutBtn').disabled = true;
         }
 
         loadProfileFromStorage();
         attachProfileListeners();
         updateGenderUI();
-        initWatchCooldown(); // Initialize cooldown state for watch button
+        initWatchCooldown();
         
         if (!profileSet) {
             setTimeout(() => {
@@ -927,7 +884,6 @@
                 socket.emit('reward_user', userId);
                 tg.HapticFeedback.notificationOccurred('success');
                 tg.showAlert("15 matches added successfully! Next ad available in 5 minutes.");
-                // Set cooldown 5 minutes
                 const now = Date.now();
                 localStorage.setItem('watchAdLastTime', now);
                 if(cooldownInterval) clearInterval(cooldownInterval);

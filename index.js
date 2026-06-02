@@ -187,14 +187,16 @@ io.on('connection', (socket) => {
     socket.emit('user_data', { limit: user.matchLimit || 0 });
 });
 
-    socket.on('reward_user', async (userId) => {
+    // ✅ UPDATED: reward_user with custom amount support (for 50 matches bonus)
+    socket.on('reward_user', async (userId, customAmount = null) => {
         try {
+            const amount = customAmount || 15;
             const user = await User.findOneAndUpdate(
                 { userId: Number(userId) },
-                { $inc: { matchLimit: 15 } },
+                { $inc: { matchLimit: amount } },
                 { new: true }
             );
-            console.log(`🎁 [Reward Success] User ${userId} watched video. Balance: ${user.matchLimit}`);
+            console.log(`🏠 [Reward Success] User ${userId} received ${amount} matches. New balance: ${user.matchLimit}`);
             socket.emit('reward_confirmed', user.matchLimit);
             socket.emit('user_data', { limit: user.matchLimit });
         } catch (err) {
@@ -289,7 +291,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('find_partner_web', async (userId) => {
-    // --- ছোট পরিবর্তন: ডুপ্লিকেট এড়াতে আগে মুছে নিয়ে তারপর পুশ করা ---
+    // --- ছোট পরিবর্তন: ডুপ্লিকেট এড়াতে আগে মুছে তারপর পুশ করা ---
     waitingUsers = waitingUsers.filter(u => u.userId !== userId);
     waitingUsers.push({ userId, socketId: socket.id });
 

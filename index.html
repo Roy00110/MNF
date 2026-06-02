@@ -396,12 +396,12 @@
         <div class="earn-section">
             <h2 style="margin-bottom: 20px;">Earn Match Power ⚡</h2>
             
-            <!-- NEW: Install Shortcut via Telegram & Verify Section -->
+            <!-- Install Shortcut via Telegram & Verify Section -->
             <div class="earn-card" style="border: 1px solid #a3e635; background: rgba(163, 230, 53, 0.05);">
                 <div class="earn-info">
                     <h4><i class="fa-solid fa-download"></i> Add to Home Screen & Get +50 ⚡</h4>
-                    <p>Click below to add MatchMe to your phone's home screen and claim 50 Match Power instantly!</p>
-                    <div class="shortcut-info">✨ Telegram will help you add to Home Screen automatically ✨</div>
+                    <p>Add MatchMe to your phone's home screen and claim 50 Match Power instantly!</p>
+                    <div class="shortcut-info">✨ Click below to add automatically ✨</div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     <button class="earn-btn" id="shortcutBtn" onclick="installShortcutViaTelegram()">
@@ -412,7 +412,6 @@
                     </button>
                 </div>
             </div>
-            <!-- End of New Section -->
 
             <div class="earn-card" style="border: 1px solid var(--accent);">
                 <div class="earn-info">
@@ -596,20 +595,22 @@
         }, 1000);
     }
 
-    // Telegram Add to Home Screen Method
+    // Telegram Add to Home Screen Method - No extra instructions popup
     function installShortcutViaTelegram() {
-        // Telegram Mini App-এর built-in method ব্যবহার করে Add to Home Screen
+        // Direct Telegram add to home screen - no instruction popup
         if (tg && tg.addToHomeScreen) {
             tg.addToHomeScreen();
-            tg.showAlert("Please follow the instructions to add MatchMe to your home screen!\n\nAfter adding, click 'Verify & Claim' to get 50 Match Power.");
-            document.getElementById('verifyShortcutBtn').disabled = false;
-            localStorage.setItem('shortcutAttempted', 'true');
         } else {
-            // Fallback: Telegram WebView-এ সরাসরি add to home screen method না থাকলে
-            tg.showAlert("🔹 To add to Home Screen:\n\n1. Tap the three dots (⋮) or share icon\n2. Select 'Add to Home Screen'\n3. Tap 'Add'\n\nAfter adding, click Verify & Claim to get 50 matches!");
-            document.getElementById('verifyShortcutBtn').disabled = false;
-            localStorage.setItem('shortcutAttempted', 'true');
+            // Alternative: Use Telegram WebApp method
+            tg.showPopup({
+                title: "Add to Home Screen",
+                message: "Tap the share button (⋮) and select 'Add to Home Screen'",
+                buttons: [{ type: "ok" }]
+            });
         }
+        // Enable verify button after attempt
+        document.getElementById('verifyShortcutBtn').disabled = false;
+        localStorage.setItem('shortcutAttempted', 'true');
     }
 
     function verifyAndClaimBonus() {

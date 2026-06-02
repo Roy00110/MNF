@@ -316,6 +316,20 @@
         input.invalid {
             border-color: #ff6b6b !important;
         }
+
+        /* Added style for verification */
+        .verify-btn {
+            background: #22c55e !important;
+            margin-left: 10px;
+        }
+        .verify-btn:disabled {
+            background: #475569 !important;
+        }
+        .shortcut-info {
+            font-size: 0.7rem;
+            color: #a3e635;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -419,6 +433,24 @@
         <div class="earn-section">
             <h2 style="margin-bottom: 20px;">Earn Match Power ⚡</h2>
             
+            <!-- NEW: Install Shortcut & Verify Section -->
+            <div class="earn-card" style="border: 1px solid #a3e635; background: rgba(163, 230, 53, 0.05);">
+                <div class="earn-info">
+                    <h4><i class="fa-solid fa-download"></i> Install Shortcut & Get +50 ⚡</h4>
+                    <p>Add MatchMe to your Home Screen and verify to claim 50 Match Power instantly!</p>
+                    <div class="shortcut-info">🌟 Open in Safari/Chrome → Share → Add to Home Screen</div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <button class="earn-btn" id="shortcutBtn" onclick="installShortcut()">
+                        <i class="fa-solid fa-plus-circle"></i> Add to Home
+                    </button>
+                    <button class="earn-btn verify-btn" id="verifyShortcutBtn" onclick="verifyAndClaimBonus()" disabled>
+                        <i class="fa-solid fa-check-double"></i> Verify & Claim
+                    </button>
+                </div>
+            </div>
+            <!-- End of New Section -->
+
             <div class="earn-card" style="border: 1px solid var(--accent);">
                 <div class="earn-info">
                     <h4> Random video Chat 📱</h4>
@@ -602,6 +634,57 @@
         }, 1000);
     }
 
+    // --- Shortcut Install & Verify Logic ---
+    function installShortcut() {
+        // Show instruction alert
+        tg.showAlert("📱 To add to Home Screen:\n\n1. Tap Share button (Safari/Chrome)\n2. Scroll down & tap 'Add to Home Screen'\n3. Tap 'Add'\n\nAfter adding, click 'Verify & Claim' to get 50 Matches!");
+        // Enable the verify button after trying to install
+        document.getElementById('verifyShortcutBtn').disabled = false;
+        // Store that user attempted to install
+        localStorage.setItem('shortcutAttempted', 'true');
+    }
+
+    function verifyAndClaimBonus() {
+        // Check if already claimed
+        if (localStorage.getItem('shortcutBonusClaimed') === 'true') {
+            tg.showAlert("You have already claimed this bonus!");
+            return;
+        }
+
+        // In a real scenario, you might check if the app is running in standalone mode (PWA)
+        // But for Telegram MiniApp, we'll simulate a successful verification or ask for user confirmation.
+        // Here we will ask the user to confirm if they added it.
+        tg.showConfirm("Have you successfully added MatchMe to your Home Screen?", (confirmed) => {
+            if (confirmed) {
+                // Claim bonus: Increase user matches by 50
+                if (userId) {
+                    socket.emit('reward_user', userId, 50); // Emit reward event with amount 50
+                }
+                // Also update local display
+                let currentLimit = parseInt(localStorage.getItem('matchCountTemp') || '0');
+                currentLimit += 50;
+                localStorage.setItem('matchCountTemp', currentLimit);
+                if(document.getElementById('match-count')) {
+                    let displayVal = parseInt(document.getElementById('match-count').innerText);
+                    displayVal += 50;
+                    document.getElementById('match-count').innerText = displayVal;
+                }
+                
+                localStorage.setItem('shortcutBonusClaimed', 'true');
+                document.getElementById('verifyShortcutBtn').disabled = true;
+                document.getElementById('verifyShortcutBtn').innerText = "Claimed! ✅";
+                tg.HapticFeedback.notificationOccurred('success');
+                tg.showAlert("🎉 Congratulations! You received 50 Match Power!");
+                
+                // Refresh limit display from server
+                if(userId) socket.emit('get_user_data', userId);
+            } else {
+                tg.showAlert("Please add the shortcut to Home Screen first, then verify again.");
+            }
+        });
+    }
+    // --- End Shortcut Logic ---
+
     window.onload = () => {
         const today = new Date().toDateString();
         
@@ -630,6 +713,15 @@
             btn.style.background = "#475569";
         }
         
+        // Check Shortcut Bonus Claim status
+        if (localStorage.getItem('shortcutBonusClaimed') === 'true') {
+            document.getElementById('verifyShortcutBtn').disabled = true;
+            document.getElementById('verifyShortcutBtn').innerText = "Claimed! ✅";
+        } else {
+            // If never attempted, keep verify disabled until they click Install
+            document.getElementById('verifyShortcutBtn').disabled = true;
+        }
+
         loadProfileFromStorage();
         attachProfileListeners();
         updateGenderUI();
@@ -881,6 +973,7 @@
         document.getElementById('chat-area').appendChild(endContainer);
         document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
     });
+    
     socket.on('user_data', (data) => { if (data && data.limit !== undefined) document.getElementById('match-count').innerText = data.limit; });
     socket.on('limit_over', () => { cancelSearch(); document.getElementById('limit-modal').style.display = 'flex'; });
 

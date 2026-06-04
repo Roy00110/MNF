@@ -44,10 +44,10 @@ const User = mongoose.model('User', new mongoose.Schema({
     joinedChannel: { type: Boolean, default: false }, 
     lastSpin: { type: Date, default: null },          
     isVip: { type: Boolean, default: false },
-    // ✅ Profile Fields Added (Database te save hobe)
+    // ✅ Profile Fields - ডিফল্ট ভ্যালু 'female' সেট করা হয়েছে
     profileName: { type: String, default: 'Anonymous' },
     profileAge: { type: String, default: '25' },
-    profileGender: { type: String, default: 'male' },
+    profileGender: { type: String, default: 'female' }, // 🔥 ডিফল্ট জেন্ডার female
     lastSeen: { type: Date, default: Date.now } // Track last interaction
 }));
 
@@ -275,7 +275,7 @@ io.on('connection', (socket) => {
                     $set: { 
                         profileName: profile.name || 'Anonymous',
                         profileAge: profile.age || '25',
-                        profileGender: profile.gender || 'male'
+                        profileGender: profile.gender || 'female' // 🔥 সেভ করলে আপডেট হবে
                     } 
                 },
                 { new: true }
@@ -291,7 +291,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('find_partner_web', async (userId) => {
-    // --- ছোট পরিবর্তন: ডুপ্লিকেট এড়াতে আগে মুছে তারপর পুশ করা ---
+    // ডুপ্লিকেট এড়াতে আগে মুছে তারপর পুশ করা
     waitingUsers = waitingUsers.filter(u => u.userId !== userId);
     waitingUsers.push({ userId, socketId: socket.id });
 
@@ -302,7 +302,6 @@ io.on('connection', (socket) => {
         // লিমিট চেক
         if (user.userId !== ADMIN_ID && user.matchLimit <= 0) {
             console.log(`🚫 [Web] Match limit over for: ${userId}`);
-            // লিমিট শেষ হলে ওয়েটিং লিস্ট থেকে সরিয়ে দেওয়া ভালো
             waitingUsers = waitingUsers.filter(u => u.userId !== userId);
             return io.to(socket.id).emit('limit_over');
         }
@@ -327,17 +326,21 @@ io.on('connection', (socket) => {
             if (user.userId !== ADMIN_ID) await User.updateOne({ userId: user.userId }, { $inc: { matchLimit: -1 } });
             if (partner.userId !== ADMIN_ID) await User.updateOne({ userId: partner.userId }, { $inc: { matchLimit: -1 } });
 
-            // ফ্রন্টেন্ডে জানানো - সাথে পার্টনারের প্রোফাইল তথ্য পাঠানো হচ্ছে
+            // 🔥 ফ্রন্টেন্ডে জানানো - পার্টনারের প্রোফাইল তথ্য (ডিফল্ট female যদি সেভ না করা থাকে)
+            // নিচের কোডে partner এর প্রোফাইল ডাটা ডাটাবেস থেকে নেওয়া হচ্ছে
+            const partnerFullData = await User.findOne({ userId: partner.userId });
+            const userFullData = await User.findOne({ userId: user.userId });
+            
             io.to(socket.id).emit('match_found', { 
                 partnerId: partner.userId,
-                partnerName: partner.profileName || 'Stranger',
-                partnerGender: partner.profileGender || 'male'
+                partnerName: partnerFullData?.profileName || 'Stranger',
+                partnerGender: partnerFullData?.profileGender || 'female' // 🔥 ডিফল্ট female
             });
             
             io.to(partner.webSocketId).emit('match_found', { 
                 partnerId: user.userId,
-                partnerName: user.profileName || 'Stranger',
-                partnerGender: user.profileGender || 'male'
+                partnerName: userFullData?.profileName || 'Stranger',
+                partnerGender: userFullData?.profileGender || 'female' // 🔥 ডিফল্ট female
             });
 
             console.log(`🤝 [Web Match] ${userId} matched with ${partner.userId}`);
@@ -346,6 +349,7 @@ io.on('connection', (socket) => {
         console.error("Web Match Error:", err); 
     }
 });
+
     socket.on('send_msg', async (data) => {
         const { senderId, text, image } = data; 
         const user = await User.findOne({ userId: Number(senderId) });
@@ -402,10 +406,10 @@ bot.start(async (ctx) => {
                 firstName: ctx.from.first_name, 
                 matchLimit: 20, 
                 hasReceivedReferralBonus: !!startPayload,
-                // Default Profile Values
+                // Default Profile Values - 🔥 ডিফল্ট জেন্ডার female
                 profileName: 'Anonymous',
                 profileAge: '25',
-                profileGender: 'male',
+                profileGender: 'female', // 🔥 সব নতুন ইউজারের জেন্ডার ডিফল্ট female
                 lastSeen: new Date()
             });
             await user.save();

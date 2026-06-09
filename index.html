@@ -1,3 +1,4 @@
+<!-- Msg er 5 ta por por popup hobe na ei code a -->
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -536,7 +537,6 @@
     const socket = io();
     const userId = tg.initDataUnsafe?.user?.id;
     let isSearching = false; 
-    let msgCount = 0; 
     let currentPartnerId = null;
 
     const AdsgramInterstitial = window.Adsgram.init({ blockId: "int-23449" });
@@ -597,18 +597,15 @@
 
     // Telegram Add to Home Screen Method - No extra instructions popup
     function installShortcutViaTelegram() {
-        // Direct Telegram add to home screen - no instruction popup
         if (tg && tg.addToHomeScreen) {
             tg.addToHomeScreen();
         } else {
-            // Alternative: Use Telegram WebApp method
             tg.showPopup({
                 title: "Add to Home Screen",
                 message: "Tap the share button (⋮) and select 'Add to Home Screen'",
                 buttons: [{ type: "ok" }]
             });
         }
-        // Enable verify button after attempt
         document.getElementById('verifyShortcutBtn').disabled = false;
         localStorage.setItem('shortcutAttempted', 'true');
     }
@@ -621,12 +618,10 @@
 
         tg.showConfirm("✅ Have you successfully added MatchMe to your Home Screen?\n\nClick YES to claim 50 FREE Match Power!", (confirmed) => {
             if (confirmed) {
-                // Claim bonus: Increase user matches by 50
                 if (userId) {
                     socket.emit('reward_user', userId, 50);
                 }
                 
-                // Update local display
                 let currentLimit = parseInt(document.getElementById('match-count').innerText);
                 if (isNaN(currentLimit)) currentLimit = 0;
                 currentLimit += 50;
@@ -903,7 +898,7 @@
     }
 
     socket.on('match_found', (partnerInfo) => {
-        isSearching = false; msgCount = 0; tg.HapticFeedback.notificationOccurred('success');
+        isSearching = false; tg.HapticFeedback.notificationOccurred('success');
         document.body.classList.remove('searching-active');
         if (partnerInfo && partnerInfo.partnerId) currentPartnerId = partnerInfo.partnerId;
         document.getElementById('main-header').style.display = 'none';
@@ -918,7 +913,7 @@
         showSystemMsg("❤️ You matched with a stranger!");
     });
 
-    socket.on('receive_msg', (data) => { tg.HapticFeedback.impactOccurred('light'); if (data.image) createBubble(data.image, 'received', true); else createBubble(data.text, 'received', false); checkMessageLimit(); });
+    socket.on('receive_msg', (data) => { tg.HapticFeedback.impactOccurred('light'); if (data.image) createBubble(data.image, 'received', true); else createBubble(data.text, 'received', false); });
     socket.on('chat_ended', () => {
         showSystemMsg("💔 Partner left the chat.");
         document.getElementById('chat-floating-header').style.display = 'none';
@@ -942,10 +937,9 @@
         handleFind();
     }
 
-    function sendMessage() { const inp = document.getElementById('main-input'); if(!inp.value.trim()) return; socket.emit('send_msg', { senderId: userId, text: inp.value }); createBubble(inp.value, 'sent', false); inp.value = ''; checkMessageLimit(); }
-    function checkMessageLimit() { msgCount++; if (msgCount === 5) { setTimeout(() => { document.getElementById('ad-floating-modal').style.display = 'flex'; tg.HapticFeedback.notificationOccurred('warning'); }, 1000); } }
+    function sendMessage() { const inp = document.getElementById('main-input'); if(!inp.value.trim()) return; socket.emit('send_msg', { senderId: userId, text: inp.value }); createBubble(inp.value, 'sent', false); inp.value = ''; }
     document.getElementById('main-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
-    function sendPhoto(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = (e) => { createBubble(e.target.result, 'sent', true); socket.emit('send_msg', { senderId: userId, image: e.target.result }); checkMessageLimit(); }; reader.readAsDataURL(input.files[0]); } }
+    function sendPhoto(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = (e) => { createBubble(e.target.result, 'sent', true); socket.emit('send_msg', { senderId: userId, image: e.target.result }); }; reader.readAsDataURL(input.files[0]); } }
     function createBubble(content, side, isImage) { const container = document.getElementById('chat-area'); const div = document.createElement('div'); div.className = `bubble ${side}`; if(isImage) div.innerHTML = `<img src="${content}" class="chat-img">`; else div.innerText = content; container.appendChild(div); container.scrollTop = container.scrollHeight; }
     function showSystemMsg(msg) { const container = document.getElementById('chat-area'); const div = document.createElement('div'); div.style = "text-align:center; font-size: 0.75rem; color: #ff99cc; margin: 15px 0; font-weight: 500;"; div.innerText = msg; container.appendChild(div); }
     show_9341070({ type: 'inApp', inAppSettings: { frequency: 2, capping: 0.1, interval: 15, timeout: 12, everyPage: false } });

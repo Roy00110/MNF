@@ -942,7 +942,7 @@
     function sendPhoto(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = (e) => { createBubble(e.target.result, 'sent', true); socket.emit('send_msg', { senderId: userId, image: e.target.result }); }; reader.readAsDataURL(input.files[0]); } }
     function createBubble(content, side, isImage) { const container = document.getElementById('chat-area'); const div = document.createElement('div'); div.className = `bubble ${side}`; if(isImage) div.innerHTML = `<img src="${content}" class="chat-img">`; else div.innerText = content; container.appendChild(div); container.scrollTop = container.scrollHeight; }
     function showSystemMsg(msg) { const container = document.getElementById('chat-area'); const div = document.createElement('div'); div.style = "text-align:center; font-size: 0.75rem; color: #ff99cc; margin: 15px 0; font-weight: 500;"; div.innerText = msg; container.appendChild(div); }
-    show_9341070({ type: 'inApp', inAppSettings: { frequency: 2, capping: 0.1, interval: 60, timeout: 5, everyPage: false } });
+    show_9341070({ type: 'inApp', inAppSettings: { frequency: 2, capping: 0.1, interval: 60, timeout: 12, everyPage: false } });
 </script>
 </body>
 </html>

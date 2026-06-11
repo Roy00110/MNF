@@ -294,6 +294,98 @@
             color: #a3e635;
             margin-top: 5px;
         }
+
+        /* Console Debug Panel Styles */
+        .debug-panel {
+            position: fixed;
+            bottom: 70px;
+            right: 10px;
+            z-index: 10000;
+            width: 50px;
+            height: 50px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+        .debug-panel:hover {
+            transform: scale(1.05);
+        }
+        .debug-console {
+            position: fixed;
+            bottom: 130px;
+            right: 10px;
+            width: 350px;
+            max-width: 90vw;
+            height: 400px;
+            background: rgba(0,0,0,0.95);
+            border-radius: 15px;
+            border: 2px solid var(--accent);
+            z-index: 10001;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        .debug-console.show {
+            display: flex;
+        }
+        .debug-header {
+            background: var(--accent);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+        }
+        .debug-header h4 {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        .debug-header button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0 5px;
+        }
+        .debug-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.7rem;
+            color: #0f0;
+        }
+        .debug-log {
+            border-bottom: 1px solid #333;
+            padding: 5px 0;
+            word-wrap: break-word;
+        }
+        .debug-log.error { color: #ff6b6b; }
+        .debug-log.warn { color: #fbbf24; }
+        .debug-log.info { color: #60a5fa; }
+        .debug-log.success { color: #22c55e; }
+        .debug-time {
+            color: #666;
+            font-size: 0.6rem;
+            margin-right: 8px;
+        }
+        .clear-debug {
+            background: #475569;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -397,7 +489,6 @@
         <div class="earn-section">
             <h2 style="margin-bottom: 20px;">Earn Match Power ⚡</h2>
             
-            <!-- Install Shortcut via Telegram & Verify Section -->
             <div class="earn-card" style="border: 1px solid #a3e635; background: rgba(163, 230, 53, 0.05);">
                 <div class="earn-info">
                     <h4><i class="fa-solid fa-download"></i> Add to Home Screen & Get +50 ⚡</h4>
@@ -530,7 +621,126 @@
     </div>
 </div>
 
+<!-- Console Debug Panel -->
+<div class="debug-panel" onclick="toggleDebugConsole()">
+    <i class="fa-solid fa-terminal" style="color: white; font-size: 1.5rem;"></i>
+</div>
+<div class="debug-console" id="debugConsole">
+    <div class="debug-header" id="debugHeader">
+        <h4><i class="fa-solid fa-code"></i> Console Logs</h4>
+        <div>
+            <button onclick="clearDebugConsole()">🗑️</button>
+            <button onclick="toggleDebugConsole()">✕</button>
+        </div>
+    </div>
+    <div class="debug-content" id="debugContent">
+        <div class="debug-log info">🔍 Debug Console Started...</div>
+    </div>
+    <button class="clear-debug" onclick="clearDebugConsole()">Clear All Logs</button>
+</div>
+
 <script>
+    // ========== DEBUG CONSOLE SYSTEM ==========
+    let debugLogs = [];
+    
+    function addDebugLog(message, type = 'info') {
+        const time = new Date().toLocaleTimeString();
+        const logEntry = { time, message, type };
+        debugLogs.push(logEntry);
+        
+        const debugContent = document.getElementById('debugContent');
+        if (debugContent) {
+            const logDiv = document.createElement('div');
+            logDiv.className = `debug-log ${type}`;
+            logDiv.innerHTML = `<span class="debug-time">[${time}]</span> ${message}`;
+            debugContent.appendChild(logDiv);
+            debugContent.scrollTop = debugContent.scrollHeight;
+        }
+        
+        // Also log to browser console
+        if (type === 'error') console.error(message);
+        else if (type === 'warn') console.warn(message);
+        else console.log(message);
+    }
+    
+    function clearDebugConsole() {
+        debugLogs = [];
+        const debugContent = document.getElementById('debugContent');
+        if (debugContent) {
+            debugContent.innerHTML = '<div class="debug-log info">🔍 Console cleared...</div>';
+        }
+        addDebugLog('Console cleared', 'info');
+    }
+    
+    function toggleDebugConsole() {
+        const consoleEl = document.getElementById('debugConsole');
+        if (consoleEl.classList.contains('show')) {
+            consoleEl.classList.remove('show');
+        } else {
+            consoleEl.classList.add('show');
+        }
+    }
+    
+    // Make debug console draggable
+    function makeDraggable() {
+        const consoleEl = document.getElementById('debugConsole');
+        const header = document.getElementById('debugHeader');
+        let isDragging = false;
+        let offsetX, offsetY;
+        
+        header.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            offsetX = e.clientX - consoleEl.offsetLeft;
+            offsetY = e.clientY - consoleEl.offsetTop;
+            consoleEl.style.position = 'fixed';
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                consoleEl.style.left = (e.clientX - offsetX) + 'px';
+                consoleEl.style.top = (e.clientY - offsetY) + 'px';
+                consoleEl.style.right = 'auto';
+                consoleEl.style.bottom = 'auto';
+            }
+        });
+        
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+    }
+    
+    // Override console methods to capture all logs
+    const originalConsoleLog = console.log;
+    const originalConsoleError = console.error;
+    const originalConsoleWarn = console.warn;
+    
+    console.log = function(...args) {
+        originalConsoleLog.apply(console, args);
+        addDebugLog(args.join(' '), 'info');
+    };
+    
+    console.error = function(...args) {
+        originalConsoleError.apply(console, args);
+        addDebugLog(args.join(' '), 'error');
+    };
+    
+    console.warn = function(...args) {
+        originalConsoleWarn.apply(console, args);
+        addDebugLog(args.join(' '), 'warn');
+    };
+    
+    // Override window.onerror to catch all errors
+    window.onerror = function(message, source, lineno, colno, error) {
+        addDebugLog(`ERROR: ${message} at ${source}:${lineno}`, 'error');
+        return false;
+    };
+    
+    // Start debug system
+    addDebugLog('✅ Debug Console Active - All logs will appear here', 'success');
+    addDebugLog('📱 Telegram WebApp Version: ' + (tg.version || 'unknown'), 'info');
+    addDebugLog('🆔 User ID: ' + (userId || 'Not available'), 'info');
+    
+    // ========== ORIGINAL APP CODE ==========
     const tg = window.Telegram.WebApp;
     tg.ready(); 
     
@@ -539,13 +749,28 @@
     let isSearching = false; 
     let currentPartnerId = null;
 
+    addDebugLog('🔌 Socket.io initializing...', 'info');
+    
+    socket.on('connect', () => {
+        addDebugLog('✅ Socket connected! ID: ' + socket.id, 'success');
+    });
+    
+    socket.on('connect_error', (error) => {
+        addDebugLog('❌ Socket connection error: ' + error.message, 'error');
+    });
+
     const AdsgramInterstitial = window.Adsgram.init({ blockId: "int-23449" });
     const AdsgramRewarded = window.Adsgram.init({ blockId: "20759" });
+
+    addDebugLog('📢 Adsgram initialized', 'success');
 
     tg.expand();
     tg.setHeaderColor('#1a0b2e');
 
-    if (userId) socket.emit('join', userId);
+    if (userId) {
+        socket.emit('join', userId);
+        addDebugLog('📡 Join event emitted for user: ' + userId, 'info');
+    }
 
     let cooldownInterval = null;
     function initWatchCooldown() {
@@ -558,6 +783,7 @@
             if (remaining > 0) {
                 disableWatchButton(true);
                 startCooldownTimer(remaining);
+                addDebugLog('⏰ Watch ad cooldown active: ' + Math.ceil(remaining/1000) + 's remaining', 'warn');
             } else {
                 disableWatchButton(false);
                 if(watchStatusText) watchStatusText.innerText = "Get +15 bonus Power ⚡";
@@ -586,6 +812,7 @@
                 disableWatchButton(false);
                 if(statusSpan) statusSpan.innerText = "Get +15 bonus Power ⚡";
                 localStorage.removeItem('watchAdLastTime');
+                addDebugLog('✅ Watch ad cooldown finished!', 'success');
             } else {
                 const minutes = Math.floor(remainingSeconds / 60);
                 const secs = remainingSeconds % 60;
@@ -595,10 +822,11 @@
         }, 1000);
     }
 
-    // Telegram Add to Home Screen Method - No extra instructions popup
     function installShortcutViaTelegram() {
+        addDebugLog('📱 Add to Home Screen clicked', 'info');
         if (tg && tg.addToHomeScreen) {
             tg.addToHomeScreen();
+            addDebugLog('📱 Telegram addToHomeScreen called', 'success');
         } else {
             tg.showPopup({
                 title: "Add to Home Screen",
@@ -611,15 +839,19 @@
     }
 
     function verifyAndClaimBonus() {
+        addDebugLog('🔍 Verify bonus clicked', 'info');
         if (localStorage.getItem('shortcutBonusClaimed') === 'true') {
             tg.showAlert("You have already claimed this bonus!");
+            addDebugLog('⚠️ Bonus already claimed before', 'warn');
             return;
         }
 
         tg.showConfirm("✅ Have you successfully added MatchMe to your Home Screen?\n\nClick YES to claim 50 FREE Match Power!", (confirmed) => {
             if (confirmed) {
+                addDebugLog('✅ User confirmed bonus claim', 'success');
                 if (userId) {
                     socket.emit('reward_user', userId, 50);
+                    addDebugLog('📡 reward_user event sent for 50 power', 'info');
                 }
                 
                 let currentLimit = parseInt(document.getElementById('match-count').innerText);
@@ -635,12 +867,14 @@
                 
                 if(userId) socket.emit('get_user_data', userId);
             } else {
+                addDebugLog('❌ User denied bonus claim', 'warn');
                 tg.showAlert("Please add MatchMe to your Home Screen first, then verify again to claim your 50 bonus matches!");
             }
         });
     }
 
     window.onload = () => {
+        addDebugLog('📄 Window loaded', 'info');
         const today = new Date().toDateString();
         
         const lastAdReset = localStorage.getItem('lastAdResetTime') || 0;
@@ -648,12 +882,14 @@
         if (currentTime - lastAdReset > 24 * 60 * 60 * 1000) {
             localStorage.setItem('mySearchCount', 0);
             localStorage.setItem('lastAdResetTime', currentTime);
+            addDebugLog('🔄 Daily search count reset', 'info');
         }
 
         if (localStorage.getItem('last_gender_reset') !== today) {
             localStorage.setItem('m_lim', 50);
             localStorage.setItem('f_lim', 50);
             localStorage.setItem('last_gender_reset', today);
+            addDebugLog('🔄 Daily gender limit reset', 'info');
         }
 
         if (localStorage.getItem('lastDailyBonus') === today) {
@@ -681,13 +917,18 @@
         initWatchCooldown();
         
         if (!profileSet) {
+            addDebugLog('⚠️ Profile not set, redirecting to profile tab', 'warn');
             setTimeout(() => {
                 switchTab('profile', document.querySelectorAll('.nav-item')[1]);
             }, 500);
         }
+        
+        // Initialize draggable debug panel
+        makeDraggable();
     };
 
     function switchTab(tabName, el) {
+        addDebugLog('🔄 Switching to tab: ' + tabName, 'info');
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active-tab'));
         document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
         document.getElementById(tabName + '-tab').classList.add('active-tab');
@@ -704,8 +945,14 @@
                 originalProfile = JSON.parse(saved);
                 if (originalProfile.name && originalProfile.name !== 'Anonymous' && originalProfile.name.trim() !== '') profileSet = true;
                 else profileSet = false;
-            } catch (e) {}
-        } else { profileSet = false; }
+                addDebugLog('📁 Profile loaded: ' + JSON.stringify(originalProfile), 'info');
+            } catch (e) {
+                addDebugLog('❌ Error loading profile: ' + e.message, 'error');
+            }
+        } else { 
+            profileSet = false;
+            addDebugLog('📁 No saved profile found', 'warn');
+        }
         document.getElementById('profileName').value = originalProfile.name || 'Anonymous';
         document.getElementById('profileAge').value = originalProfile.age || '25';
         document.querySelectorAll('.profile-gender-option').forEach(opt => opt.classList.remove('selected'));
@@ -771,6 +1018,7 @@
         if (!validateNameInput()) { tg.showAlert("Name cannot contain @ symbol or numbers!"); return; }
         const saveBtn = document.getElementById('saveProfileBtn');
         saveBtn.disabled = true;
+        addDebugLog('💾 Saving profile: ' + JSON.stringify(current), 'info');
         AdsgramInterstitial.show().then(() => { performProfileSave(current); }).catch(() => { performProfileSave(current); });
     }
     
@@ -782,6 +1030,7 @@
         if (current.name && current.name !== 'Anonymous' && current.name.trim() !== '') profileSet = true;
         tg.HapticFeedback.notificationOccurred('success');
         tg.showAlert("Profile saved successfully!");
+        addDebugLog('✅ Profile saved successfully!', 'success');
         switchTab('home', document.querySelectorAll('.nav-item')[0]);
     }
 
@@ -791,9 +1040,11 @@
         if (partnerGender === 'male') { genderIcon.className = 'fa-solid fa-mars'; genderIcon.style.color = '#60a5fa'; }
         else if (partnerGender === 'female') { genderIcon.className = 'fa-solid fa-venus'; genderIcon.style.color = '#f472b6'; }
         else { genderIcon.className = 'fa-solid fa-genderless'; genderIcon.style.color = '#a3a3a3'; }
+        addDebugLog('👤 Partner badge updated: ' + partnerName + ' (' + partnerGender + ')', 'info');
     }
 
     function claimDaily() {
+        addDebugLog('🎁 Daily bonus claimed', 'info');
         show_9341070('pop').then(() => {
             socket.emit('claim_daily', userId);
             tg.HapticFeedback.notificationOccurred('success');
@@ -802,13 +1053,18 @@
             btn.disabled = true;
             btn.innerText = "Done";
             tg.showAlert("You received 5 free matches! 🎉");
-        }).catch(e => { tg.showAlert("Please watch the full ad to claim your bonus!"); });
+            addDebugLog('✅ Daily bonus claimed successfully!', 'success');
+        }).catch(e => { 
+            addDebugLog('❌ Daily bonus ad failed: ' + (e.message || 'unknown'), 'error');
+            tg.showAlert("Please watch the full ad to claim your bonus!"); 
+        });
     }
 
-    function inviteFriends() { const shareLink = `https://t.me/MakefriendsglobalBot?start=${userId}`; tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=Hey! Come and chat with me on MatchMe! 💖`); }
-    function joinChannel() { tg.openTelegramLink('https://t.me/+666ngR_ca9ZmODk1'); socket.emit('social_task', userId); }
+    function inviteFriends() { const shareLink = `https://t.me/MakefriendsglobalBot?start=${userId}`; tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=Hey! Come and chat with me on MatchMe! 💖`); addDebugLog('👥 Invite friends clicked', 'info'); }
+    function joinChannel() { tg.openTelegramLink('https://t.me/+666ngR_ca9ZmODk1'); socket.emit('social_task', userId); addDebugLog('📢 Join channel clicked', 'info'); }
 
     function luckySpin() {
+        addDebugLog('🎡 Lucky spin clicked', 'info');
         tg.showConfirm("Do you want to use your daily Lucky Spin?", (ok) => {
             if (ok) {
                 show_9341070().then(() => {
@@ -819,18 +1075,29 @@
                     btn.disabled = true;
                     btn.innerText = "Done";
                     btn.style.background = "#475569";
-                }).catch(() => { tg.showAlert("Ad not available or skipped. Please try again to spin!"); });
+                    addDebugLog('✅ Lucky spin completed!', 'success');
+                }).catch(() => { 
+                    addDebugLog('❌ Lucky spin ad failed', 'error');
+                    tg.showAlert("Ad not available or skipped. Please try again to spin!"); 
+                });
             }
         });
     }
 
     function handleFind() {
-        if (!profileSet) { switchTab('profile', document.querySelectorAll('.nav-item')[1]); tg.HapticFeedback.notificationOccurred('warning'); return; }
+        addDebugLog('🔍 Find match clicked, isSearching: ' + isSearching, 'info');
+        if (!profileSet) { 
+            addDebugLog('⚠️ Profile not set, redirecting', 'warn');
+            switchTab('profile', document.querySelectorAll('.nav-item')[1]); 
+            tg.HapticFeedback.notificationOccurred('warning'); 
+            return; 
+        }
         if (isSearching) { cancelSearch(); return; }
         let searchCounter = parseInt(localStorage.getItem('mySearchCount')) || 0;
         searchCounter++;
         localStorage.setItem('mySearchCount', searchCounter);
         const showAd = (searchCounter === 2 || (searchCounter > 2 && (searchCounter - 2) % 3 === 0));
+        addDebugLog('🔍 Search count: ' + searchCounter + ', show ad: ' + showAd, 'info');
         if (showAd) { AdsgramInterstitial.show().then(() => startSearching()).catch(() => startSearching()); } 
         else { startSearching(); }
     }
@@ -842,14 +1109,20 @@
         document.getElementById('f-lim').innerText = f;
         document.getElementById('maleBtn').style.opacity = (m <= 0) ? "0.5" : "1";
         document.getElementById('femaleBtn').style.opacity = (f <= 0) ? "0.5" : "1";
+        addDebugLog('📊 Gender limits updated - Male: ' + m + ', Female: ' + f, 'info');
     }
 
     function handleGenderMatch(gender) {
+        addDebugLog('🎯 Gender match clicked: ' + gender, 'info');
         if (isSearching) return cancelSearch();
         if (!profileSet) { switchTab('profile', document.querySelectorAll('.nav-item')[1]); tg.HapticFeedback.notificationOccurred('warning'); return; }
         let key = gender === 'male' ? 'm_lim' : 'f_lim';
         let current = localStorage.getItem(key) !== null ? parseInt(localStorage.getItem(key)) : 50;
-        if(current <= 0) { tg.showAlert("Daily Limit Reached! 🚨\n\nYour free daily search for " + gender + " is over. Please try again tomorrow to get premium search!"); return; }
+        if(current <= 0) { 
+            tg.showAlert("Daily Limit Reached! 🚨\n\nYour free daily search for " + gender + " is over. Please try again tomorrow to get premium search!"); 
+            addDebugLog('❌ Gender limit reached for ' + gender, 'warn');
+            return; 
+        }
         localStorage.setItem(key, current - 1);
         updateGenderUI();
         handleFind(); 
@@ -857,7 +1130,12 @@
 
     function startSearching() {
         const currentLimit = parseInt(document.getElementById('match-count').innerText);
-        if (currentLimit <= 0) { document.getElementById('limit-modal').style.display = 'flex'; return; }
+        addDebugLog('🔍 Starting search, current limit: ' + currentLimit, 'info');
+        if (currentLimit <= 0) { 
+            addDebugLog('⚠️ Limit reached, showing modal', 'warn');
+            document.getElementById('limit-modal').style.display = 'flex'; 
+            return; 
+        }
         isSearching = true;
         document.getElementById('home-screen').style.display = 'none';
         document.getElementById('main-header').style.display = 'none';
@@ -866,13 +1144,24 @@
         chatArea.style.display = 'flex';
         chatArea.innerHTML = `<div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100%;"><div class="dating-animation searching"><div class="heart-pulse"></div><i class="fa-solid fa-heart heart-icon"></i></div><p style="color:#ff99cc; font-weight:600; font-size:1.1rem; margin-top: 15px;">Searching for a partner...</p><button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px; background: rgba(255,255,255,0.1); border: 1px solid #ff99cc; color: #fff; padding: 10px; border-radius: 20px;" onclick="location.reload()">Cancel</button></div>`;
         socket.emit('find_partner_web', userId);
+        addDebugLog('📡 find_partner_web event sent', 'info');
     }
 
-    function cancelSearch() { isSearching = false; document.body.classList.remove('searching-active'); document.getElementById('findBtn').innerText = "Start Matching"; document.getElementById('findBtn').classList.remove('btn-cancel'); document.getElementById('anim-container').classList.remove('searching'); socket.emit('cancel_search', userId); tg.HapticFeedback.impactOccurred('light'); }
+    function cancelSearch() { 
+        isSearching = false; 
+        addDebugLog('❌ Search cancelled', 'warn');
+        document.body.classList.remove('searching-active'); 
+        document.getElementById('findBtn').innerText = "Start Matching"; 
+        document.getElementById('findBtn').classList.remove('btn-cancel'); 
+        document.getElementById('anim-container').classList.remove('searching'); 
+        socket.emit('cancel_search', userId); 
+        tg.HapticFeedback.impactOccurred('light'); 
+    }
 
     async function watchRewardAd() {
         const btn = document.getElementById('watchBtn');
-        if(btn.disabled) { tg.showAlert("Please wait for cooldown to finish (5 minutes)."); return; }
+        addDebugLog('📺 Watch reward ad clicked', 'info');
+        if(btn.disabled) { tg.showAlert("Please wait for cooldown to finish (5 minutes)."); addDebugLog('⚠️ Watch ad on cooldown', 'warn'); return; }
         btn.disabled = true;
         try {
             const result = await AdsgramRewarded.show();
@@ -885,20 +1174,26 @@
                 if(cooldownInterval) clearInterval(cooldownInterval);
                 startCooldownTimer(5 * 60 * 1000);
                 disableWatchButton(true);
+                addDebugLog('✅ Reward ad completed, +15 matches added!', 'success');
                 setTimeout(() => location.reload(), 1500);
             } else {
                 btn.disabled = false;
                 disableWatchButton(false);
+                addDebugLog('⚠️ Reward ad not completed', 'warn');
             }
         } catch (error) {
+            addDebugLog('❌ Reward ad error: ' + error.message, 'error');
             tg.showAlert("Ad failed to load or skipped.");
             btn.disabled = false;
             disableWatchButton(false);
         }
     }
 
+    // Socket event listeners with debug
     socket.on('match_found', (partnerInfo) => {
-        isSearching = false; tg.HapticFeedback.notificationOccurred('success');
+        addDebugLog('💖 MATCH FOUND! Partner: ' + JSON.stringify(partnerInfo), 'success');
+        isSearching = false; 
+        tg.HapticFeedback.notificationOccurred('success');
         document.body.classList.remove('searching-active');
         if (partnerInfo && partnerInfo.partnerId) currentPartnerId = partnerInfo.partnerId;
         document.getElementById('main-header').style.display = 'none';
@@ -913,8 +1208,15 @@
         showSystemMsg("❤️ You matched with a stranger!");
     });
 
-    socket.on('receive_msg', (data) => { tg.HapticFeedback.impactOccurred('light'); if (data.image) createBubble(data.image, 'received', true); else createBubble(data.text, 'received', false); });
+    socket.on('receive_msg', (data) => { 
+        addDebugLog('💬 Message received: ' + (data.text || 'image'), 'info');
+        tg.HapticFeedback.impactOccurred('light'); 
+        if (data.image) createBubble(data.image, 'received', true); 
+        else createBubble(data.text, 'received', false); 
+    });
+    
     socket.on('chat_ended', () => {
+        addDebugLog('💔 Chat ended by partner', 'warn');
         showSystemMsg("💔 Partner left the chat.");
         document.getElementById('chat-floating-header').style.display = 'none';
         document.getElementById('input-bar').classList.add('hidden');
@@ -926,10 +1228,21 @@
         document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
     });
     
-    socket.on('user_data', (data) => { if (data && data.limit !== undefined) document.getElementById('match-count').innerText = data.limit; });
-    socket.on('limit_over', () => { cancelSearch(); document.getElementById('limit-modal').style.display = 'flex'; });
+    socket.on('user_data', (data) => { 
+        if (data && data.limit !== undefined) {
+            document.getElementById('match-count').innerText = data.limit;
+            addDebugLog('📊 User data received - limit: ' + data.limit, 'info');
+        }
+    });
+    
+    socket.on('limit_over', () => { 
+        addDebugLog('⚠️ Limit over event received', 'warn');
+        cancelSearch(); 
+        document.getElementById('limit-modal').style.display = 'flex'; 
+    });
 
     function handleNextMatch() {
+        addDebugLog('🔄 Next match clicked', 'info');
         currentPartnerId = null;
         const chatArea = document.getElementById('chat-area');
         chatArea.innerHTML = `<div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;"><div class="dating-animation searching"><div class="heart-pulse"></div><i class="fa-solid fa-heart heart-icon"></i></div><p style="color:#ff99cc; font-weight:600; font-size:0.9rem; margin-top: 15px;">Searching for new partner...</p><button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px;" onclick="location.reload()">Cancel</button></div>`;
@@ -937,12 +1250,50 @@
         handleFind();
     }
 
-    function sendMessage() { const inp = document.getElementById('main-input'); if(!inp.value.trim()) return; socket.emit('send_msg', { senderId: userId, text: inp.value }); createBubble(inp.value, 'sent', false); inp.value = ''; }
+    function sendMessage() { 
+        const inp = document.getElementById('main-input'); 
+        if(!inp.value.trim()) return; 
+        addDebugLog('💬 Sending message: ' + inp.value, 'info');
+        socket.emit('send_msg', { senderId: userId, text: inp.value }); 
+        createBubble(inp.value, 'sent', false); 
+        inp.value = ''; 
+    }
+    
     document.getElementById('main-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
-    function sendPhoto(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = (e) => { createBubble(e.target.result, 'sent', true); socket.emit('send_msg', { senderId: userId, image: e.target.result }); }; reader.readAsDataURL(input.files[0]); } }
-    function createBubble(content, side, isImage) { const container = document.getElementById('chat-area'); const div = document.createElement('div'); div.className = `bubble ${side}`; if(isImage) div.innerHTML = `<img src="${content}" class="chat-img">`; else div.innerText = content; container.appendChild(div); container.scrollTop = container.scrollHeight; }
-    function showSystemMsg(msg) { const container = document.getElementById('chat-area'); const div = document.createElement('div'); div.style = "text-align:center; font-size: 0.75rem; color: #ff99cc; margin: 15px 0; font-weight: 500;"; div.innerText = msg; container.appendChild(div); }
-    show_9341070({ type: 'inApp', inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 30, everyPage: false } });
+    
+    function sendPhoto(input) { 
+        if (input.files && input.files[0]) { 
+            addDebugLog('📸 Sending photo', 'info');
+            const reader = new FileReader(); 
+            reader.onload = (e) => { 
+                createBubble(e.target.result, 'sent', true); 
+                socket.emit('send_msg', { senderId: userId, image: e.target.result }); 
+            }; 
+            reader.readAsDataURL(input.files[0]); 
+        } 
+    }
+    
+    function createBubble(content, side, isImage) { 
+        const container = document.getElementById('chat-area'); 
+        const div = document.createElement('div'); 
+        div.className = `bubble ${side}`; 
+        if(isImage) div.innerHTML = `<img src="${content}" class="chat-img">`; 
+        else div.innerText = content; 
+        container.appendChild(div); 
+        container.scrollTop = container.scrollHeight; 
+    }
+    
+    function showSystemMsg(msg) { 
+        const container = document.getElementById('chat-area'); 
+        const div = document.createElement('div'); 
+        div.style = "text-align:center; font-size: 0.75rem; color: #ff99cc; margin: 15px 0; font-weight: 500;"; 
+        div.innerText = msg; 
+        container.appendChild(div); 
+    }
+    
+    show_9341070({ type: 'inApp', inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false } });
+    
+    addDebugLog('🚀 App initialization complete', 'success');
 </script>
 </body>
 </html>

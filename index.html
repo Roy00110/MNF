@@ -1,4 +1,4 @@
-<!-- Msg er 5 ta por por popup hobe na ei code a -->
+<!-- MatchMe Premium - Fixed Version (No Debug Console) -->
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -22,179 +22,45 @@
             --gradient: linear-gradient(135deg, #ff4d94, #ff7171);
             --video-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
         }
-
-        body {
-            margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif;
-            background: var(--bg-dark); color: var(--text-main);
-            height: 100vh; display: flex; flex-direction: column; overflow: hidden;
-        }
-
-        header {
-            padding: 15px 20px; background: rgba(26, 11, 46, 0.8);
-            backdrop-filter: blur(15px); display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid rgba(255, 77, 148, 0.2); z-index: 100;
-        }
-
+        body { margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--bg-dark); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        header { padding: 15px 20px; background: rgba(26, 11, 46, 0.8); backdrop-filter: blur(15px); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 77, 148, 0.2); z-index: 100; }
         .logo { font-size: 1.4rem; font-weight: 800; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        
-        .limit-card {
-            background: var(--glass-bg); padding: 6px 14px; border-radius: 20px;
-            font-size: 0.85rem; border: 1px solid rgba(255, 77, 148, 0.3);
-            display: flex; align-items: center; gap: 8px;
-        }
-
+        .limit-card { background: var(--glass-bg); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; border: 1px solid rgba(255, 77, 148, 0.3); display: flex; align-items: center; gap: 8px; }
         #tab-container { flex: 1; overflow-y: auto; padding-bottom: 80px; }
         .tab-content { display: none; }
         .active-tab { display: block; }
-
-        .video-promo-banner {
-            width: 85%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(79, 172, 254, 0.4);
-            border-radius: 15px;
-            padding: 10px;
-            margin: 15px auto;
-            text-align: center;
-            position: relative;
-        }
-        .promo-tag {
-            background: #4facfe;
-            color: white;
-            font-size: 0.6rem;
-            padding: 2px 6px;
-            border-radius: 5px;
-            position: absolute;
-            top: -8px;
-            left: 10px;
-            font-weight: bold;
-        }
+        .video-promo-banner { width: 85%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(79, 172, 254, 0.4); border-radius: 15px; padding: 10px; margin: 15px auto; text-align: center; position: relative; }
+        .promo-tag { background: #4facfe; color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 5px; position: absolute; top: -8px; left: 10px; font-weight: bold; }
         .video-promo-banner h3 { margin: 2px 0; font-size: 0.9rem; color: #00f2fe; }
         .video-promo-banner p { font-size: 0.75rem; color: #b4a9c3; margin: 2px 0 8px; }
-        .btn-video-dl {
-            background: var(--video-gradient);
-            color: white;
-            border: none;
-            padding: 6px 18px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.75rem;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            text-decoration: none;
-        }
-
+        .btn-video-dl { background: var(--video-gradient); color: white; border: none; padding: 6px 18px; border-radius: 20px; font-weight: bold; font-size: 0.75rem; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; }
         .earn-section { padding: 20px; text-align: center; }
-        .earn-card {
-            background: var(--glass-bg); border: 1px solid rgba(255, 77, 148, 0.2);
-            border-radius: 15px; padding: 15px; margin-bottom: 15px;
-            display: flex; align-items: center; justify-content: space-between; text-align: left;
-        }
+        .earn-card { background: var(--glass-bg); border: 1px solid rgba(255, 77, 148, 0.2); border-radius: 15px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; text-align: left; }
         .earn-info h4 { margin: 0; color: var(--text-main); font-size: 1rem; }
         .earn-info p { margin: 3px 0 0; color: #b4a9c3; font-size: 0.8rem; }
-        .earn-btn { 
-            background: var(--gradient); border: none; color: white; padding: 8px 15px; 
-            border-radius: 10px; font-weight: bold; font-size: 0.8rem; cursor: pointer;
-        }
+        .earn-btn { background: var(--gradient); border: none; color: white; padding: 8px 15px; border-radius: 10px; font-weight: bold; font-size: 0.8rem; cursor: pointer; }
         .earn-btn:disabled { opacity: 0.6; cursor: not-allowed; background: #475569 !important; }
-
-        .profile-section {
-            padding: 25px 20px;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        .profile-card {
-            background: var(--glass-bg);
-            border: 1px solid rgba(255, 77, 148, 0.2);
-            border-radius: 25px;
-            padding: 25px 20px;
-            backdrop-filter: blur(10px);
-        }
-        .profile-field {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        .profile-field label {
-            display: block;
-            font-size: 0.75rem;
-            color: #b4a9c3;
-            margin-bottom: 5px;
-            letter-spacing: 0.3px;
-        }
-        .profile-field input, .profile-field select {
-            width: 100%;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255, 77, 148, 0.3);
-            border-radius: 15px;
-            padding: 14px 16px;
-            color: white;
-            font-size: 0.95rem;
-            outline: none;
-        }
-        .profile-field input:focus, .profile-field select:focus {
-            border-color: var(--accent);
-        }
-        .profile-gender-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 5px;
-        }
-        .profile-gender-option {
-            flex: 1;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255, 77, 148, 0.2);
-            border-radius: 15px;
-            padding: 12px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #b4a9c3;
-        }
-        .profile-gender-option.selected {
-            background: var(--gradient);
-            color: white;
-            border-color: transparent;
-        }
+        .profile-section { padding: 25px 20px; max-width: 400px; margin: 0 auto; }
+        .profile-card { background: var(--glass-bg); border: 1px solid rgba(255, 77, 148, 0.2); border-radius: 25px; padding: 25px 20px; backdrop-filter: blur(10px); }
+        .profile-field { margin-bottom: 20px; text-align: left; }
+        .profile-field label { display: block; font-size: 0.75rem; color: #b4a9c3; margin-bottom: 5px; letter-spacing: 0.3px; }
+        .profile-field input, .profile-field select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255, 77, 148, 0.3); border-radius: 15px; padding: 14px 16px; color: white; font-size: 0.95rem; outline: none; }
+        .profile-field input:focus, .profile-field select:focus { border-color: var(--accent); }
+        .profile-gender-group { display: flex; gap: 15px; margin-top: 5px; }
+        .profile-gender-option { flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255, 77, 148, 0.2); border-radius: 15px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s; color: #b4a9c3; }
+        .profile-gender-option.selected { background: var(--gradient); color: white; border-color: transparent; }
         .profile-gender-option i { margin-right: 6px; }
-        .btn-save-profile {
-            width: 100%;
-            background: var(--gradient);
-            border: none;
-            color: white;
-            padding: 16px;
-            border-radius: 30px;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-            margin-top: 15px;
-            transition: opacity 0.2s;
-        }
-        .btn-save-profile:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            background: #475569 !important;
-        }
-
-        .nav-bar {
-            position: fixed; bottom: 0; width: 100%; background: rgba(26, 11, 46, 0.95);
-            display: flex; justify-content: space-around; padding: 12px 0;
-            border-top: 1px solid rgba(255, 77, 148, 0.2); z-index: 200;
-        }
+        .btn-save-profile { width: 100%; background: var(--gradient); border: none; color: white; padding: 16px; border-radius: 30px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 15px; transition: opacity 0.2s; }
+        .btn-save-profile:disabled { opacity: 0.4; cursor: not-allowed; background: #475569 !important; }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: rgba(26, 11, 46, 0.95); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid rgba(255, 77, 148, 0.2); z-index: 200; }
         .nav-item { color: #b4a9c3; font-size: 0.75rem; display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
         .nav-item.active { color: var(--accent); }
         .nav-item i { font-size: 1.2rem; }
-
-        #chat-area { 
-            position: fixed; top: 0; bottom: 80px; left: 0; right: 0;
-            padding: 100px 20px 20px 20px; overflow-y: auto; display: none; flex-direction: column; gap: 15px; 
-            background: var(--bg-dark); z-index: 150;
-        }
+        #chat-area { position: fixed; top: 0; bottom: 80px; left: 0; right: 0; padding: 100px 20px 20px 20px; overflow-y: auto; display: none; flex-direction: column; gap: 15px; background: var(--bg-dark); z-index: 150; }
         .bubble { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-size: 0.95rem; line-height: 1.5; animation: slideUp 0.3s ease; }
         .sent { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; }
         .received { align-self: flex-start; background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1); border-bottom-left-radius: 4px; }
         .chat-img { width: 100%; max-width: 220px; border-radius: 12px; display: block; margin-top: 5px; }
-        
         #home-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-top: 5px;}
         .dating-animation { width: 100px; height: 100px; position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; }
         .heart-icon { color: var(--accent); font-size: 3rem; z-index: 2; position: relative; }
@@ -202,190 +68,34 @@
         .heart-pulse::before { content: ''; position: absolute; width: 50px; height: 50px; background: var(--accent); border-radius: 50%; left: -25px; }
         .searching .heart-pulse { animation: heartPulse 2s infinite; opacity: 0.4; }
         @keyframes heartPulse { 0% { transform: scale(1) rotate(45deg); opacity: 0.5; } 100% { transform: scale(2.5) rotate(45deg); opacity: 0; } }
-        
         .btn-match { background: var(--gradient); color: white; border: none; padding: 14px 45px; border-radius: 30px; font-weight: bold; font-size: 1rem; cursor: pointer; box-shadow: 0 8px 20px rgba(255, 77, 148, 0.4); transition: all 0.3s ease; margin-bottom: 15px;}
         .btn-cancel { background: #475569 !important; box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important; }
-        
         .input-box { position: fixed; bottom: 0; left: 0; right: 0; padding: 15px 20px; background: rgba(26, 11, 46, 0.95); display: flex; align-items: center; gap: 12px; border-top: 1px solid rgba(255, 77, 148, 0.2); padding-bottom: env(safe-area-inset-bottom, 15px); z-index: 200; }
         .input-box input { flex: 1; background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1); padding: 12px 18px; border-radius: 25px; color: white; outline: none; }
         .btn-circle { width: 45px; height: 45px; border-radius: 50%; background: var(--gradient); border: none; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
-        
         #limit-modal, #video-modal, #ad-floating-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-content { background: #2d164d; padding: 30px; border-radius: 30px; width: 85%; text-align: center; border: 1px solid var(--accent); position: relative; }
         .hidden { display: none !important; }
-        
-        #chat-floating-header {
-            position: fixed; top: 15px; left: 0; right: 0;
-            padding: 0 20px; display: none; justify-content: space-between;
-            align-items: center; z-index: 250; pointer-events: none;
-        }
-        #chat-floating-header i { 
-            pointer-events: auto; 
-            font-size: 1.8rem; 
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6));
-            background: rgba(26, 11, 46, 0.6);
-            padding: 10px;
-            border-radius: 50%;
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-        }
+        #chat-floating-header { position: fixed; top: 15px; left: 0; right: 0; padding: 0 20px; display: none; justify-content: space-between; align-items: center; z-index: 250; pointer-events: none; }
+        #chat-floating-header i { pointer-events: auto; font-size: 1.8rem; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6)); background: rgba(26, 11, 46, 0.6); padding: 10px; border-radius: 50%; backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.15); }
         #video-btn-float { color: #22c55e; }
         #close-chat-float { color: #ef4444; }
-
-        .chat-profile-badge {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 8px 18px;
-            border-radius: 40px;
-            border: 1px solid rgba(255, 77, 148, 0.4);
-            font-size: 0.9rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-        .chat-profile-badge i {
-            font-size: 1rem;
-            background: transparent !important;
-            padding: 0 !important;
-            border: none !important;
-            filter: none !important;
-        }
-
+        .chat-profile-badge { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 8px 18px; border-radius: 40px; border: 1px solid rgba(255, 77, 148, 0.4); font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 8px; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .chat-profile-badge i { font-size: 1rem; background: transparent !important; padding: 0 !important; border: none !important; filter: none !important; }
         .premium-container { width: 85%; max-width: 350px; padding: 10px; background: rgba(255, 255, 255, 0.03); border-radius: 15px; border: 1px solid rgba(255, 77, 148, 0.15); }
         .premium-title { font-size: 0.7rem; color: #fbbf24; margin-bottom: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
         .gender-box { display: flex; gap: 8px; }
         .gender-btn { flex: 1; padding: 8px; border-radius: 12px; border: 1px solid rgba(255, 77, 148, 0.2); background: var(--glass-bg); color: white; font-weight: bold; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        
         .close-modal-icon { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: #b4a9c3; cursor: pointer; }
-
-        .end-chat-container {
-            display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 20px; animation: slideUp 0.4s ease;
-        }
+        .end-chat-container { display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 20px; animation: slideUp 0.4s ease; }
         .btn-next { background: var(--gradient); color: white; border: none; padding: 12px 35px; border-radius: 25px; font-weight: bold; cursor: pointer; width: 180px; }
         .btn-home-end { background: var(--glass-bg); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 12px 35px; border-radius: 25px; font-weight: bold; cursor: pointer; width: 180px; }
-
-        .chat-searching-ui {
-            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 15px;
-        }
-
-        .validation-error {
-            color: #ff6b6b;
-            font-size: 0.75rem;
-            margin-top: 5px;
-            text-align: left;
-            display: none;
-        }
-        .validation-error.show {
-            display: block;
-        }
-        input.invalid {
-            border-color: #ff6b6b !important;
-        }
-
-        .verify-btn {
-            background: #22c55e !important;
-            margin-left: 10px;
-        }
-        .shortcut-info {
-            font-size: 0.7rem;
-            color: #a3e635;
-            margin-top: 5px;
-        }
-
-        /* Console Debug Panel Styles */
-        .debug-panel {
-            position: fixed;
-            bottom: 70px;
-            right: 10px;
-            z-index: 10000;
-            width: 50px;
-            height: 50px;
-            background: var(--accent);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
-        }
-        .debug-panel:hover {
-            transform: scale(1.05);
-        }
-        .debug-console {
-            position: fixed;
-            bottom: 130px;
-            right: 10px;
-            width: 350px;
-            max-width: 90vw;
-            height: 400px;
-            background: rgba(0,0,0,0.95);
-            border-radius: 15px;
-            border: 2px solid var(--accent);
-            z-index: 10001;
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-        }
-        .debug-console.show {
-            display: flex;
-        }
-        .debug-header {
-            background: var(--accent);
-            padding: 10px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: move;
-        }
-        .debug-header h4 {
-            margin: 0;
-            font-size: 0.9rem;
-        }
-        .debug-header button {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 0 5px;
-        }
-        .debug-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-            font-family: monospace;
-            font-size: 0.7rem;
-            color: #0f0;
-        }
-        .debug-log {
-            border-bottom: 1px solid #333;
-            padding: 5px 0;
-            word-wrap: break-word;
-        }
-        .debug-log.error { color: #ff6b6b; }
-        .debug-log.warn { color: #fbbf24; }
-        .debug-log.info { color: #60a5fa; }
-        .debug-log.success { color: #22c55e; }
-        .debug-time {
-            color: #666;
-            font-size: 0.6rem;
-            margin-right: 8px;
-        }
-        .clear-debug {
-            background: #475569;
-            border: none;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.7rem;
-            margin-top: 5px;
-        }
+        .chat-searching-ui { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 15px; }
+        .validation-error { color: #ff6b6b; font-size: 0.75rem; margin-top: 5px; text-align: left; display: none; }
+        .validation-error.show { display: block; }
+        input.invalid { border-color: #ff6b6b !important; }
+        .verify-btn { background: #22c55e !important; margin-left: 10px; }
+        .shortcut-info { font-size: 0.7rem; color: #a3e635; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -417,32 +127,27 @@
         <div id="home-screen">
             <div class="video-promo-banner">
                <span class="promo-tag">New</span>
-                <h3><i class="fa-solid fa-video"></i> New Dating Bot </h3>
+                <h3><i class="fa-solid fa-video"></i> New Dating Bot</h3>
                 <p>Chat with Real Telegram users!</p>
                 <button class="btn-video-dl" onclick="window.open('https://t.me/BabyMonika_Bot?start=7837044057', '_blank')">
                     <i class="fa-solid fa-cloud"></i> Start Now
                 </button>
             </div>
-
             <div class="dating-animation" id="anim-container">
                 <div class="heart-pulse"></div>
                 <i class="fa-solid fa-heart heart-icon"></i>
             </div>
             <h2 id="status-text" style="margin-bottom: 5px; font-size: 1.3rem;">Find Your Match</h2>
             <p style="color: #b4a9c3; margin-bottom: 15px; padding: 0 40px; font-size: 0.8rem;">Chat anonymously and meet new people.</p>
-            
             <button class="btn-match" id="findBtn" onclick="handleFind()">Start Matching</button>
-
             <div class="premium-container">
                 <div class="premium-title"><i class="fa-solid fa-star"></i> Daily Premium Search</div>
                 <div class="gender-box" id="gender-section">
                     <button class="gender-btn" id="maleBtn" onclick="handleGenderMatch('male')">
-                        <i class="fa-solid fa-mars" style="color: #60a5fa;"></i>
-                        Male (<span id="m-lim">50</span>)
+                        <i class="fa-solid fa-mars" style="color: #60a5fa;"></i> Male (<span id="m-lim">50</span>)
                     </button>
                     <button class="gender-btn" id="femaleBtn" onclick="handleGenderMatch('female')">
-                        <i class="fa-solid fa-venus" style="color: #f472b6;"></i>
-                        Female (<span id="f-lim">50</span>)
+                        <i class="fa-solid fa-venus" style="color: #f472b6;"></i> Female (<span id="f-lim">50</span>)
                     </button>
                 </div>
             </div>
@@ -453,33 +158,23 @@
         <div class="profile-section">
             <div class="profile-card">
                 <h3 style="text-align:center; margin-bottom:20px;"><i class="fa-solid fa-user-pen"></i> My Profile</h3>
-                
                 <div class="profile-field">
                     <label><i class="fa-regular fa-user"></i> Your Name (max 6 characters, no @ or numbers)</label>
                     <input type="text" id="profileName" placeholder="e.g., Alex" value="Anonymous" maxlength="6">
                     <div id="nameError" class="validation-error">Name cannot contain @ symbol or numbers</div>
                 </div>
-
                 <div class="profile-field">
                     <label><i class="fa-regular fa-calendar"></i> Age</label>
                     <input type="number" id="profileAge" placeholder="18-99" min="18" max="99" value="25">
                 </div>
-
                 <div class="profile-field">
                     <label><i class="fa-regular fa-flag"></i> Gender</label>
                     <div class="profile-gender-group" id="profileGenderGroup">
-                        <div class="profile-gender-option" data-gender="male" onclick="selectGender('male')">
-                            <i class="fa-solid fa-mars"></i> Male
-                        </div>
-                        <div class="profile-gender-option" data-gender="female" onclick="selectGender('female')">
-                            <i class="fa-solid fa-venus"></i> Female
-                        </div>
-                        <div class="profile-gender-option" data-gender="other" onclick="selectGender('other')">
-                            <i class="fa-solid fa-genderless"></i> Other
-                        </div>
+                        <div class="profile-gender-option" data-gender="male" onclick="selectGender('male')"><i class="fa-solid fa-mars"></i> Male</div>
+                        <div class="profile-gender-option" data-gender="female" onclick="selectGender('female')"><i class="fa-solid fa-venus"></i> Female</div>
+                        <div class="profile-gender-option" data-gender="other" onclick="selectGender('other')"><i class="fa-solid fa-genderless"></i> Other</div>
                     </div>
                 </div>
-
                 <button class="btn-save-profile" id="saveProfileBtn" onclick="saveProfile()" disabled>Save Changes</button>
             </div>
         </div>
@@ -488,7 +183,6 @@
     <div id="earn-tab" class="tab-content">
         <div class="earn-section">
             <h2 style="margin-bottom: 20px;">Earn Match Power ⚡</h2>
-            
             <div class="earn-card" style="border: 1px solid #a3e635; background: rgba(163, 230, 53, 0.05);">
                 <div class="earn-info">
                     <h4><i class="fa-solid fa-download"></i> Add to Home Screen & Get +50 ⚡</h4>
@@ -496,70 +190,20 @@
                     <div class="shortcut-info">✨ Click below to add automatically ✨</div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <button class="earn-btn" id="shortcutBtn" onclick="installShortcutViaTelegram()">
-                        <i class="fa-solid fa-plus-circle"></i> Add to Home Screen
-                    </button>
-                    <button class="earn-btn verify-btn" id="verifyShortcutBtn" onclick="verifyAndClaimBonus()" disabled>
-                        <i class="fa-solid fa-check-double"></i> Verify & Claim 50⚡
-                    </button>
+                    <button class="earn-btn" id="shortcutBtn" onclick="installShortcutViaTelegram()"><i class="fa-solid fa-plus-circle"></i> Add to Home Screen</button>
+                    <button class="earn-btn verify-btn" id="verifyShortcutBtn" onclick="verifyAndClaimBonus()" disabled><i class="fa-solid fa-check-double"></i> Verify & Claim 50⚡</button>
                 </div>
             </div>
-
             <div class="earn-card" style="border: 1px solid var(--accent);">
-                <div class="earn-info">
-                    <h4> Random video Chat 📱</h4>
-                    <p>Enjoy Free Video chat with strangers </p>
-                </div>
+                <div class="earn-info"><h4>Random video Chat 📱</h4><p>Enjoy Free Video chat with strangers</p></div>
                 <button class="earn-btn" onclick="window.open('https://1024terabox.com/s/1wCQFn0fXbrLKkUjufnkCMg', '_blank')">Download</button>
             </div>
-
-            <div class="earn-card">
-                <div class="earn-info">
-                    <h4>Watch & Earn ⚡</h4>
-                    <p id="watchStatus">Get +15 bonus Power ⚡</p>
-                </div>
-                <button class="earn-btn" id="watchBtn" onclick="watchRewardAd()">Watch</button>
-            </div>
-
-            <div class="earn-card">
-                <div class="earn-info">
-                    <h4>Daily Bonus 🎁</h4>
-                    <p>Claim 5 ⚡ every day</p>
-                </div>
-                <button class="earn-btn" id="dailyBtn" onclick="claimDaily()">Claim</button>
-            </div>
-
-            <div class="earn-card">
-                <div class="earn-info">
-                    <h4>Invite Friends 👥</h4>
-                    <p>Share with friends for +20 ⚡</p>
-                </div>
-                <button class="earn-btn" onclick="inviteFriends()">Invite</button>
-            </div>
-
-            <div class="earn-card">
-                <div class="earn-info">
-                    <h4>Join Channel 📢</h4>
-                    <p>Follow us for +10 ⚡</p>
-                </div>
-                <button class="earn-btn" onclick="joinChannel()">Join</button>
-            </div>
-
-            <div class="earn-card" style="border: 1px solid #fbbf24; background: rgba(251, 191, 36, 0.05);">
-                <div class="earn-info">
-                    <h4>Lucky Spin 🎡</h4>
-                    <p>Win 1 to 50 ⚡ daily</p>
-                </div>
-                <button class="earn-btn" id="spinBtn" style="background: #fbbf24; color: #1a0b2e;" onclick="luckySpin()">Spin</button>
-            </div>
-
-            <div class="earn-card" style="border: 1px solid #22c55e; background: rgba(34, 197, 94, 0.1);">
-                <div class="earn-info">
-                    <h4>Limited Time Offer ⏳</h4>
-                    <p>Your account is eligible for a 100% bonus boost. Claim it before it expires!</p>
-                </div>
-                <button class="earn-btn" style="text-decoration: none; background: #22c55e;" onclick="window.open('https://www.effectivegatecpm.com/bwv2bcmvb?key=f85fc33eb900e6464671e4aa5d876171', '_blank')">Claim</button>
-            </div>
+            <div class="earn-card"><div class="earn-info"><h4>Watch & Earn ⚡</h4><p id="watchStatus">Get +15 bonus Power ⚡</p></div><button class="earn-btn" id="watchBtn" onclick="watchRewardAd()">Watch</button></div>
+            <div class="earn-card"><div class="earn-info"><h4>Daily Bonus 🎁</h4><p>Claim 5 ⚡ every day</p></div><button class="earn-btn" id="dailyBtn" onclick="claimDaily()">Claim</button></div>
+            <div class="earn-card"><div class="earn-info"><h4>Invite Friends 👥</h4><p>Share with friends for +20 ⚡</p></div><button class="earn-btn" onclick="inviteFriends()">Invite</button></div>
+            <div class="earn-card"><div class="earn-info"><h4>Join Channel 📢</h4><p>Follow us for +10 ⚡</p></div><button class="earn-btn" onclick="joinChannel()">Join</button></div>
+            <div class="earn-card" style="border: 1px solid #fbbf24; background: rgba(251, 191, 36, 0.05);"><div class="earn-info"><h4>Lucky Spin 🎡</h4><p>Win 1 to 50 ⚡ daily</p></div><button class="earn-btn" id="spinBtn" style="background: #fbbf24; color: #1a0b2e;" onclick="luckySpin()">Spin</button></div>
+            <div class="earn-card" style="border: 1px solid #22c55e; background: rgba(34, 197, 94, 0.1);"><div class="earn-info"><h4>Limited Time Offer ⏳</h4><p>Your account is eligible for a 100% bonus boost. Claim it before it expires!</p></div><button class="earn-btn" style="text-decoration: none; background: #22c55e;" onclick="window.open('https://www.effectivegatecpm.com/bwv2bcmvb?key=f85fc33eb900e6464671e4aa5d876171', '_blank')">Claim</button></div>
         </div>
     </div>
 </div>
@@ -567,180 +211,23 @@
 <div id="chat-area"></div>
 
 <div class="nav-bar" id="bottom-nav">
-    <div class="nav-item active" onclick="switchTab('home', this)">
-        <i class="fa-solid fa-fire"></i>
-        <span>Matching</span>
-    </div>
-    <div class="nav-item" onclick="switchTab('profile', this)">
-        <i class="fa-solid fa-user"></i>
-        <span>Profile</span>
-    </div>
-    <div class="nav-item" onclick="switchTab('earn', this)">
-        <i class="fa-solid fa-bolt"></i>
-        <span>Earn Power</span>
-    </div>
+    <div class="nav-item active" onclick="switchTab('home', this)"><i class="fa-solid fa-fire"></i><span>Matching</span></div>
+    <div class="nav-item" onclick="switchTab('profile', this)"><i class="fa-solid fa-user"></i><span>Profile</span></div>
+    <div class="nav-item" onclick="switchTab('earn', this)"><i class="fa-solid fa-bolt"></i><span>Earn Power</span></div>
 </div>
 
 <div class="input-box hidden" id="input-bar">
     <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="sendPhoto(this)">
-    <button class="btn-circle" style="background: var(--glass-bg);" onclick="document.getElementById('fileInput').click()">
-        <i class="fa-solid fa-camera"></i>
-    </button>
-    
+    <button class="btn-circle" style="background: var(--glass-bg);" onclick="document.getElementById('fileInput').click()"><i class="fa-solid fa-camera"></i></button>
     <input type="text" id="main-input" placeholder="Say something sweet...">
     <button class="btn-circle" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
 </div>
 
-<div id="limit-modal">
-    <div class="modal-content">
-        <div style="font-size:50px; margin-bottom: 10px;">⚡</div>
-        <h2 style="color:var(--accent); margin-top: 0;">Power Limit Reached!</h2>
-        <p style="color:#b4a9c3;">Watch a video to get <b>+15 Match Power</b> instantly!</p>
-        <button id="rewardBtnModal" onclick="watchRewardAd()" style="background:var(--gradient); color:white; border:none; padding:15px; border-radius:20px; font-weight:800; width:100%; cursor:pointer; margin-top: 10px;">📺 Watch & Recharge</button>
-        <button onclick="document.getElementById('limit-modal').style.display='none'" style="background:transparent; color:white; border:none; margin-top:15px; opacity:0.6;">Maybe later</button>
-    </div>
-</div>
-
-<div id="video-modal">
-    <div class="modal-content">
-        <div style="font-size:50px; margin-bottom: 10px;">🎥</div>
-        <h2 style="color:var(--accent); margin-top: 0;">Video Call Feature</h2>
-        <p style="color:#b4a9c3;">Download our official app to start <b>video calls</b> with random matches!</p>
-        <button onclick="window.open('https://1024terabox.com/s/1wCQFn0fXbrLKkUjufnkCMg', '_blank')" style="background:var(--gradient); color:white; border:none; padding:15px; border-radius:20px; font-weight:800; width:100%; cursor:pointer; margin-top: 10px;">📥 Download App Now</button>
-        <button onclick="document.getElementById('video-modal').style.display='none'" style="background:transparent; color:white; border:none; margin-top:15px; opacity:0.6;">Close</button>
-    </div>
-</div>
-
-<div id="ad-floating-modal">
-    <div class="modal-content">
-        <i class="fa-solid fa-circle-xmark close-modal-icon" onclick="document.getElementById('ad-floating-modal').style.display='none'"></i>
-        <div style="font-size:50px; margin-bottom: 10px;">🤖</div>
-        <h2 style="color:var(--accent); margin-top: 0;">Join Our New Bot</h2>
-        <p style="color:#b4a9c3;">Start a <b>Free Random Chat</b> With 100k+ Girls and boys!</p>
-        <button onclick="window.open('https://t.me/BabyMonika_Bot?start=7837044057', '_blank')" style="background:var(--gradient); color:white; border:none; padding:15px; border-radius:25px; font-weight:800; width:100%; cursor:pointer; margin-top: 10px; box-shadow: 0 5px 15px rgba(255, 77, 148, 0.4);">🚀 Start Chat</button>
-    </div>
-</div>
-
-<!-- Console Debug Panel -->
-<div class="debug-panel" onclick="toggleDebugConsole()">
-    <i class="fa-solid fa-terminal" style="color: white; font-size: 1.5rem;"></i>
-</div>
-<div class="debug-console" id="debugConsole">
-    <div class="debug-header" id="debugHeader">
-        <h4><i class="fa-solid fa-code"></i> Console Logs</h4>
-        <div>
-            <button onclick="clearDebugConsole()">🗑️</button>
-            <button onclick="toggleDebugConsole()">✕</button>
-        </div>
-    </div>
-    <div class="debug-content" id="debugContent">
-        <div class="debug-log info">🔍 Debug Console Started...</div>
-    </div>
-    <button class="clear-debug" onclick="clearDebugConsole()">Clear All Logs</button>
-</div>
+<div id="limit-modal"><div class="modal-content"><div style="font-size:50px; margin-bottom: 10px;">⚡</div><h2 style="color:var(--accent); margin-top: 0;">Power Limit Reached!</h2><p style="color:#b4a9c3;">Watch a video to get <b>+15 Match Power</b> instantly!</p><button id="rewardBtnModal" onclick="watchRewardAd()" style="background:var(--gradient); color:white; border:none; padding:15px; border-radius:20px; font-weight:800; width:100%; cursor:pointer; margin-top: 10px;">📺 Watch & Recharge</button><button onclick="document.getElementById('limit-modal').style.display='none'" style="background:transparent; color:white; border:none; margin-top:15px; opacity:0.6;">Maybe later</button></div></div>
+<div id="video-modal"><div class="modal-content"><div style="font-size:50px; margin-bottom: 10px;">🎥</div><h2 style="color:var(--accent); margin-top: 0;">Video Call Feature</h2><p style="color:#b4a9c3;">Download our official app to start <b>video calls</b> with random matches!</p><button onclick="window.open('https://1024terabox.com/s/1wCQFn0fXbrLKkUjufnkCMg', '_blank')" style="background:var(--gradient); color:white; border:none; padding:15px; border-radius:20px; font-weight:800; width:100%; cursor:pointer; margin-top: 10px;">📥 Download App Now</button><button onclick="document.getElementById('video-modal').style.display='none'" style="background:transparent; color:white; border:none; margin-top:15px; opacity:0.6;">Close</button></div></div>
+<div id="ad-floating-modal"><div class="modal-content"><i class="fa-solid fa-circle-xmark close-modal-icon" onclick="document.getElementById('ad-floating-modal').style.display='none'"></i><div style="font-size:50px; margin-bottom: 10px;">🤖</div><h2 style="color:var(--accent); margin-top: 0;">Join Our New Bot</h2><p style="color:#b4a9c3;">Start a <b>Free Random Chat</b> With 100k+ Girls and boys!</p><button onclick="window.open('https://t.me/BabyMonika_Bot?start=7837044057', '_blank')" style="background:var(--gradient); color:white; border:none; padding:15px; border-radius:25px; font-weight:800; width:100%; cursor:pointer; margin-top: 10px; box-shadow: 0 5px 15px rgba(255, 77, 148, 0.4);">🚀 Start Chat</button></div></div>
 
 <script>
-    // ========== DEBUG CONSOLE SYSTEM ==========
-    let debugLogs = [];
-    
-    function addDebugLog(message, type = 'info') {
-        const time = new Date().toLocaleTimeString();
-        const logEntry = { time, message, type };
-        debugLogs.push(logEntry);
-        
-        const debugContent = document.getElementById('debugContent');
-        if (debugContent) {
-            const logDiv = document.createElement('div');
-            logDiv.className = `debug-log ${type}`;
-            logDiv.innerHTML = `<span class="debug-time">[${time}]</span> ${message}`;
-            debugContent.appendChild(logDiv);
-            debugContent.scrollTop = debugContent.scrollHeight;
-        }
-        
-        // Also log to browser console
-        if (type === 'error') console.error(message);
-        else if (type === 'warn') console.warn(message);
-        else console.log(message);
-    }
-    
-    function clearDebugConsole() {
-        debugLogs = [];
-        const debugContent = document.getElementById('debugContent');
-        if (debugContent) {
-            debugContent.innerHTML = '<div class="debug-log info">🔍 Console cleared...</div>';
-        }
-        addDebugLog('Console cleared', 'info');
-    }
-    
-    function toggleDebugConsole() {
-        const consoleEl = document.getElementById('debugConsole');
-        if (consoleEl.classList.contains('show')) {
-            consoleEl.classList.remove('show');
-        } else {
-            consoleEl.classList.add('show');
-        }
-    }
-    
-    // Make debug console draggable
-    function makeDraggable() {
-        const consoleEl = document.getElementById('debugConsole');
-        const header = document.getElementById('debugHeader');
-        let isDragging = false;
-        let offsetX, offsetY;
-        
-        header.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            offsetX = e.clientX - consoleEl.offsetLeft;
-            offsetY = e.clientY - consoleEl.offsetTop;
-            consoleEl.style.position = 'fixed';
-        });
-        
-        document.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                consoleEl.style.left = (e.clientX - offsetX) + 'px';
-                consoleEl.style.top = (e.clientY - offsetY) + 'px';
-                consoleEl.style.right = 'auto';
-                consoleEl.style.bottom = 'auto';
-            }
-        });
-        
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-        });
-    }
-    
-    // Override console methods to capture all logs
-    const originalConsoleLog = console.log;
-    const originalConsoleError = console.error;
-    const originalConsoleWarn = console.warn;
-    
-    console.log = function(...args) {
-        originalConsoleLog.apply(console, args);
-        addDebugLog(args.join(' '), 'info');
-    };
-    
-    console.error = function(...args) {
-        originalConsoleError.apply(console, args);
-        addDebugLog(args.join(' '), 'error');
-    };
-    
-    console.warn = function(...args) {
-        originalConsoleWarn.apply(console, args);
-        addDebugLog(args.join(' '), 'warn');
-    };
-    
-    // Override window.onerror to catch all errors
-    window.onerror = function(message, source, lineno, colno, error) {
-        addDebugLog(`ERROR: ${message} at ${source}:${lineno}`, 'error');
-        return false;
-    };
-    
-    // Start debug system
-    addDebugLog('✅ Debug Console Active - All logs will appear here', 'success');
-    addDebugLog('📱 Telegram WebApp Version: ' + (tg.version || 'unknown'), 'info');
-    addDebugLog('🆔 User ID: ' + (userId || 'Not available'), 'info');
-    
-    // ========== ORIGINAL APP CODE ==========
     const tg = window.Telegram.WebApp;
     tg.ready(); 
     
@@ -749,28 +236,13 @@
     let isSearching = false; 
     let currentPartnerId = null;
 
-    addDebugLog('🔌 Socket.io initializing...', 'info');
-    
-    socket.on('connect', () => {
-        addDebugLog('✅ Socket connected! ID: ' + socket.id, 'success');
-    });
-    
-    socket.on('connect_error', (error) => {
-        addDebugLog('❌ Socket connection error: ' + error.message, 'error');
-    });
-
     const AdsgramInterstitial = window.Adsgram.init({ blockId: "int-23449" });
     const AdsgramRewarded = window.Adsgram.init({ blockId: "20759" });
-
-    addDebugLog('📢 Adsgram initialized', 'success');
 
     tg.expand();
     tg.setHeaderColor('#1a0b2e');
 
-    if (userId) {
-        socket.emit('join', userId);
-        addDebugLog('📡 Join event emitted for user: ' + userId, 'info');
-    }
+    if (userId) socket.emit('join', userId);
 
     let cooldownInterval = null;
     function initWatchCooldown() {
@@ -783,7 +255,6 @@
             if (remaining > 0) {
                 disableWatchButton(true);
                 startCooldownTimer(remaining);
-                addDebugLog('⏰ Watch ad cooldown active: ' + Math.ceil(remaining/1000) + 's remaining', 'warn');
             } else {
                 disableWatchButton(false);
                 if(watchStatusText) watchStatusText.innerText = "Get +15 bonus Power ⚡";
@@ -796,13 +267,10 @@
 
     function disableWatchButton(disabled) {
         const btn = document.getElementById('watchBtn');
-        btn.disabled = disabled;
-        if(disabled) btn.style.opacity = "0.6";
-        else btn.style.opacity = "1";
+        if(btn) { btn.disabled = disabled; btn.style.opacity = disabled ? "0.6" : "1"; }
     }
 
     function startCooldownTimer(durationMs) {
-        const btn = document.getElementById('watchBtn');
         const statusSpan = document.getElementById('watchStatus');
         let remainingSeconds = Math.ceil(durationMs / 1000);
         if(cooldownInterval) clearInterval(cooldownInterval);
@@ -812,7 +280,6 @@
                 disableWatchButton(false);
                 if(statusSpan) statusSpan.innerText = "Get +15 bonus Power ⚡";
                 localStorage.removeItem('watchAdLastTime');
-                addDebugLog('✅ Watch ad cooldown finished!', 'success');
             } else {
                 const minutes = Math.floor(remainingSeconds / 60);
                 const secs = remainingSeconds % 60;
@@ -823,58 +290,54 @@
     }
 
     function installShortcutViaTelegram() {
-        addDebugLog('📱 Add to Home Screen clicked', 'info');
-        if (tg && tg.addToHomeScreen) {
-            tg.addToHomeScreen();
-            addDebugLog('📱 Telegram addToHomeScreen called', 'success');
-        } else {
-            tg.showPopup({
-                title: "Add to Home Screen",
-                message: "Tap the share button (⋮) and select 'Add to Home Screen'",
-                buttons: [{ type: "ok" }]
-            });
+        if (tg && tg.addToHomeScreen) { tg.addToHomeScreen(); }
+        else {
+            tg.showPopup({ title: "Add to Home Screen", message: "Tap the share button (⋮) and select 'Add to Home Screen'", buttons: [{ type: "ok" }] });
         }
         document.getElementById('verifyShortcutBtn').disabled = false;
         localStorage.setItem('shortcutAttempted', 'true');
     }
 
     function verifyAndClaimBonus() {
-        addDebugLog('🔍 Verify bonus clicked', 'info');
         if (localStorage.getItem('shortcutBonusClaimed') === 'true') {
             tg.showAlert("You have already claimed this bonus!");
-            addDebugLog('⚠️ Bonus already claimed before', 'warn');
             return;
         }
-
         tg.showConfirm("✅ Have you successfully added MatchMe to your Home Screen?\n\nClick YES to claim 50 FREE Match Power!", (confirmed) => {
             if (confirmed) {
-                addDebugLog('✅ User confirmed bonus claim', 'success');
-                if (userId) {
-                    socket.emit('reward_user', userId, 50);
-                    addDebugLog('📡 reward_user event sent for 50 power', 'info');
-                }
-                
+                if (userId) socket.emit('reward_user', userId, 50);
                 let currentLimit = parseInt(document.getElementById('match-count').innerText);
                 if (isNaN(currentLimit)) currentLimit = 0;
                 currentLimit += 50;
                 document.getElementById('match-count').innerText = currentLimit;
-                
                 localStorage.setItem('shortcutBonusClaimed', 'true');
-                document.getElementById('verifyShortcutBtn').disabled = true;
-                document.getElementById('verifyShortcutBtn').innerHTML = '<i class="fa-solid fa-check-circle"></i> Claimed! ✅';
+                const verifyBtn = document.getElementById('verifyShortcutBtn');
+                if(verifyBtn) { verifyBtn.disabled = true; verifyBtn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Claimed! ✅'; }
                 tg.HapticFeedback.notificationOccurred('success');
-                tg.showAlert("🎉 Congratulations! You received 50 Match Power!\n\nEnjoy matching with more people!");
-                
+                tg.showAlert("🎉 Congratulations! You received 50 Match Power!");
                 if(userId) socket.emit('get_user_data', userId);
             } else {
-                addDebugLog('❌ User denied bonus claim', 'warn');
-                tg.showAlert("Please add MatchMe to your Home Screen first, then verify again to claim your 50 bonus matches!");
+                tg.showAlert("Please add MatchMe to your Home Screen first!");
             }
         });
     }
 
+    // FIX: Debounced checkProfileChanges
+    let profileCheckTimeout = null;
+    function checkProfileChanges() {
+        if (profileCheckTimeout) clearTimeout(profileCheckTimeout);
+        profileCheckTimeout = setTimeout(() => {
+            const current = getCurrentProfile();
+            const saved = originalProfile;
+            const isValid = validateNameInput();
+            const changed = (current.name !== saved.name || current.age !== saved.age || current.gender !== saved.gender);
+            const saveBtn = document.getElementById('saveProfileBtn');
+            if(saveBtn) saveBtn.disabled = !(changed && isValid);
+            profileCheckTimeout = null;
+        }, 100);
+    }
+
     window.onload = () => {
-        addDebugLog('📄 Window loaded', 'info');
         const today = new Date().toDateString();
         
         const lastAdReset = localStorage.getItem('lastAdResetTime') || 0;
@@ -882,33 +345,29 @@
         if (currentTime - lastAdReset > 24 * 60 * 60 * 1000) {
             localStorage.setItem('mySearchCount', 0);
             localStorage.setItem('lastAdResetTime', currentTime);
-            addDebugLog('🔄 Daily search count reset', 'info');
         }
 
         if (localStorage.getItem('last_gender_reset') !== today) {
             localStorage.setItem('m_lim', 50);
             localStorage.setItem('f_lim', 50);
             localStorage.setItem('last_gender_reset', today);
-            addDebugLog('🔄 Daily gender limit reset', 'info');
         }
 
         if (localStorage.getItem('lastDailyBonus') === today) {
             const btn = document.getElementById('dailyBtn');
-            btn.disabled = true;
-            btn.innerText = "Done";
+            if(btn) { btn.disabled = true; btn.innerText = "Done"; }
         }
         if (localStorage.getItem('lastLuckySpin') === today) {
             const btn = document.getElementById('spinBtn');
-            btn.disabled = true;
-            btn.innerText = "Done";
-            btn.style.background = "#475569";
+            if(btn) { btn.disabled = true; btn.innerText = "Done"; btn.style.background = "#475569"; }
         }
         
         if (localStorage.getItem('shortcutBonusClaimed') === 'true') {
-            document.getElementById('verifyShortcutBtn').disabled = true;
-            document.getElementById('verifyShortcutBtn').innerHTML = '<i class="fa-solid fa-check-circle"></i> Claimed! ✅';
+            const verifyBtn = document.getElementById('verifyShortcutBtn');
+            if(verifyBtn) { verifyBtn.disabled = true; verifyBtn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Claimed! ✅'; }
         } else {
-            document.getElementById('verifyShortcutBtn').disabled = true;
+            const verifyBtn = document.getElementById('verifyShortcutBtn');
+            if(verifyBtn) verifyBtn.disabled = true;
         }
 
         loadProfileFromStorage();
@@ -917,22 +376,23 @@
         initWatchCooldown();
         
         if (!profileSet) {
-            addDebugLog('⚠️ Profile not set, redirecting to profile tab', 'warn');
             setTimeout(() => {
-                switchTab('profile', document.querySelectorAll('.nav-item')[1]);
+                const navItems = document.querySelectorAll('.nav-item');
+                if(navItems && navItems[1]) switchTab('profile', navItems[1]);
             }, 500);
         }
-        
-        // Initialize draggable debug panel
-        makeDraggable();
     };
 
+    let isSwitchingTab = false;
     function switchTab(tabName, el) {
-        addDebugLog('🔄 Switching to tab: ' + tabName, 'info');
+        if(isSwitchingTab) return;
+        isSwitchingTab = true;
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active-tab'));
         document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-        document.getElementById(tabName + '-tab').classList.add('active-tab');
-        el.classList.add('active');
+        const targetTab = document.getElementById(tabName + '-tab');
+        if(targetTab) targetTab.classList.add('active-tab');
+        if(el) el.classList.add('active');
+        setTimeout(() => { isSwitchingTab = false; }, 200);
     }
 
     let originalProfile = { name: 'Anonymous', age: '25', gender: 'male' };
@@ -945,37 +405,47 @@
                 originalProfile = JSON.parse(saved);
                 if (originalProfile.name && originalProfile.name !== 'Anonymous' && originalProfile.name.trim() !== '') profileSet = true;
                 else profileSet = false;
-                addDebugLog('📁 Profile loaded: ' + JSON.stringify(originalProfile), 'info');
-            } catch (e) {
-                addDebugLog('❌ Error loading profile: ' + e.message, 'error');
-            }
-        } else { 
-            profileSet = false;
-            addDebugLog('📁 No saved profile found', 'warn');
-        }
-        document.getElementById('profileName').value = originalProfile.name || 'Anonymous';
-        document.getElementById('profileAge').value = originalProfile.age || '25';
+            } catch (e) {}
+        } else { profileSet = false; }
+        const nameInput = document.getElementById('profileName');
+        const ageInput = document.getElementById('profileAge');
+        if(nameInput) nameInput.value = originalProfile.name || 'Anonymous';
+        if(ageInput) ageInput.value = originalProfile.age || '25';
         document.querySelectorAll('.profile-gender-option').forEach(opt => opt.classList.remove('selected'));
         if (originalProfile.gender) {
             const selected = document.querySelector(`.profile-gender-option[data-gender="${originalProfile.gender}"]`);
-            if (selected) selected.classList.add('selected');
+            if(selected) selected.classList.add('selected');
         } else {
-            document.querySelector('.profile-gender-option[data-gender="male"]').classList.add('selected');
+            const defaultOpt = document.querySelector('.profile-gender-option[data-gender="male"]');
+            if(defaultOpt) defaultOpt.classList.add('selected');
             originalProfile.gender = 'male';
         }
-        document.getElementById('saveProfileBtn').disabled = true;
+        const saveBtn = document.getElementById('saveProfileBtn');
+        if(saveBtn) saveBtn.disabled = true;
     }
 
     function attachProfileListeners() {
         const nameInput = document.getElementById('profileName');
         const ageInput = document.getElementById('profileAge');
-        nameInput.addEventListener('input', function() { validateNameInput(); checkProfileChanges(); });
-        ageInput.addEventListener('input', checkProfileChanges);
+        if(nameInput) {
+            nameInput.removeEventListener('input', handleProfileInput);
+            nameInput.addEventListener('input', handleProfileInput);
+        }
+        if(ageInput) {
+            ageInput.removeEventListener('input', checkProfileChanges);
+            ageInput.addEventListener('input', checkProfileChanges);
+        }
+    }
+    
+    function handleProfileInput() {
+        validateNameInput();
+        checkProfileChanges();
     }
 
     function validateNameInput() {
         const nameInput = document.getElementById('profileName');
         const nameError = document.getElementById('nameError');
+        if(!nameInput || !nameError) return true;
         const hasInvalidChars = /[@0-9]/.test(nameInput.value);
         if (hasInvalidChars) {
             nameInput.classList.add('invalid');
@@ -990,7 +460,8 @@
 
     function selectGender(gender) {
         document.querySelectorAll('.profile-gender-option').forEach(opt => opt.classList.remove('selected'));
-        document.querySelector(`.profile-gender-option[data-gender="${gender}"]`).classList.add('selected');
+        const selected = document.querySelector(`.profile-gender-option[data-gender="${gender}"]`);
+        if(selected) selected.classList.add('selected');
         checkProfileChanges();
     }
 
@@ -998,170 +469,172 @@
         let gender = 'male';
         const selected = document.querySelector('.profile-gender-option.selected');
         if (selected) gender = selected.getAttribute('data-gender');
+        const nameInput = document.getElementById('profileName');
+        const ageInput = document.getElementById('profileAge');
         return {
-            name: document.getElementById('profileName').value.trim() || 'Anonymous',
-            age: document.getElementById('profileAge').value || '25',
+            name: (nameInput ? nameInput.value.trim() : 'Anonymous') || 'Anonymous',
+            age: (ageInput ? ageInput.value : '25') || '25',
             gender: gender
         };
-    }
-
-    function checkProfileChanges() {
-        const current = getCurrentProfile();
-        const saved = originalProfile;
-        const isValid = validateNameInput();
-        const changed = (current.name !== saved.name || current.age !== saved.age || current.gender !== saved.gender);
-        document.getElementById('saveProfileBtn').disabled = !(changed && isValid);
     }
 
     function saveProfile() {
         const current = getCurrentProfile();
         if (!validateNameInput()) { tg.showAlert("Name cannot contain @ symbol or numbers!"); return; }
         const saveBtn = document.getElementById('saveProfileBtn');
-        saveBtn.disabled = true;
-        addDebugLog('💾 Saving profile: ' + JSON.stringify(current), 'info');
-        AdsgramInterstitial.show().then(() => { performProfileSave(current); }).catch(() => { performProfileSave(current); });
+        if(saveBtn) saveBtn.disabled = true;
+        AdsgramInterstitial.show().then(() => performProfileSave(current)).catch(() => performProfileSave(current));
     }
     
     function performProfileSave(current) {
         localStorage.setItem('userProfile', JSON.stringify(current));
         if (userId) socket.emit('save_profile', { userId: userId, profile: current });
         originalProfile = { ...current };
-        document.getElementById('saveProfileBtn').disabled = true;
+        const saveBtn = document.getElementById('saveProfileBtn');
+        if(saveBtn) saveBtn.disabled = true;
         if (current.name && current.name !== 'Anonymous' && current.name.trim() !== '') profileSet = true;
         tg.HapticFeedback.notificationOccurred('success');
         tg.showAlert("Profile saved successfully!");
-        addDebugLog('✅ Profile saved successfully!', 'success');
-        switchTab('home', document.querySelectorAll('.nav-item')[0]);
+        const navItems = document.querySelectorAll('.nav-item');
+        if(navItems && navItems[0]) switchTab('home', navItems[0]);
     }
 
     function updateChatBadgeWithPartner(partnerName, partnerGender) {
-        document.getElementById('chatProfileName').innerText = partnerName || 'Stranger';
+        const nameSpan = document.getElementById('chatProfileName');
         const genderIcon = document.getElementById('chatGenderIcon');
-        if (partnerGender === 'male') { genderIcon.className = 'fa-solid fa-mars'; genderIcon.style.color = '#60a5fa'; }
-        else if (partnerGender === 'female') { genderIcon.className = 'fa-solid fa-venus'; genderIcon.style.color = '#f472b6'; }
-        else { genderIcon.className = 'fa-solid fa-genderless'; genderIcon.style.color = '#a3a3a3'; }
-        addDebugLog('👤 Partner badge updated: ' + partnerName + ' (' + partnerGender + ')', 'info');
+        if(nameSpan) nameSpan.innerText = partnerName || 'Stranger';
+        if(genderIcon) {
+            if (partnerGender === 'male') { genderIcon.className = 'fa-solid fa-mars'; genderIcon.style.color = '#60a5fa'; }
+            else if (partnerGender === 'female') { genderIcon.className = 'fa-solid fa-venus'; genderIcon.style.color = '#f472b6'; }
+            else { genderIcon.className = 'fa-solid fa-genderless'; genderIcon.style.color = '#a3a3a3'; }
+        }
     }
 
     function claimDaily() {
-        addDebugLog('🎁 Daily bonus claimed', 'info');
         show_9341070('pop').then(() => {
             socket.emit('claim_daily', userId);
             tg.HapticFeedback.notificationOccurred('success');
             localStorage.setItem('lastDailyBonus', new Date().toDateString());
             const btn = document.getElementById('dailyBtn');
-            btn.disabled = true;
-            btn.innerText = "Done";
+            if(btn) { btn.disabled = true; btn.innerText = "Done"; }
             tg.showAlert("You received 5 free matches! 🎉");
-            addDebugLog('✅ Daily bonus claimed successfully!', 'success');
-        }).catch(e => { 
-            addDebugLog('❌ Daily bonus ad failed: ' + (e.message || 'unknown'), 'error');
-            tg.showAlert("Please watch the full ad to claim your bonus!"); 
-        });
+        }).catch(e => { tg.showAlert("Please watch the full ad to claim your bonus!"); });
     }
 
-    function inviteFriends() { const shareLink = `https://t.me/MakefriendsglobalBot?start=${userId}`; tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=Hey! Come and chat with me on MatchMe! 💖`); addDebugLog('👥 Invite friends clicked', 'info'); }
-    function joinChannel() { tg.openTelegramLink('https://t.me/+666ngR_ca9ZmODk1'); socket.emit('social_task', userId); addDebugLog('📢 Join channel clicked', 'info'); }
+    function inviteFriends() { 
+        const shareLink = `https://t.me/MakefriendsglobalBot?start=${userId}`;
+        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=Hey! Come and chat with me on MatchMe! 💖`);
+    }
+    function joinChannel() { 
+        tg.openTelegramLink('https://t.me/+666ngR_ca9ZmODk1');
+        socket.emit('social_task', userId);
+    }
 
     function luckySpin() {
-        addDebugLog('🎡 Lucky spin clicked', 'info');
         tg.showConfirm("Do you want to use your daily Lucky Spin?", (ok) => {
             if (ok) {
                 show_9341070().then(() => {
-                    socket.emit('lucky_spin', userId); 
+                    socket.emit('lucky_spin', userId);
                     tg.HapticFeedback.impactOccurred('medium');
                     localStorage.setItem('lastLuckySpin', new Date().toDateString());
                     const btn = document.getElementById('spinBtn');
-                    btn.disabled = true;
-                    btn.innerText = "Done";
-                    btn.style.background = "#475569";
-                    addDebugLog('✅ Lucky spin completed!', 'success');
-                }).catch(() => { 
-                    addDebugLog('❌ Lucky spin ad failed', 'error');
-                    tg.showAlert("Ad not available or skipped. Please try again to spin!"); 
-                });
+                    if(btn) { btn.disabled = true; btn.innerText = "Done"; btn.style.background = "#475569"; }
+                }).catch(() => { tg.showAlert("Ad not available or skipped. Please try again to spin!"); });
             }
         });
     }
 
+    let isFindingMatch = false;
     function handleFind() {
-        addDebugLog('🔍 Find match clicked, isSearching: ' + isSearching, 'info');
-        if (!profileSet) { 
-            addDebugLog('⚠️ Profile not set, redirecting', 'warn');
-            switchTab('profile', document.querySelectorAll('.nav-item')[1]); 
-            tg.HapticFeedback.notificationOccurred('warning'); 
-            return; 
+        if(isFindingMatch) return;
+        if (!profileSet) {
+            const navItems = document.querySelectorAll('.nav-item');
+            if(navItems && navItems[1]) switchTab('profile', navItems[1]);
+            tg.HapticFeedback.notificationOccurred('warning');
+            return;
         }
         if (isSearching) { cancelSearch(); return; }
+        isFindingMatch = true;
         let searchCounter = parseInt(localStorage.getItem('mySearchCount')) || 0;
         searchCounter++;
         localStorage.setItem('mySearchCount', searchCounter);
         const showAd = (searchCounter === 2 || (searchCounter > 2 && (searchCounter - 2) % 3 === 0));
-        addDebugLog('🔍 Search count: ' + searchCounter + ', show ad: ' + showAd, 'info');
-        if (showAd) { AdsgramInterstitial.show().then(() => startSearching()).catch(() => startSearching()); } 
-        else { startSearching(); }
+        if (showAd) {
+            AdsgramInterstitial.show().then(() => { startSearching(); isFindingMatch = false; }).catch(() => { startSearching(); isFindingMatch = false; });
+        } else {
+            startSearching();
+            isFindingMatch = false;
+        }
     }
 
     function updateGenderUI() {
         let m = localStorage.getItem('m_lim') !== null ? localStorage.getItem('m_lim') : 50;
         let f = localStorage.getItem('f_lim') !== null ? localStorage.getItem('f_lim') : 50;
-        document.getElementById('m-lim').innerText = m;
-        document.getElementById('f-lim').innerText = f;
-        document.getElementById('maleBtn').style.opacity = (m <= 0) ? "0.5" : "1";
-        document.getElementById('femaleBtn').style.opacity = (f <= 0) ? "0.5" : "1";
-        addDebugLog('📊 Gender limits updated - Male: ' + m + ', Female: ' + f, 'info');
+        const mSpan = document.getElementById('m-lim');
+        const fSpan = document.getElementById('f-lim');
+        const maleBtn = document.getElementById('maleBtn');
+        const femaleBtn = document.getElementById('femaleBtn');
+        if(mSpan) mSpan.innerText = m;
+        if(fSpan) fSpan.innerText = f;
+        if(maleBtn) maleBtn.style.opacity = (m <= 0) ? "0.5" : "1";
+        if(femaleBtn) femaleBtn.style.opacity = (f <= 0) ? "0.5" : "1";
     }
 
     function handleGenderMatch(gender) {
-        addDebugLog('🎯 Gender match clicked: ' + gender, 'info');
         if (isSearching) return cancelSearch();
-        if (!profileSet) { switchTab('profile', document.querySelectorAll('.nav-item')[1]); tg.HapticFeedback.notificationOccurred('warning'); return; }
+        if (!profileSet) {
+            const navItems = document.querySelectorAll('.nav-item');
+            if(navItems && navItems[1]) switchTab('profile', navItems[1]);
+            tg.HapticFeedback.notificationOccurred('warning');
+            return;
+        }
         let key = gender === 'male' ? 'm_lim' : 'f_lim';
         let current = localStorage.getItem(key) !== null ? parseInt(localStorage.getItem(key)) : 50;
-        if(current <= 0) { 
-            tg.showAlert("Daily Limit Reached! 🚨\n\nYour free daily search for " + gender + " is over. Please try again tomorrow to get premium search!"); 
-            addDebugLog('❌ Gender limit reached for ' + gender, 'warn');
-            return; 
+        if(current <= 0) {
+            tg.showAlert("Daily Limit Reached! 🚨\n\nYour free daily search for " + gender + " is over.");
+            return;
         }
         localStorage.setItem(key, current - 1);
         updateGenderUI();
-        handleFind(); 
+        handleFind();
     }
 
     function startSearching() {
         const currentLimit = parseInt(document.getElementById('match-count').innerText);
-        addDebugLog('🔍 Starting search, current limit: ' + currentLimit, 'info');
-        if (currentLimit <= 0) { 
-            addDebugLog('⚠️ Limit reached, showing modal', 'warn');
-            document.getElementById('limit-modal').style.display = 'flex'; 
-            return; 
-        }
+        if (currentLimit <= 0) { document.getElementById('limit-modal').style.display = 'flex'; return; }
         isSearching = true;
-        document.getElementById('home-screen').style.display = 'none';
-        document.getElementById('main-header').style.display = 'none';
-        document.getElementById('bottom-nav').classList.add('hidden');
+        const homeScreen = document.getElementById('home-screen');
+        const mainHeader = document.getElementById('main-header');
+        const bottomNav = document.getElementById('bottom-nav');
+        if(homeScreen) homeScreen.style.display = 'none';
+        if(mainHeader) mainHeader.style.display = 'none';
+        if(bottomNav) bottomNav.classList.add('hidden');
         const chatArea = document.getElementById('chat-area');
-        chatArea.style.display = 'flex';
-        chatArea.innerHTML = `<div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100%;"><div class="dating-animation searching"><div class="heart-pulse"></div><i class="fa-solid fa-heart heart-icon"></i></div><p style="color:#ff99cc; font-weight:600; font-size:1.1rem; margin-top: 15px;">Searching for a partner...</p><button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px; background: rgba(255,255,255,0.1); border: 1px solid #ff99cc; color: #fff; padding: 10px; border-radius: 20px;" onclick="location.reload()">Cancel</button></div>`;
+        if(chatArea) {
+            chatArea.style.display = 'flex';
+            chatArea.innerHTML = `<div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100%;"><div class="dating-animation searching"><div class="heart-pulse"></div><i class="fa-solid fa-heart heart-icon"></i></div><p style="color:#ff99cc; font-weight:600; font-size:1.1rem; margin-top: 15px;">Searching for a partner...</p><button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px; background: rgba(255,255,255,0.1); border: 1px solid #ff99cc; color: #fff; padding: 10px; border-radius: 20px;" onclick="location.reload()">Cancel</button></div>`;
+        }
         socket.emit('find_partner_web', userId);
-        addDebugLog('📡 find_partner_web event sent', 'info');
     }
 
-    function cancelSearch() { 
-        isSearching = false; 
-        addDebugLog('❌ Search cancelled', 'warn');
-        document.body.classList.remove('searching-active'); 
-        document.getElementById('findBtn').innerText = "Start Matching"; 
-        document.getElementById('findBtn').classList.remove('btn-cancel'); 
-        document.getElementById('anim-container').classList.remove('searching'); 
-        socket.emit('cancel_search', userId); 
-        tg.HapticFeedback.impactOccurred('light'); 
+    function cancelSearch() {
+        if(!isSearching) return;
+        isSearching = false;
+        document.body.classList.remove('searching-active');
+        const findBtn = document.getElementById('findBtn');
+        if(findBtn) {
+            findBtn.innerText = "Start Matching";
+            findBtn.classList.remove('btn-cancel');
+        }
+        const animContainer = document.getElementById('anim-container');
+        if(animContainer) animContainer.classList.remove('searching');
+        socket.emit('cancel_search', userId);
+        tg.HapticFeedback.impactOccurred('light');
     }
 
     async function watchRewardAd() {
         const btn = document.getElementById('watchBtn');
-        addDebugLog('📺 Watch reward ad clicked', 'info');
-        if(btn.disabled) { tg.showAlert("Please wait for cooldown to finish (5 minutes)."); addDebugLog('⚠️ Watch ad on cooldown', 'warn'); return; }
+        if(btn.disabled) { tg.showAlert("Please wait for cooldown to finish (5 minutes)."); return; }
         btn.disabled = true;
         try {
             const result = await AdsgramRewarded.show();
@@ -1174,25 +647,21 @@
                 if(cooldownInterval) clearInterval(cooldownInterval);
                 startCooldownTimer(5 * 60 * 1000);
                 disableWatchButton(true);
-                addDebugLog('✅ Reward ad completed, +15 matches added!', 'success');
                 setTimeout(() => location.reload(), 1500);
             } else {
                 btn.disabled = false;
                 disableWatchButton(false);
-                addDebugLog('⚠️ Reward ad not completed', 'warn');
             }
         } catch (error) {
-            addDebugLog('❌ Reward ad error: ' + error.message, 'error');
             tg.showAlert("Ad failed to load or skipped.");
             btn.disabled = false;
             disableWatchButton(false);
         }
     }
 
-    // Socket event listeners with debug
+    // Socket Events
     socket.on('match_found', (partnerInfo) => {
-        addDebugLog('💖 MATCH FOUND! Partner: ' + JSON.stringify(partnerInfo), 'success');
-        isSearching = false; 
+        isSearching = false;
         tg.HapticFeedback.notificationOccurred('success');
         document.body.classList.remove('searching-active');
         if (partnerInfo && partnerInfo.partnerId) currentPartnerId = partnerInfo.partnerId;
@@ -1208,15 +677,13 @@
         showSystemMsg("❤️ You matched with a stranger!");
     });
 
-    socket.on('receive_msg', (data) => { 
-        addDebugLog('💬 Message received: ' + (data.text || 'image'), 'info');
-        tg.HapticFeedback.impactOccurred('light'); 
-        if (data.image) createBubble(data.image, 'received', true); 
-        else createBubble(data.text, 'received', false); 
+    socket.on('receive_msg', (data) => {
+        tg.HapticFeedback.impactOccurred('light');
+        if (data.image) createBubble(data.image, 'received', true);
+        else createBubble(data.text, 'received', false);
     });
     
     socket.on('chat_ended', () => {
-        addDebugLog('💔 Chat ended by partner', 'warn');
         showSystemMsg("💔 Partner left the chat.");
         document.getElementById('chat-floating-header').style.display = 'none';
         document.getElementById('input-bar').classList.add('hidden');
@@ -1228,72 +695,68 @@
         document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
     });
     
-    socket.on('user_data', (data) => { 
-        if (data && data.limit !== undefined) {
-            document.getElementById('match-count').innerText = data.limit;
-            addDebugLog('📊 User data received - limit: ' + data.limit, 'info');
-        }
+    socket.on('user_data', (data) => {
+        if (data && data.limit !== undefined) document.getElementById('match-count').innerText = data.limit;
     });
     
-    socket.on('limit_over', () => { 
-        addDebugLog('⚠️ Limit over event received', 'warn');
-        cancelSearch(); 
-        document.getElementById('limit-modal').style.display = 'flex'; 
+    socket.on('limit_over', () => {
+        cancelSearch();
+        document.getElementById('limit-modal').style.display = 'flex';
     });
 
     function handleNextMatch() {
-        addDebugLog('🔄 Next match clicked', 'info');
         currentPartnerId = null;
         const chatArea = document.getElementById('chat-area');
-        chatArea.innerHTML = `<div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;"><div class="dating-animation searching"><div class="heart-pulse"></div><i class="fa-solid fa-heart heart-icon"></i></div><p style="color:#ff99cc; font-weight:600; font-size:0.9rem; margin-top: 15px;">Searching for new partner...</p><button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px;" onclick="location.reload()">Cancel</button></div>`;
-        document.getElementById('chat-floating-header').style.display = 'none';
+        if(chatArea) {
+            chatArea.innerHTML = `<div class="chat-searching-ui" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;"><div class="dating-animation searching"><div class="heart-pulse"></div><i class="fa-solid fa-heart heart-icon"></i></div><p style="color:#ff99cc; font-weight:600; font-size:0.9rem; margin-top: 15px;">Searching for new partner...</p><button class="btn-home-end" style="width:150px; font-size:0.8rem; margin-top: 20px;" onclick="location.reload()">Cancel</button></div>`;
+        }
+        const chatHeader = document.getElementById('chat-floating-header');
+        if(chatHeader) chatHeader.style.display = 'none';
         handleFind();
     }
 
-    function sendMessage() { 
-        const inp = document.getElementById('main-input'); 
-        if(!inp.value.trim()) return; 
-        addDebugLog('💬 Sending message: ' + inp.value, 'info');
-        socket.emit('send_msg', { senderId: userId, text: inp.value }); 
-        createBubble(inp.value, 'sent', false); 
-        inp.value = ''; 
+    function sendMessage() {
+        const inp = document.getElementById('main-input');
+        if(!inp || !inp.value.trim()) return;
+        socket.emit('send_msg', { senderId: userId, text: inp.value });
+        createBubble(inp.value, 'sent', false);
+        inp.value = '';
     }
     
-    document.getElementById('main-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+    document.getElementById('main-input')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
     
-    function sendPhoto(input) { 
-        if (input.files && input.files[0]) { 
-            addDebugLog('📸 Sending photo', 'info');
-            const reader = new FileReader(); 
-            reader.onload = (e) => { 
-                createBubble(e.target.result, 'sent', true); 
-                socket.emit('send_msg', { senderId: userId, image: e.target.result }); 
-            }; 
-            reader.readAsDataURL(input.files[0]); 
-        } 
+    function sendPhoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                createBubble(e.target.result, 'sent', true);
+                socket.emit('send_msg', { senderId: userId, image: e.target.result });
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
     }
     
-    function createBubble(content, side, isImage) { 
-        const container = document.getElementById('chat-area'); 
-        const div = document.createElement('div'); 
-        div.className = `bubble ${side}`; 
-        if(isImage) div.innerHTML = `<img src="${content}" class="chat-img">`; 
-        else div.innerText = content; 
-        container.appendChild(div); 
-        container.scrollTop = container.scrollHeight; 
+    function createBubble(content, side, isImage) {
+        const container = document.getElementById('chat-area');
+        if(!container) return;
+        const div = document.createElement('div');
+        div.className = `bubble ${side}`;
+        if(isImage) div.innerHTML = `<img src="${content}" class="chat-img">`;
+        else div.innerText = content;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
     }
     
-    function showSystemMsg(msg) { 
-        const container = document.getElementById('chat-area'); 
-        const div = document.createElement('div'); 
-        div.style = "text-align:center; font-size: 0.75rem; color: #ff99cc; margin: 15px 0; font-weight: 500;"; 
-        div.innerText = msg; 
-        container.appendChild(div); 
+    function showSystemMsg(msg) {
+        const container = document.getElementById('chat-area');
+        if(!container) return;
+        const div = document.createElement('div');
+        div.style = "text-align:center; font-size: 0.75rem; color: #ff99cc; margin: 15px 0; font-weight: 500;";
+        div.innerText = msg;
+        container.appendChild(div);
     }
     
-    show_9341070({ type: 'inApp', inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 5, everyPage: false } });
-    
-    addDebugLog('🚀 App initialization complete', 'success');
+    show_9341070({ type: 'inApp', inAppSettings: { frequency: 2, capping: 0.1, interval: 30, timeout: 30, everyPage: false } });
 </script>
 </body>
 </html>

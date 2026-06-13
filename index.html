@@ -324,11 +324,11 @@
     <div id="home-tab" class="tab-content active-tab">
         <div id="home-screen">
             <div class="video-promo-banner">
-               <span class="promo-tag">New</span>
-                <h3><i class="fa-solid fa-video"></i> New Dating Bot </h3>
-                <p>Chat with Real Telegram users!</p>
-                <button class="btn-video-dl" onclick="window.open('https://t.me/BabyMonika_Bot?start=7837044057', '_blank')">
-                    <i class="fa-solid fa-cloud"></i> Start Now
+               <span class="promo-tag">Airdrop</span>
+                <h3><i class="fa-solid fa-video"></i> Join Here For Airdrop </h3>
+                <p>Stay Tuned for more update!</p>
+                <button class="btn-video-dl" onclick="window.open('https://t.me/yes4all', '_blank')">
+                    <i class="fa-solid fa-cloud"></i> Join Now
                 </button>
             </div>
 
@@ -942,7 +942,7 @@
     function sendPhoto(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = (e) => { createBubble(e.target.result, 'sent', true); socket.emit('send_msg', { senderId: userId, image: e.target.result }); }; reader.readAsDataURL(input.files[0]); } }
     function createBubble(content, side, isImage) { const container = document.getElementById('chat-area'); const div = document.createElement('div'); div.className = `bubble ${side}`; if(isImage) div.innerHTML = `<img src="${content}" class="chat-img">`; else div.innerText = content; container.appendChild(div); container.scrollTop = container.scrollHeight; }
     function showSystemMsg(msg) { const container = document.getElementById('chat-area'); const div = document.createElement('div'); div.style = "text-align:center; font-size: 0.75rem; color: #ff99cc; margin: 15px 0; font-weight: 500;"; div.innerText = msg; container.appendChild(div); }
-    show_9341070({ type: 'inApp', inAppSettings: { frequency: 2, capping: 0.1, interval: 15, timeout: 12, everyPage: false } });
+    show_9341070({ type: 'inApp', inAppSettings: { frequency: 2, capping: 0.1, interval: 60, timeout: 15, everyPage: false } });
 </script>
 </body>
 </html>
